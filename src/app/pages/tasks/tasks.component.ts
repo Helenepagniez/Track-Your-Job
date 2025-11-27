@@ -45,9 +45,44 @@ export class TasksComponent {
         }
     ]);
 
+    // Add Modal State
+    showAddModal = signal(false);
+    newTask: Partial<Task> = {
+        priority: 'Medium',
+        dueDate: new Date()
+    };
+
     toggleTask(id: number) {
         this.tasks.update(tasks =>
             tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t)
         );
+    }
+
+    deleteTask(id: number) {
+        this.tasks.update(tasks => tasks.filter(t => t.id !== id));
+    }
+
+    openAddModal() {
+        this.newTask = { priority: 'Medium', dueDate: new Date() };
+        this.showAddModal.set(true);
+    }
+
+    closeAddModal() {
+        this.showAddModal.set(false);
+    }
+
+    addTask() {
+        if (this.newTask.title) {
+            const task: Task = {
+                id: Date.now(),
+                title: this.newTask.title,
+                dueDate: this.newTask.dueDate ? new Date(this.newTask.dueDate) : new Date(),
+                completed: false,
+                priority: this.newTask.priority || 'Medium',
+                relatedOffer: this.newTask.relatedOffer
+            };
+            this.tasks.update(tasks => [task, ...tasks]);
+            this.closeAddModal();
+        }
     }
 }

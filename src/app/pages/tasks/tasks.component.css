@@ -2,8 +2,6 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
-    max-width: 800px;
-    margin: 0 auto;
 }
 
 .page-header {
@@ -12,29 +10,42 @@
     align-items: center;
 }
 
+.page-header h2 {
+    color: var(--text-color);
+    margin: 0;
+}
+
 .tasks-list {
-    background-color: var(--surface-color);
-    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     padding: 20px;
-    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius-md);
 }
 
 .task-item {
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 15px 0;
-    border-bottom: 1px solid var(--border-color);
-    transition: opacity 0.3s ease;
+    padding: 15px;
+    background-color: var(--background-color);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
 }
 
-.task-item:last-child {
-    border-bottom: none;
+.task-item:hover {
+    transform: translateX(5px);
+    border-color: var(--primary-color);
 }
 
-.task-item.completed .task-content {
-    opacity: 0.5;
+.task-item.completed {
+    opacity: 0.7;
+}
+
+.task-item.completed .task-title {
     text-decoration: line-through;
+    color: var(--text-secondary);
 }
 
 .task-checkbox input {
@@ -46,41 +57,42 @@
 
 .task-content {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
 .task-title-row {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 5px;
 }
 
 .task-title {
-    font-weight: 600;
+    font-weight: 500;
     color: var(--text-color);
 }
 
 .priority-badge {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     padding: 2px 8px;
-    border-radius: 10px;
-    text-transform: uppercase;
-    font-weight: 700;
+    border-radius: 12px;
+    font-weight: 600;
 }
 
 .priority-badge.high {
-    background-color: rgba(214, 48, 49, 0.1);
-    color: var(--danger-color);
+    background-color: rgba(255, 68, 68, 0.1);
+    color: #ff4444;
 }
 
 .priority-badge.medium {
-    background-color: rgba(253, 203, 110, 0.1);
-    color: var(--warning-color);
+    background-color: rgba(255, 187, 51, 0.1);
+    color: #ffbb33;
 }
 
 .priority-badge.low {
-    background-color: rgba(0, 184, 148, 0.1);
-    color: var(--success-color);
+    background-color: rgba(0, 200, 81, 0.1);
+    color: #00c851;
 }
 
 .task-meta {
@@ -96,14 +108,104 @@
     gap: 5px;
 }
 
+.due-date.overdue {
+    color: #ff4444;
+}
+
 .task-actions .btn-icon {
     background: none;
     border: none;
     cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s ease;
+    font-size: 1.1rem;
+    opacity: 0.5;
+    transition: opacity 0.2s;
 }
 
-.task-item:hover .task-actions .btn-icon {
+.task-actions .btn-icon:hover {
     opacity: 1;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    border-radius: var(--radius-md);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: inherit;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
 }

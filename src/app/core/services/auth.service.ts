@@ -7,6 +7,10 @@ export interface User {
     email: string;
     authMethod: 'email' | 'google';
     createdAt: Date;
+    title?: string;
+    location?: string;
+    bio?: string;
+    skills?: string[];
 }
 
 @Injectable({

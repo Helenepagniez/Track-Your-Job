@@ -32,6 +32,11 @@ export class ProfileComponent implements OnInit {
             this.user.firstName = nameParts[0] || '';
             this.user.lastName = nameParts.slice(1).join(' ') || '';
             this.user.email = currentUser.email;
+
+            if (currentUser.title) this.user.title = currentUser.title;
+            if (currentUser.location) this.user.location = currentUser.location;
+            if (currentUser.bio) this.user.bio = currentUser.bio;
+            if (currentUser.skills) this.user.skills = currentUser.skills;
         }
     }
 
@@ -42,6 +47,13 @@ export class ProfileComponent implements OnInit {
     saveProfile() {
         this.isEditing = false;
         const fullName = `${this.user.firstName} ${this.user.lastName}`.trim();
-        this.authService.updateUserProfile({ fullName });
+
+        this.authService.updateUserProfile({
+            fullName,
+            title: this.user.title,
+            location: this.user.location,
+            bio: this.user.bio,
+            skills: this.user.skills
+        });
     }
 }
