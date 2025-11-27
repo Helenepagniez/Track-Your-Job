@@ -1,0 +1,75 @@
+<div class="stats-container">
+    <h2>Statistiques</h2>
+
+    <div class="kpi-grid">
+        <div class="card kpi-card">
+            <h3>Total Candidatures</h3>
+            <div class="value">45</div>
+            <div class="trend up">+12% ce mois</div>
+        </div>
+        <div class="card kpi-card">
+            <h3>Taux de Réponse</h3>
+            <div class="value">15%</div>
+            <div class="trend down">-2% ce mois</div>
+        </div>
+        <div class="card kpi-card">
+            <h3>Entretiens</h3>
+            <div class="value">8</div>
+            <div class="trend up">+3 ce mois</div>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="card chart-card full-width">
+            <h3>Évolution des candidatures</h3>
+            <div class="mock-chart line-chart">
+                <!-- Mock Line Chart Visual -->
+                <svg viewBox="0 0 100 30" class="chart-svg">
+                    <polyline points="0,25 10,20 20,22 30,15 40,18 50,10 60,12 70,5 80,8 90,3 100,5" fill="none"
+                        stroke="var(--primary-color)" stroke-width="2" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="card chart-card">
+            <h3>Statuts</h3>
+            <div class="mock-chart pie-chart">
+                <div class="pie-segment" style="--offset: 0; --value: 60; --bg: var(--primary-color)"></div>
+                <div class="pie-segment" style="--offset: 60; --value: 20; --bg: var(--warning-color)"></div>
+                <div class="pie-segment" style="--offset: 80; --value: 20; --bg: var(--danger-color)"></div>
+                <div class="pie-center"></div>
+            </div>
+            <div class="chart-legend">
+                <div class="legend-item"><span class="dot" style="background: var(--primary-color)"></span> En cours
+                </div>
+                <div class="legend-item"><span class="dot" style="background: var(--warning-color)"></span> Entretien
+                </div>
+                <div class="legend-item"><span class="dot" style="background: var(--danger-color)"></span> Refus</div>
+            </div>
+        </div>
+
+        <div class="card chart-card">
+            <h3>Sources</h3>
+            <div class="mock-chart bar-chart-horizontal">
+                <div class="bar-row">
+                    <span>LinkedIn</span>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: 80%"></div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <span>Indeed</span>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: 45%"></div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <span>Site Web</span>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: 30%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

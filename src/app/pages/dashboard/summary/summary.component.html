@@ -1,0 +1,69 @@
+<div class="summary-container">
+    <h2>Vue d'ensemble</h2>
+
+    <div class="stats-grid">
+        <div class="card stat-card" *ngFor="let stat of stats">
+            <div class="stat-icon" [style.background-color]="stat.color + '20'" [style.color]="stat.color">
+                {{ stat.icon }}
+            </div>
+            <div class="stat-info">
+                <h3>{{ stat.value }}</h3>
+                <p>{{ stat.title }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <div class="card activity-card">
+            <div class="card-header">
+                <h3>Activité Récente</h3>
+                <button class="btn btn-outline btn-sm">Voir tout</button>
+            </div>
+            <div class="activity-list">
+                <div class="activity-item" *ngFor="let activity of recentActivities">
+                    <div class="activity-icon">
+                        <span *ngIf="activity.type === 'Candidature'">📤</span>
+                        <span *ngIf="activity.type === 'Entretien'">📅</span>
+                        <span *ngIf="activity.type === 'Tâche'">✅</span>
+                    </div>
+                    <div class="activity-details">
+                        <h4>{{ activity.company || activity.title }}</h4>
+                        <p>{{ activity.type }} • {{ activity.date }}</p>
+                    </div>
+                    <div class="activity-status badge">{{ activity.status }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card chart-card">
+            <div class="card-header">
+                <h3>Taux de Réponse</h3>
+            </div>
+            <div class="chart-placeholder">
+                <!-- Simple CSS Bar Chart Mockup -->
+                <div class="bar-chart">
+                    <div class="bar-group">
+                        <div class="bar" style="height: 60%; background-color: var(--primary-color)"></div>
+                        <span>Lun</span>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar" style="height: 80%; background-color: var(--primary-color)"></div>
+                        <span>Mar</span>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar" style="height: 40%; background-color: var(--primary-color)"></div>
+                        <span>Mer</span>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar" style="height: 90%; background-color: var(--primary-color)"></div>
+                        <span>Jeu</span>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar" style="height: 50%; background-color: var(--primary-color)"></div>
+                        <span>Ven</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

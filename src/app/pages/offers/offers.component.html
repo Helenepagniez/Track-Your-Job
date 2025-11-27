@@ -1,0 +1,58 @@
+<div class="offers-container">
+    <div class="page-header">
+        <h2>Mes Offres</h2>
+        <button class="btn btn-primary">
+            <span>+</span> Ajouter une offre
+        </button>
+    </div>
+
+    <div class="filters-bar glass">
+        <div class="search-box">
+            <i class="icon">🔍</i>
+            <input type="text" placeholder="Rechercher une offre..." class="search-input">
+        </div>
+        <div class="filter-options">
+            <select class="form-select">
+                <option value="">Tous les statuts</option>
+                <option value="To Apply">À postuler</option>
+                <option value="Applied">En attente</option>
+                <option value="Interview">Entretien</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="offers-grid">
+        <div class="card offer-card" *ngFor="let offer of offers()">
+            <div class="offer-header">
+                <div class="company-logo">{{ offer.company.charAt(0) }}</div>
+                <div class="offer-main-info">
+                    <h3>{{ offer.title }}</h3>
+                    <p class="company-name">{{ offer.company }}</p>
+                </div>
+                <div class="offer-actions">
+                    <button class="btn-icon">⋮</button>
+                </div>
+            </div>
+
+            <div class="offer-details">
+                <div class="detail-item">
+                    <i class="icon">📍</i> {{ offer.location }}
+                </div>
+                <div class="detail-item" *ngIf="offer.salary">
+                    <i class="icon">💰</i> {{ offer.salary }}
+                </div>
+                <div class="detail-item">
+                    <i class="icon">📅</i> {{ offer.dateAdded | date:'dd MMM yyyy' }}
+                </div>
+            </div>
+
+            <div class="offer-footer">
+                <span class="status-badge" [style.background-color]="statusColors[offer.status] + '20'"
+                    [style.color]="statusColors[offer.status]">
+                    {{ getStatusLabel(offer.status) }}
+                </span>
+                <button class="btn btn-outline btn-sm">Voir détails</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,34 @@
+<div class="tasks-container">
+    <div class="page-header">
+        <h2>Mes Tâches</h2>
+        <button class="btn btn-primary">
+            <span>+</span> Nouvelle Tâche
+        </button>
+    </div>
+
+    <div class="tasks-list glass">
+        <div class="task-item" *ngFor="let task of tasks()" [class.completed]="task.completed">
+            <div class="task-checkbox">
+                <input type="checkbox" [checked]="task.completed" (change)="toggleTask(task.id)">
+            </div>
+            <div class="task-content">
+                <div class="task-title-row">
+                    <span class="task-title">{{ task.title }}</span>
+                    <span class="priority-badge" [class]="task.priority.toLowerCase()">{{ task.priority }}</span>
+                </div>
+                <div class="task-meta">
+                    <span *ngIf="task.relatedOffer" class="related-offer">
+                        <i class="icon">💼</i> {{ task.relatedOffer }}
+                    </span>
+                    <span class="due-date" [class.overdue]="!task.completed && task.dueDate < (tasks()[0].dueDate)">
+                        <!-- Mock overdue check logic -->
+                        <i class="icon">📅</i> {{ task.dueDate | date:'dd MMM' }}
+                    </span>
+                </div>
+            </div>
+            <div class="task-actions">
+                <button class="btn-icon">🗑️</button>
+            </div>
+        </div>
+    </div>
+</div>
