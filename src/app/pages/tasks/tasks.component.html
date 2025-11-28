@@ -1,12 +1,25 @@
 <div class="tasks-container">
     <div class="page-header">
-        <h2>Mes Tâches</h2>
+        <div class="header-left">
+            <h2>Mes Tâches</h2>
+            <div class="view-toggle">
+                <button class="toggle-btn" [class.active]="viewMode() === 'list'" (click)="setViewMode('list')"
+                    title="Vue Liste">
+                    <span>📋</span>
+                </button>
+                <button class="toggle-btn" [class.active]="viewMode() === 'kanban'" (click)="setViewMode('kanban')"
+                    title="Vue Kanban">
+                    <span>📊</span>
+                </button>
+            </div>
+        </div>
         <button class="btn btn-primary" (click)="openAddModal()">
             <span>+</span> Nouvelle Tâche
         </button>
     </div>
 
-    <div class="tasks-list glass">
+    <!-- List View -->
+    <div class="tasks-list glass" *ngIf="viewMode() === 'list'">
         <div class="task-item" *ngFor="let task of tasks()" [class.completed]="task.completed">
             <div class="task-checkbox">
                 <input type="checkbox" [checked]="task.completed" (change)="toggleTask(task.id)">
@@ -15,19 +28,109 @@
                 <div class="task-title-row">
                     <span class="task-title">{{ task.title }}</span>
                     <span class="priority-badge" [class]="task.priority.toLowerCase()">{{ task.priority }}</span>
+                    <span class="status-badge-small" [class]="task.status"
+                        *ngIf="task.status !== 'todo' && !task.completed">
+                        {{ task.status === 'in_progress' ? 'En cours' : '' }}
+                    </span>
                 </div>
                 <div class="task-meta">
                     <span *ngIf="task.relatedOffer" class="related-offer">
                         <i class="icon">💼</i> {{ task.relatedOffer }}
                     </span>
                     <span class="due-date" [class.overdue]="!task.completed && task.dueDate < (tasks()[0].dueDate)">
-                        <!-- Mock overdue check logic -->
                         <i class="icon">📅</i> {{ task.dueDate | date:'dd MMM' }}
                     </span>
                 </div>
             </div>
             <div class="task-actions">
                 <button class="btn-icon" (click)="deleteTask(task.id)">🗑️</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kanban View -->
+    <div class="kanban-board" *ngIf="viewMode() === 'kanban'">
+        <!-- Todo Column -->
+        <div class="kanban-column todo">
+            <div class="column-header">
+                <h3>À faire</h3>
+                <span class="count">{{ todoTasks().length }}</span>
+            </div>
+            <div class="column-content">
+                <div class="kanban-card" *ngFor="let task of todoTasks()">
+                    <div class="card-header">
+                        <span class="priority-dot" [class]="task.priority.toLowerCase()"></span>
+                        <span class="priority-text">{{ task.priority }}</span>
+                        <button class="btn-icon-sm" (click)="deleteTask(task.id)">×</button>
+                    </div>
+                    <h4>{{ task.title }}</h4>
+                    <div class="card-meta" *ngIf="task.relatedOffer">
+                        <i class="icon">💼</i> {{ task.relatedOffer }}
+                    </div>
+                    <div class="card-footer">
+                        <span class="due-date">📅 {{ task.dueDate | date:'dd MMM' }}</span>
+                        <button class="btn-move" (click)="updateTaskStatus(task.id, 'in_progress')">
+                            Start →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- In Progress Column -->
+        <div class="kanban-column in-progress">
+            <div class="column-header">
+                <h3>En cours</h3>
+                <span class="count">{{ inProgressTasks().length }}</span>
+            </div>
+            <div class="column-content">
+                <div class="kanban-card" *ngFor="let task of inProgressTasks()">
+                    <div class="card-header">
+                        <span class="priority-dot" [class]="task.priority.toLowerCase()"></span>
+                        <span class="priority-text">{{ task.priority }}</span>
+                        <button class="btn-icon-sm" (click)="deleteTask(task.id)">×</button>
+                    </div>
+                    <h4>{{ task.title }}</h4>
+                    <div class="card-meta" *ngIf="task.relatedOffer">
+                        <i class="icon">💼</i> {{ task.relatedOffer }}
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn-move" (click)="updateTaskStatus(task.id, 'todo')">
+                            ←
+                        </button>
+                        <span class="due-date">📅 {{ task.dueDate | date:'dd MMM' }}</span>
+                        <button class="btn-move" (click)="updateTaskStatus(task.id, 'done')">
+                            Done →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Done Column -->
+        <div class="kanban-column done">
+            <div class="column-header">
+                <h3>Terminé</h3>
+                <span class="count">{{ doneTasks().length }}</span>
+            </div>
+            <div class="column-content">
+                <div class="kanban-card completed" *ngFor="let task of doneTasks()">
+                    <div class="card-header">
+                        <span class="priority-dot" [class]="task.priority.toLowerCase()"></span>
+                        <span class="priority-text">{{ task.priority }}</span>
+                        <button class="btn-icon-sm" (click)="deleteTask(task.id)">×</button>
+                    </div>
+                    <h4>{{ task.title }}</h4>
+                    <div class="card-meta" *ngIf="task.relatedOffer">
+                        <i class="icon">💼</i> {{ task.relatedOffer }}
+                    </div>
+                    <div class="card-footer">
+                        <span class="due-date">📅 {{ task.dueDate | date:'dd MMM' }}</span>
+                        <button class="btn-move" (click)="updateTaskStatus(task.id, 'in_progress')">
+                            ← Reopen
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
