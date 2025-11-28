@@ -167,6 +167,10 @@
     border: 1px solid var(--border-color);
 }
 
+.stepper-modal {
+    max-width: 800px;
+}
+
 .modal-header {
     padding: 20px;
     border-bottom: 1px solid var(--border-color);
@@ -200,33 +204,40 @@
     gap: 10px;
 }
 
-.form-group {
-    margin-bottom: 15px;
+/* Menu Trigger */
+.menu-trigger {
+    color: var(--text-secondary) !important;
 }
 
-.form-label {
-    display: block;
-    margin-bottom: 5px;
-    color: var(--text-color);
+.menu-trigger:hover {
+    color: var(--text-color) !important;
+}
+
+/* Confirm Modal */
+.confirm-modal {
+    max-width: 400px;
+}
+
+.confirm-modal .modal-body {
+    padding: 30px 20px;
+}
+
+.confirm-modal .modal-body p {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
     font-weight: 500;
 }
 
-.form-control {
-    width: 100%;
-    padding: 10px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-color);
-    background-color: var(--background-color);
-    color: var(--text-color);
-    font-family: inherit;
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
-
-textarea.form-control {
-    resize: vertical;
-    min-height: 100px;
+.btn-danger:hover {
+    opacity: 0.9;
 }

@@ -1,62 +1,33 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-interface JobOffer {
-    id: number;
-    title: string;
-    company: string;
-    status: 'To Apply' | 'Applied' | 'Interview' | 'Offer' | 'Rejected';
-    location: string;
-    salary?: string;
-    dateAdded: Date;
-    description?: string;
-    companyInfo?: {
-        employees?: number;
-        founded?: number;
-        group?: string;
-    };
-}
+import { Router, RouterModule } from '@angular/router';
+import { OffersService, JobOffer } from '../../core/services/offers.service';
+import { OfferFormComponent } from '../../components/offer-form/offer-form.component';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
     selector: 'app-offers',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [
+        CommonModule,
+        FormsModule,
+        RouterModule,
+        OfferFormComponent,
+        MatMenuModule,
+        MatIconModule,
+        MatButtonModule
+    ],
     templateUrl: './offers.component.html',
     styleUrl: './offers.component.css'
 })
 export class OffersComponent {
-    offers = signal<JobOffer[]>([
-        {
-            id: 1,
-            title: 'Senior Angular Developer',
-            company: 'Tech Solutions Inc.',
-            status: 'Interview',
-            location: 'Paris, France',
-            salary: '60k - 75k €',
-            dateAdded: new Date('2023-10-25'),
-            description: 'We are looking for an experienced Angular developer to lead our frontend team.',
-            companyInfo: { employees: 500, founded: 2010 }
-        },
-        {
-            id: 2,
-            title: 'Frontend Engineer',
-            company: 'Creative Agency',
-            status: 'Applied',
-            location: 'Remote',
-            dateAdded: new Date('2023-11-01'),
-            description: 'Join our creative team to build stunning web experiences.'
-        },
-        {
-            id: 3,
-            title: 'Full Stack Developer',
-            company: 'Startup Nation',
-            status: 'To Apply',
-            location: 'Lyon, France',
-            dateAdded: new Date('2023-11-05'),
-            description: 'Full stack role using Angular and Node.js.'
-        }
-    ]);
+    private offersService = inject(OffersService);
+    private router = inject(Router);
+
+    offers = this.offersService.offers;
 
     // Search & Filter
     searchTerm = signal('');
@@ -74,16 +45,11 @@ export class OffersComponent {
         });
     });
 
-    // Add Modal State
+    // Modal State
     showAddModal = signal(false);
-    newOffer: Partial<JobOffer> = {
-        status: 'To Apply',
-        dateAdded: new Date()
-    };
-
-    // Detail Modal State
-    showDetailModal = signal(false);
-    selectedOffer = signal<JobOffer | null>(null);
+    editingOffer = signal<JobOffer | null>(null);
+    showDeleteConfirm = signal(false);
+    offerToDelete = signal<number | null>(null);
 
     statusColors: Record<string, string> = {
         'To Apply': 'var(--text-secondary)',
@@ -104,41 +70,64 @@ export class OffersComponent {
         return labels[status] || status;
     }
 
+    // Navigation
+    viewDetails(id: number) {
+        this.router.navigate(['/dashboard/offers', id]);
+    }
+
     // Modal Methods
-    openAddModal() {
-        this.newOffer = { status: 'To Apply', dateAdded: new Date() };
+    openAddModal(offer?: JobOffer) {
+        if (offer) {
+            this.editingOffer.set(offer);
+        } else {
+            this.editingOffer.set(null);
+        }
         this.showAddModal.set(true);
     }
 
     closeAddModal() {
         this.showAddModal.set(false);
+        this.editingOffer.set(null);
     }
 
-    submitOffer() {
-        if (this.newOffer.title && this.newOffer.company) {
-            const offer: JobOffer = {
-                id: Date.now(),
-                title: this.newOffer.title!,
-                company: this.newOffer.company!,
-                status: this.newOffer.status as any || 'To Apply',
-                location: this.newOffer.location || 'Remote',
-                salary: this.newOffer.salary,
-                dateAdded: new Date(),
-                description: this.newOffer.description,
-                companyInfo: this.newOffer.companyInfo
+    onSaveOffer(offerData: Partial<JobOffer>) {
+        if (this.editingOffer()) {
+            const updatedOffer: JobOffer = {
+                ...this.editingOffer()!,
+                ...offerData
             };
-            this.offers.update(offers => [offer, ...offers]);
-            this.closeAddModal();
+            this.offersService.updateOffer(updatedOffer);
+        } else {
+            const newOffer: JobOffer = {
+                id: Date.now(),
+                dateAdded: new Date(),
+                title: offerData.title!,
+                company: offerData.company!,
+                status: offerData.status as any || 'To Apply',
+                location: offerData.location || 'Remote',
+                ...offerData
+            } as JobOffer;
+            this.offersService.addOffer(newOffer);
         }
+        this.closeAddModal();
     }
 
-    openDetailModal(offer: JobOffer) {
-        this.selectedOffer.set(offer);
-        this.showDetailModal.set(true);
+    // Delete Logic
+    confirmDelete(id: number, event: Event) {
+        event.stopPropagation();
+        this.offerToDelete.set(id);
+        this.showDeleteConfirm.set(true);
     }
 
-    closeDetailModal() {
-        this.showDetailModal.set(false);
-        this.selectedOffer.set(null);
+    cancelDelete() {
+        this.showDeleteConfirm.set(false);
+        this.offerToDelete.set(null);
+    }
+
+    deleteOffer() {
+        if (this.offerToDelete()) {
+            this.offersService.deleteOffer(this.offerToDelete()!);
+            this.cancelDelete();
+        }
     }
 }

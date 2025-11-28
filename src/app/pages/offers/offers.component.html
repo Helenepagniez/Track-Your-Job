@@ -25,7 +25,7 @@
     </div>
 
     <div class="offers-grid">
-        <div class="card offer-card" *ngFor="let offer of filteredOffers()">
+        <div class="card offer-card" *ngFor="let offer of filteredOffers(); let i = index">
             <div class="offer-header">
                 <div class="company-logo">{{ offer.company.charAt(0) }}</div>
                 <div class="offer-main-info">
@@ -33,7 +33,20 @@
                     <p class="company-name">{{ offer.company }}</p>
                 </div>
                 <div class="offer-actions">
-                    <button class="btn-icon">⋮</button>
+                    <button mat-icon-button [matMenuTriggerFor]="offerMenu" class="menu-trigger"
+                        (click)="$event.stopPropagation()">
+                        <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #offerMenu="matMenu">
+                        <button mat-menu-item (click)="openAddModal(offer)">
+                            <mat-icon>edit</mat-icon>
+                            <span>Modifier</span>
+                        </button>
+                        <button mat-menu-item (click)="confirmDelete(offer.id, $event)">
+                            <mat-icon>delete</mat-icon>
+                            <span>Supprimer</span>
+                        </button>
+                    </mat-menu>
                 </div>
             </div>
 
@@ -54,102 +67,39 @@
                     [style.color]="statusColors[offer.status]">
                     {{ getStatusLabel(offer.status) }}
                 </span>
-                <button class="btn btn-outline btn-sm" (click)="openDetailModal(offer)">Voir détails</button>
+                <button class="btn btn-outline btn-sm" (click)="viewDetails(offer.id)">Voir détails</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Add Offer Modal -->
+<!-- Add/Edit Offer Modal -->
 <div class="modal-overlay" *ngIf="showAddModal()" (click)="closeAddModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-content stepper-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
-            <h3>Ajouter une offre</h3>
+            <h3>{{ editingOffer() ? 'Modifier l\'offre' : 'Ajouter une offre' }}</h3>
             <button class="close-btn" (click)="closeAddModal()">×</button>
         </div>
         <div class="modal-body">
-            <div class="form-group">
-                <label class="form-label">Titre du poste</label>
-                <input type="text" class="form-control" [(ngModel)]="newOffer.title"
-                    placeholder="Ex: Développeur Angular">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Entreprise</label>
-                <input type="text" class="form-control" [(ngModel)]="newOffer.company" placeholder="Ex: Google">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Lieu</label>
-                <input type="text" class="form-control" [(ngModel)]="newOffer.location"
-                    placeholder="Ex: Paris / Remote">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Salaire (optionnel)</label>
-                <input type="text" class="form-control" [(ngModel)]="newOffer.salary" placeholder="Ex: 45k - 55k">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Description</label>
-                <textarea class="form-control" [(ngModel)]="newOffer.description"
-                    placeholder="Détails du poste..."></textarea>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Statut</label>
-                <select class="form-control" [(ngModel)]="newOffer.status">
-                    <option value="To Apply">À postuler</option>
-                    <option value="Applied">En attente</option>
-                    <option value="Interview">Entretien</option>
-                    <option value="Offer">Offre reçue</option>
-                    <option value="Rejected">Refusé</option>
-                </select>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-outline" (click)="closeAddModal()">Annuler</button>
-            <button class="btn btn-primary" (click)="submitOffer()">Ajouter</button>
+            <app-offer-form [offer]="editingOffer()" (save)="onSaveOffer($event)" (cancel)="closeAddModal()">
+            </app-offer-form>
         </div>
     </div>
 </div>
 
-<!-- View Detail Modal -->
-<div class="modal-overlay" *ngIf="showDetailModal()" (click)="closeDetailModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()" *ngIf="selectedOffer() as offer">
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showDeleteConfirm()" (click)="cancelDelete()">
+    <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
-            <h3>{{ offer.title }}</h3>
-            <button class="close-btn" (click)="closeDetailModal()">×</button>
+            <h3>Supprimer l'offre ?</h3>
+            <button class="close-btn" (click)="cancelDelete()">×</button>
         </div>
         <div class="modal-body">
-            <div class="detail-item">
-                <strong>Entreprise:</strong> {{ offer.company }}
-            </div>
-            <div class="detail-item">
-                <strong>Lieu:</strong> {{ offer.location }}
-            </div>
-            <div class="detail-item">
-                <strong>Statut:</strong>
-                <span class="status-badge" [style.background-color]="statusColors[offer.status] + '20'"
-                    [style.color]="statusColors[offer.status]">
-                    {{ getStatusLabel(offer.status) }}
-                </span>
-            </div>
-            <div class="detail-item" *ngIf="offer.salary">
-                <strong>Salaire:</strong> {{ offer.salary }}
-            </div>
-            <div class="detail-item" *ngIf="offer.description">
-                <strong>Description:</strong>
-                <p>{{ offer.description }}</p>
-            </div>
-            <div class="detail-item">
-                <strong>Ajouté le:</strong> {{ offer.dateAdded | date:'fullDate' }}
-            </div>
-            <div class="detail-item" *ngIf="offer.companyInfo">
-                <strong>Infos Entreprise:</strong>
-                <ul style="list-style: none; padding-left: 0;">
-                    <li *ngIf="offer.companyInfo.employees">Employés: {{ offer.companyInfo.employees }}</li>
-                    <li *ngIf="offer.companyInfo.founded">Fondée en: {{ offer.companyInfo.founded }}</li>
-                </ul>
-            </div>
+            <p>Êtes-vous sûr de vouloir supprimer cette offre ? Cette action est irréversible.</p>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-primary" (click)="closeDetailModal()">Fermer</button>
+            <button class="btn btn-outline" (click)="cancelDelete()">Annuler</button>
+            <button class="btn btn-danger" (click)="deleteOffer()">Supprimer</button>
         </div>
     </div>
 </div>

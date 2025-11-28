@@ -1,0 +1,152 @@
+<div class="detail-container" *ngIf="offer() as o">
+    <!-- Breadcrumb & Back -->
+    <div class="nav-header">
+        <button class="btn-back" routerLink="/dashboard/offers">
+            ← Retour
+        </button>
+        <div class="breadcrumb">
+            <span class="crumb-link" routerLink="/dashboard/offers">Mes Offres</span>
+            <span class="separator">></span>
+            <span class="current">{{ o.title }}</span>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <div class="offer-header-card glass">
+        <div class="header-main">
+            <div class="company-logo">{{ o.company.charAt(0) }}</div>
+            <div class="header-info">
+                <h1>{{ o.title }}</h1>
+                <div class="subtitle">
+                    <span class="company">{{ o.company }}</span>
+                    <span class="separator">•</span>
+                    <span class="location">📍 {{ o.location }}</span>
+                    <span class="separator">•</span>
+                    <span class="date">Ajouté le {{ o.dateAdded | date:'dd MMM yyyy' }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <span class="status-badge" [style.background-color]="statusColors[o.status] + '20'"
+                [style.color]="statusColors[o.status]">
+                {{ getStatusLabel(o.status) }}
+            </span>
+            <div class="action-buttons">
+                <button class="btn btn-outline" (click)="openEditModal()">
+                    ✎ Modifier
+                </button>
+                <button class="btn btn-danger" (click)="confirmDelete()">
+                    🗑️ Supprimer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="content-grid">
+        <!-- Main Info -->
+        <div class="main-column">
+            <div class="card section">
+                <h3>Description du poste</h3>
+                <div class="info-block" *ngIf="o.missions">
+                    <h4>Missions</h4>
+                    <p>{{ o.missions }}</p>
+                </div>
+                <div class="info-block" *ngIf="o.profile">
+                    <h4>Profil recherché</h4>
+                    <p>{{ o.profile }}</p>
+                </div>
+                <div class="info-block" *ngIf="o.description && !o.missions">
+                    <h4>Description</h4>
+                    <p>{{ o.description }}</p>
+                </div>
+            </div>
+
+            <div class="card section" *ngIf="o.companyDescription">
+                <h3>À propos de l'entreprise</h3>
+                <p>{{ o.companyDescription }}</p>
+                <div class="company-stats" *ngIf="o.companyInfo">
+                    <div class="stat" *ngIf="o.companyInfo.employees">
+                        <span class="label">Employés</span>
+                        <span class="value">{{ o.companyInfo.employees }}</span>
+                    </div>
+                    <div class="stat" *ngIf="o.companyInfo.founded">
+                        <span class="label">Fondée en</span>
+                        <span class="value">{{ o.companyInfo.founded }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Info -->
+        <div class="sidebar-column">
+            <div class="card section">
+                <h3>Détails clés</h3>
+                <ul class="key-details">
+                    <li *ngIf="o.contractType">
+                        <span class="icon">📄</span>
+                        <div>
+                            <span class="label">Contrat</span>
+                            <span class="value">{{ o.contractType }}</span>
+                        </div>
+                    </li>
+                    <li *ngIf="o.salary">
+                        <span class="icon">💰</span>
+                        <div>
+                            <span class="label">Salaire</span>
+                            <span class="value">{{ o.salary }}</span>
+                        </div>
+                    </li>
+                    <li *ngIf="o.link">
+                        <span class="icon">🔗</span>
+                        <div>
+                            <span class="label">Lien</span>
+                            <a [href]="o.link" target="_blank" class="link">Voir l'annonce</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card section" *ngIf="o.benefits">
+                <h3>Avantages</h3>
+                <p>{{ o.benefits }}</p>
+            </div>
+
+            <div class="card section" *ngIf="o.recruitmentProcess">
+                <h3>Processus de recrutement</h3>
+                <p>{{ o.recruitmentProcess }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" *ngIf="showEditModal()" (click)="closeEditModal()">
+    <div class="modal-content stepper-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Modifier l'offre</h3>
+            <button class="close-btn" (click)="closeEditModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <app-offer-form [offer]="offer() || null" (save)="onUpdateOffer($event)" (cancel)="closeEditModal()">
+            </app-offer-form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showDeleteConfirm()" (click)="cancelDelete()">
+    <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Supprimer l'offre ?</h3>
+            <button class="close-btn" (click)="cancelDelete()">×</button>
+        </div>
+        <div class="modal-body">
+            <p>Êtes-vous sûr de vouloir supprimer cette offre ? Cette action est irréversible.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" (click)="cancelDelete()">Annuler</button>
+            <button class="btn btn-danger" (click)="deleteOffer()">Supprimer</button>
+        </div>
+    </div>
+</div>
