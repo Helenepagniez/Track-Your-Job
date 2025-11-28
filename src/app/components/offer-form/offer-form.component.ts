@@ -22,6 +22,7 @@ import { JobOffer } from '../../core/services/offers.service';
         MatSelectModule,
         MatOptionModule
     ],
+    styleUrl: './offer-form.component.css',
     template: `
         <div class="stepper-container">
             <mat-stepper [linear]="true" #stepper>
