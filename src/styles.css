@@ -1,10 +1,14 @@
 /* Global Styles */
 :root {
   /* Light Mode Palette */
-  --primary-color: #0056b3; /* Deep Blue */
-  --secondary-color: #00a8ff; /* Light Blue */
-  --accent-color: #00d2d3; /* Cyan Accent */
-  --background-color: #f4f7f6; /* Very Light Grey/White */
+  --primary-color: #0056b3;
+  /* Deep Blue */
+  --secondary-color: #00a8ff;
+  /* Light Blue */
+  --accent-color: #00d2d3;
+  /* Cyan Accent */
+  --background-color: #f4f7f6;
+  /* Very Light Grey/White */
   --surface-color: #ffffff;
   --text-color: #2d3436;
   --text-secondary: #636e72;
@@ -12,9 +16,9 @@
   --success-color: #00b894;
   --warning-color: #fdcb6e;
   --danger-color: #d63031;
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
@@ -26,14 +30,15 @@
   --primary-color: #3498db;
   --secondary-color: #2980b9;
   --accent-color: #00cec9;
-  --background-color: #1e272e; /* Dark Blue/Grey */
+  --background-color: #1e272e;
+  /* Dark Blue/Grey */
   --surface-color: #2d3436;
   --text-color: #dfe6e9;
   --text-secondary: #b2bec3;
   --border-color: #636e72;
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.5);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
 }
 
 * {
@@ -50,7 +55,12 @@ body {
   line-height: 1.6;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: 1rem;
@@ -117,7 +127,9 @@ button {
 
 .btn-outline:hover {
   background-color: var(--primary-color);
-  color: white;
+  color: var(--surface-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .card {
@@ -162,5 +174,12 @@ button {
   box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
 }
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}

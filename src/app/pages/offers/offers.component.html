@@ -33,8 +33,7 @@
                     <p class="company-name">{{ offer.company }}</p>
                 </div>
                 <div class="offer-actions">
-                    <button mat-icon-button [matMenuTriggerFor]="offerMenu" class="menu-trigger"
-                        (click)="$event.stopPropagation()">
+                    <button mat-icon-button [matMenuTriggerFor]="offerMenu" class="menu-trigger">
                         <mat-icon>more_vert</mat-icon>
                     </button>
                     <mat-menu #offerMenu="matMenu">
