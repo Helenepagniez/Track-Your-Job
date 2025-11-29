@@ -32,11 +32,11 @@
 }
 
 .logo-icon {
-    width: 50px;
+    width: 40px;
     height: 40px;
     background: var(--primary-color);
     color: white;
-    border-radius: 8px;
+    border-radius: 7px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -47,12 +47,12 @@
 }
 
 .logo-text {
-    font-weight: 700;
-    font-size: 1.2rem;
+    font: 700 19px Roboto, sans-serif;
     color: var(--text-color);
     white-space: nowrap;
     overflow: hidden;
     transition: opacity 0.3s ease;
+    letter-spacing: 0.2px;
 }
 
 .dashboard-layout.collapsed .logo-text {
@@ -70,14 +70,14 @@
     display: flex;
     align-items: center;
     padding: 12px 20px;
-    color: var(--text-secondary);
     transition: all 0.2s ease;
     cursor: pointer;
     border: none;
     background: none;
     width: 100%;
     text-align: left;
-    font-size: 1rem;
+    font: 600 18px Roboto, sans-serif;
+    letter-spacing: 0.2px;
 }
 
 .nav-item:hover {
@@ -97,7 +97,7 @@
 
 .icon {
     font-style: normal;
-    font-size: 1.2rem;
+    font-size: 22px;
     width: 24px;
     text-align: center;
     margin-right: 12px;
@@ -169,6 +169,15 @@
     gap: 12px;
 }
 
+.user-info span {
+    font: 17px Roboto, sans-serif;
+    letter-spacing: 0.2px;
+}
+
+.user-info span strong {
+    color: var(--primary-color);
+}
+
 .avatar {
     width: 40px;
     height: 40px;
@@ -179,6 +188,7 @@
     align-items: center;
     justify-content: center;
     font-weight: 600;
+    font-size: 20px;
 }
 
 .content-area {

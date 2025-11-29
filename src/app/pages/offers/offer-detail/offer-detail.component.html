@@ -116,6 +116,11 @@
                 <h3>Processus de recrutement</h3>
                 <p>{{ o.recruitmentProcess }}</p>
             </div>
+
+            <div class="card section" *ngIf="o.others">
+                <h3>Autres informations</h3>
+                <p>{{ o.others }}</p>
+            </div>
         </div>
     </div>
 </div>

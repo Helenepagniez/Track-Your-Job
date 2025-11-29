@@ -1,5 +1,4 @@
 .profile-container {
-    max-width: 800px;
     margin: 0 auto;
 }
 
@@ -8,6 +7,16 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
+}
+
+.page-header h2 {
+    background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+    font: 700 40px Roboto, sans-serif;
+    width: fit-content;
+    letter-spacing: 0.5px;
 }
 
 .profile-card {
@@ -38,17 +47,20 @@
 
 .profile-avatar-section h3 {
     margin: 0;
-    font-size: 1.5rem;
+    font: 700 28px Roboto, sans-serif;
+    letter-spacing: 0.5px;
+    color: var(--primary-color);
 }
 
 .user-title {
-    color: var(--text-secondary);
+    font: 500 16px Roboto, sans-serif;
+    letter-spacing: 0.5px;
     margin: 5px 0;
 }
 
 .user-location {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
+    font: 16px Roboto, sans-serif;
+    letter-spacing: 0.5px;
     margin: 0;
 }
 
@@ -73,6 +85,14 @@
 .info-section h4 {
     margin-bottom: 15px;
     color: var(--primary-color);
+    font: 700 17px Roboto, sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.info-section p {
+    margin: 0;
+    font: 15px Roboto, sans-serif;
+    letter-spacing: 0.5px;
 }
 
 .skills-list {

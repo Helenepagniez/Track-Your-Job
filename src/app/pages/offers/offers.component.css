@@ -11,14 +11,19 @@
 }
 
 .page-header h2 {
-    color: var(--text-color);
+    background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     margin: 0;
+    font: 700 40px Roboto, sans-serif;
+    width: fit-content;
+    letter-spacing: 0.5px;
 }
 
 .filters-bar {
     display: flex;
     gap: 20px;
-    padding: 15px;
+    padding: 20px;
     border-radius: var(--radius-md);
     margin-bottom: 10px;
 }
@@ -31,6 +36,15 @@
     padding: 8px 15px;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-color);
+}
+
+.search-box .icon {
+    font-size: 14px;
+}
+
+.search-box input {
+    font: 14px Roboto, sans-serif;
+    letter-spacing: 0.5px;
 }
 
 .search-input {
@@ -48,6 +62,8 @@
     border: 1px solid var(--border-color);
     background-color: var(--background-color);
     color: var(--text-color);
+    font: 14px Roboto, sans-serif;
+    letter-spacing: 0.5px;
     outline: none;
 }
 
@@ -93,14 +109,15 @@
 
 .offer-main-info h3 {
     margin: 0 0 5px 0;
-    font-size: 1.1rem;
-    color: var(--text-color);
+    font: 700 19px Roboto, sans-serif;
+    color: var(--primary-color);
+    letter-spacing: 0.5px;
 }
 
 .company-name {
     margin: 0;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
+    font: 500 14px Roboto, sans-serif;
+    letter-spacing: 0.5px;
 }
 
 .offer-actions .btn-icon {
@@ -121,8 +138,12 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
+    font: 14px Roboto, sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.detail-item .icon {
+    font-size: 16px;
 }
 
 .offer-footer {
@@ -137,8 +158,9 @@
 .status-badge {
     padding: 5px 10px;
     border-radius: 20px;
-    font-size: 0.8rem;
+    font: 16px Roboto, sans-serif;
     font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 /* Modal Styles */
@@ -244,11 +266,24 @@
 
 /* Menu Trigger */
 .menu-trigger {
-    color: var(--text-secondary) !important;
+    background-color: var(--background-color) !important;
+    border-radius: var(--radius-sm) !important;
+    margin: 0;
+    border: 2px solid var(--border-color);
 }
 
 .menu-trigger:hover {
-    color: var(--text-color) !important;
+    background-color: var(--primary-color) !important;
+    border-radius: var(--radius-sm) !important;
+    margin: 0;
+}
+
+.menu-trigger mat-icon {
+    color: var(--primary-color) !important;
+}
+
+.menu-trigger:hover mat-icon {
+    color: var(--surface-color) !important;
 }
 
 /* Confirm Modal */

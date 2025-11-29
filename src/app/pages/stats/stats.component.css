@@ -4,6 +4,16 @@
     gap: 30px;
 }
 
+.stats-container h2 {
+    background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+    font: 700 40px Roboto, sans-serif;
+    width: fit-content;
+    letter-spacing: 0.5px;
+}
+
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -16,21 +26,19 @@
 }
 
 .kpi-card h3 {
-    font-size: 1rem;
-    color: var(--text-secondary);
-    margin-bottom: 10px;
+    font: 600 16px Roboto, sans-serif;
+    letter-spacing: 0.5px;
+    margin-bottom: 15px;
 }
 
 .kpi-card .value {
-    font-size: 2.5rem;
-    font-weight: 800;
+    font: 800 30px Roboto, sans-serif;
     color: var(--primary-color);
-    margin-bottom: 5px;
+    margin-bottom: 15px;
 }
 
 .trend {
-    font-size: 0.9rem;
-    font-weight: 600;
+    font: 800 15px Roboto, sans-serif;
 }
 
 .trend.up {
@@ -45,6 +53,12 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 20px;
+}
+
+.charts-grid h3 {
+    font: 600 16px Roboto, sans-serif;
+    letter-spacing: 0.5px;
+    margin-bottom: 15px;
 }
 
 .full-width {
@@ -106,7 +120,8 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: 0.9rem;
+    font: 500 15px Roboto, sans-serif;
+    letter-spacing: 0.5px;
     color: var(--text-secondary);
 }
 
@@ -131,7 +146,8 @@
 
 .bar-row span {
     width: 80px;
-    font-size: 0.9rem;
+    font: 500 15px Roboto, sans-serif;
+    letter-spacing: 0.5px;
     color: var(--text-secondary);
 }
 

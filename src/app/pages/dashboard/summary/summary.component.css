@@ -5,8 +5,13 @@
 }
 
 h2 {
-    color: var(--text-color);
-    margin-bottom: 10px;
+    background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+    font: 700 40px Roboto, sans-serif;
+    width: fit-content;
+    letter-spacing: 0.5px;
 }
 
 .stats-grid {
@@ -19,6 +24,7 @@ h2 {
     display: flex;
     align-items: center;
     gap: 20px;
+    text-align: center;
     padding: 20px;
 }
 
@@ -33,15 +39,16 @@ h2 {
 }
 
 .stat-info h3 {
-    font-size: 1.8rem;
+    font: 800 30px Roboto, sans-serif;
     margin: 0;
-    color: var(--text-color);
+    color: var(--primary-color);
+    letter-spacing: 0.5px;
 }
 
 .stat-info p {
     margin: 0;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
+    font: 600 16px Roboto, sans-serif;
+    letter-spacing: 0.5px;
 }
 
 .content-grid {
@@ -65,7 +72,8 @@ h2 {
 
 .card-header h3 {
     margin: 0;
-    font-size: 1.2rem;
+    font: 700 22px Roboto, sans-serif;
+    letter-spacing: 0.5px;
 }
 
 .btn-sm {
@@ -109,8 +117,9 @@ h2 {
 
 .activity-details h4 {
     margin: 0;
-    font-size: 1rem;
+    font: 600 16px Roboto, sans-serif;
     color: var(--text-color);
+    letter-spacing: 0.3px;
 }
 
 .activity-details p {

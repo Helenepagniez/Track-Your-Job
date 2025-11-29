@@ -17,8 +17,7 @@ export class ProfileComponent implements OnInit {
         email: '',
         title: 'Développeur Full Stack',
         location: 'Paris, France',
-        bio: 'Passionné par Angular et le développement web moderne.',
-        skills: ['Angular', 'TypeScript', 'Node.js', 'CSS']
+        bio: 'Passionné par Angular et le développement web moderne.'
     };
 
     isEditing = false;
@@ -36,7 +35,6 @@ export class ProfileComponent implements OnInit {
             if (currentUser.title) this.user.title = currentUser.title;
             if (currentUser.location) this.user.location = currentUser.location;
             if (currentUser.bio) this.user.bio = currentUser.bio;
-            if (currentUser.skills) this.user.skills = currentUser.skills;
         }
     }
 
@@ -52,8 +50,7 @@ export class ProfileComponent implements OnInit {
             fullName,
             title: this.user.title,
             location: this.user.location,
-            bio: this.user.bio,
-            skills: this.user.skills
+            bio: this.user.bio
         });
     }
 }
