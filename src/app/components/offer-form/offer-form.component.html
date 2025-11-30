@@ -6,45 +6,48 @@
                 <ng-template matStepLabel>Infos Générales</ng-template>
 
                 <div class="form-grid">
-                    <mat-form-field appearance="outline">
-                        <mat-label>Titre du poste</mat-label>
-                        <input matInput formControlName="title" placeholder="Ex: Développeur Angular" required>
-                    </mat-form-field>
+                    <div class="form-group">
+                        <label class="form-label">Titre du poste</label>
+                        <input matInput formControlName="title" placeholder="Ex: Développeur Angular" required
+                            class="form-control">
+                    </div>
 
-                    <mat-form-field appearance="outline">
-                        <mat-label>Entreprise</mat-label>
-                        <input matInput formControlName="company" placeholder="Ex: Google" required>
-                    </mat-form-field>
+                    <div class="form-group">
+                        <label class="form-label">Entreprise</label>
+                        <input matInput formControlName="company" placeholder="Ex: Google" required
+                            class="form-control">
+                    </div>
 
-                    <mat-form-field appearance="outline">
-                        <mat-label>Type de contrat</mat-label>
-                        <mat-select formControlName="contractType">
-                            <mat-option value="CDI">CDI</mat-option>
-                            <mat-option value="CDD">CDD</mat-option>
-                            <mat-option value="Freelance">Freelance</mat-option>
-                            <mat-option value="Stage">Stage</mat-option>
-                            <mat-option value="Alternance">Alternance</mat-option>
-                        </mat-select>
-                    </mat-form-field>
+                    <div class="form-group">
+                        <label class="form-label">Type de contrat</label>
+                        <select formControlName="contractType" class="form-control">
+                            <option value="CDI">CDI</option>
+                            <option value="CDD">CDD</option>
+                            <option value="Freelance">Freelance</option>
+                            <option value="Stage">Stage</option>
+                            <option value="Alternance">Alternance</option>
+                        </select>
+                    </div>
 
-                    <mat-form-field appearance="outline">
-                        <mat-label>Lieu</mat-label>
-                        <input matInput formControlName="location" placeholder="Ex: Paris / Remote">
-                    </mat-form-field>
+                    <div class="form-group">
+                        <label class="form-label">Lieu</label>
+                        <input matInput formControlName="location" placeholder="Ex: Paris / Remote"
+                            class="form-control">
+                    </div>
 
-                    <mat-form-field appearance="outline">
-                        <mat-label>Salaire</mat-label>
-                        <input matInput formControlName="salary" placeholder="Ex: 45k - 55k">
-                    </mat-form-field>
+                    <div class="form-group">
+                        <label class="form-label">Salaire</label>
+                        <input matInput formControlName="salary" placeholder="Ex: 45k - 55k" class="form-control">
+                    </div>
 
-                    <mat-form-field appearance="outline">
-                        <mat-label>Lien de l'annonce</mat-label>
-                        <input matInput formControlName="link" placeholder="https://...">
-                    </mat-form-field>
+                    <div class="form-group">
+                        <label class="form-label">Lien de l'annonce</label>
+                        <input matInput formControlName="link" placeholder="https://..." class="form-control">
+                    </div>
                 </div>
 
                 <div class="stepper-actions">
-                    <button mat-button matStepperNext type="button">Suivant</button>
+                    <button mat-button matStepperNext type="button" class="btn btn-primary">Suivant</button>
                 </div>
             </form>
         </mat-step>
@@ -54,24 +57,24 @@
             <form [formGroup]="secondFormGroup">
                 <ng-template matStepLabel>Détails</ng-template>
 
-                <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Présentation entreprise</mat-label>
-                    <textarea matInput formControlName="companyDescription" rows="3"></textarea>
-                </mat-form-field>
+                <div class="form-group">
+                    <label class="form-label">Présentation entreprise</label>
+                    <textarea matInput formControlName="companyDescription" rows="3" class="form-control"></textarea>
+                </div>
 
-                <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Missions</mat-label>
-                    <textarea matInput formControlName="missions" rows="4"></textarea>
-                </mat-form-field>
+                <div class="form-group">
+                    <label class="form-label">Missions</label>
+                    <textarea matInput formControlName="missions" rows="4" class="form-control"></textarea>
+                </div>
 
-                <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Profil recherché</mat-label>
-                    <textarea matInput formControlName="profile" rows="3"></textarea>
-                </mat-form-field>
+                <div class="form-group">
+                    <label class="form-label">Profil recherché</label>
+                    <textarea matInput formControlName="profile" rows="3" class="form-control"></textarea>
+                </div>
 
                 <div class="stepper-actions">
-                    <button mat-button matStepperPrevious type="button">Retour</button>
-                    <button mat-button matStepperNext type="button">Suivant</button>
+                    <button mat-button matStepperPrevious type="button" class="btn btn-outline">Retour</button>
+                    <button mat-button matStepperNext type="button" class="btn btn-primary">Suivant</button>
                 </div>
             </form>
         </mat-step>
@@ -81,37 +84,38 @@
             <form [formGroup]="thirdFormGroup">
                 <ng-template matStepLabel>Extras</ng-template>
 
-                <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Avantages</mat-label>
-                    <textarea matInput formControlName="benefits" rows="3"
+                <div class="form-group">
+                    <label class="form-label">Avantages</label>
+                    <textarea matInput formControlName="benefits" rows="3" class="form-control"
                         placeholder="Tickets resto, mutuelle..."></textarea>
-                </mat-form-field>
+                </div>
 
-                <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Étapes de recrutement</mat-label>
-                    <textarea matInput formControlName="recruitmentProcess" rows="3"></textarea>
-                </mat-form-field>
+                <div class="form-group">
+                    <label class="form-label">Étapes de recrutement</label>
+                    <textarea matInput formControlName="recruitmentProcess" rows="3" class="form-control"></textarea>
+                </div>
 
-                <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Autres informations</mat-label>
-                    <textarea matInput formControlName="others" rows="2"></textarea>
-                </mat-form-field>
+                <div class="form-group">
+                    <label class="form-label">Autres informations</label>
+                    <textarea matInput formControlName="others" rows="2" class="form-control"></textarea>
+                </div>
 
-                <mat-form-field appearance="outline">
-                    <mat-label>Statut initial</mat-label>
-                    <mat-select formControlName="status" required>
-                        <mat-option value="To Apply">À postuler</mat-option>
-                        <mat-option value="Applied">En attente</mat-option>
-                        <mat-option value="Interview">Entretien</mat-option>
-                        <mat-option value="Offer">Offre reçue</mat-option>
-                        <mat-option value="Rejected">Refusé</mat-option>
-                    </mat-select>
-                </mat-form-field>
+                <div class="form-group">
+                    <label class="form-label">Statut initial</label>
+                    <select formControlName="status" required class="form-control">
+                        <option value="To Apply">À postuler</option>
+                        <option value="Applied">En attente</option>
+                        <option value="Interview">Entretien</option>
+                        <option value="Offer">Offre reçue</option>
+                        <option value="Rejected">Refusé</option>
+                    </select>
+                </div>
 
                 <div class="stepper-actions">
-                    <button mat-button matStepperPrevious type="button">Retour</button>
-                    <button mat-raised-button color="primary" (click)="submit()" type="button">{{ isEditing() ? 'Mettre
-                        à jour' : 'Sauvegarder' }}</button>
+                    <button mat-button matStepperPrevious type="button" class="btn btn-outline">Retour</button>
+                    <button mat-button (click)="submit()" type="button" class="btn btn-primary">
+                        {{ isEditing() ? 'Mettre à jour' : 'Sauvegarder' }}
+                    </button>
                 </div>
             </form>
         </mat-step>
