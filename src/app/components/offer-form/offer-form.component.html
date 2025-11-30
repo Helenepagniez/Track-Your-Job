@@ -1,0 +1,119 @@
+<div class="stepper-container">
+    <mat-stepper [linear]="true" #stepper>
+        <!-- Step 1: Infos Générales -->
+        <mat-step [stepControl]="firstFormGroup">
+            <form [formGroup]="firstFormGroup">
+                <ng-template matStepLabel>Infos Générales</ng-template>
+
+                <div class="form-grid">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Titre du poste</mat-label>
+                        <input matInput formControlName="title" placeholder="Ex: Développeur Angular" required>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Entreprise</mat-label>
+                        <input matInput formControlName="company" placeholder="Ex: Google" required>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Type de contrat</mat-label>
+                        <mat-select formControlName="contractType">
+                            <mat-option value="CDI">CDI</mat-option>
+                            <mat-option value="CDD">CDD</mat-option>
+                            <mat-option value="Freelance">Freelance</mat-option>
+                            <mat-option value="Stage">Stage</mat-option>
+                            <mat-option value="Alternance">Alternance</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Lieu</mat-label>
+                        <input matInput formControlName="location" placeholder="Ex: Paris / Remote">
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Salaire</mat-label>
+                        <input matInput formControlName="salary" placeholder="Ex: 45k - 55k">
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Lien de l'annonce</mat-label>
+                        <input matInput formControlName="link" placeholder="https://...">
+                    </mat-form-field>
+                </div>
+
+                <div class="stepper-actions">
+                    <button mat-button matStepperNext type="button">Suivant</button>
+                </div>
+            </form>
+        </mat-step>
+
+        <!-- Step 2: Détails -->
+        <mat-step [stepControl]="secondFormGroup">
+            <form [formGroup]="secondFormGroup">
+                <ng-template matStepLabel>Détails</ng-template>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Présentation entreprise</mat-label>
+                    <textarea matInput formControlName="companyDescription" rows="3"></textarea>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Missions</mat-label>
+                    <textarea matInput formControlName="missions" rows="4"></textarea>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Profil recherché</mat-label>
+                    <textarea matInput formControlName="profile" rows="3"></textarea>
+                </mat-form-field>
+
+                <div class="stepper-actions">
+                    <button mat-button matStepperPrevious type="button">Retour</button>
+                    <button mat-button matStepperNext type="button">Suivant</button>
+                </div>
+            </form>
+        </mat-step>
+
+        <!-- Step 3: Extras -->
+        <mat-step [stepControl]="thirdFormGroup">
+            <form [formGroup]="thirdFormGroup">
+                <ng-template matStepLabel>Extras</ng-template>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Avantages</mat-label>
+                    <textarea matInput formControlName="benefits" rows="3"
+                        placeholder="Tickets resto, mutuelle..."></textarea>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Étapes de recrutement</mat-label>
+                    <textarea matInput formControlName="recruitmentProcess" rows="3"></textarea>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Autres informations</mat-label>
+                    <textarea matInput formControlName="others" rows="2"></textarea>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Statut initial</mat-label>
+                    <mat-select formControlName="status" required>
+                        <mat-option value="To Apply">À postuler</mat-option>
+                        <mat-option value="Applied">En attente</mat-option>
+                        <mat-option value="Interview">Entretien</mat-option>
+                        <mat-option value="Offer">Offre reçue</mat-option>
+                        <mat-option value="Rejected">Refusé</mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <div class="stepper-actions">
+                    <button mat-button matStepperPrevious type="button">Retour</button>
+                    <button mat-raised-button color="primary" (click)="submit()" type="button">{{ isEditing() ? 'Mettre
+                        à jour' : 'Sauvegarder' }}</button>
+                </div>
+            </form>
+        </mat-step>
+    </mat-stepper>
+</div>

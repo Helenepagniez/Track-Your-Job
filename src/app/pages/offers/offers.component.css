@@ -315,3 +315,70 @@
 .btn-danger:hover {
     opacity: 0.9;
 }
+
+::ng-deep .mat-mdc-menu-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 5px;
+}
+
+::ng-deep .modify-btn .mat-mdc-menu-item-text {
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    border: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+::ng-deep .modify-btn .mat-mdc-menu-item-text:hover {
+    background-color: var(--primary-color);
+    color: var(--surface-color);
+}
+
+::ng-deep .modify-btn .mat-mdc-menu-item-text i {
+    font-size: 14px;
+}
+
+::ng-deep .delete-btn .mat-mdc-menu-item-text {
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    border: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: transparent;
+    border: 2px solid var(--danger-color);
+    background-color: var(--danger-color);
+    color: var(--surface-color);
+}
+
+::ng-deep .delete-btn .mat-mdc-menu-item-text:hover {
+    background-color: var(--danger-color);
+    color: var(--surface-color);
+}
+
+::ng-deep .delete-btn .mat-mdc-menu-item-text i {
+    font-size: 14px;
+}
+
+::ng-deep .mat-mdc-menu-item-text span {
+    font: 500 14px Roboto, sans-serif;
+}
+
+::ng-deep .mat-mdc-menu-item-text:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}

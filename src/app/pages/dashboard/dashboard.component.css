@@ -243,3 +243,9 @@
         z-index: 999;
     }
 }
+
+@media (max-width: 375px) {
+    .user-info span .bonjour {
+        display: none;
+    }
+}
