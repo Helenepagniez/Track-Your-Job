@@ -8,23 +8,23 @@
 
         <nav class="sidebar-nav">
             <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"
-                class="nav-item">
+                class="nav-item" (click)="closeSidebar()">
                 <i class="icon">📊</i>
                 <span class="label">Résumé</span>
             </a>
-            <a routerLink="/dashboard/offers" routerLinkActive="active" class="nav-item">
+            <a routerLink="/dashboard/offers" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
                 <i class="icon">💼</i>
                 <span class="label">Offres</span>
             </a>
-            <a routerLink="/dashboard/tasks" routerLinkActive="active" class="nav-item">
+            <a routerLink="/dashboard/tasks" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
                 <i class="icon">✅</i>
                 <span class="label">Tâches</span>
             </a>
-            <a routerLink="/dashboard/stats" routerLinkActive="active" class="nav-item">
+            <a routerLink="/dashboard/stats" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
                 <i class="icon">📈</i>
                 <span class="label">Statistiques</span>
             </a>
-            <a routerLink="/dashboard/profile" routerLinkActive="active" class="nav-item">
+            <a routerLink="/dashboard/profile" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
                 <i class="icon">👤</i>
                 <span class="label">Profil</span>
             </a>

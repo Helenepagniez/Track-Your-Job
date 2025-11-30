@@ -23,6 +23,12 @@ export class DashboardComponent {
         this.isSidebarCollapsed = !this.isSidebarCollapsed;
     }
 
+    closeSidebar() {
+        if (window.innerWidth <= 768) {
+            this.isSidebarCollapsed = false;
+        }
+    }
+
     logout() {
         this.authService.logout();
     }
