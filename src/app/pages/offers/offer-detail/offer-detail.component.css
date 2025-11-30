@@ -37,16 +37,15 @@
 }
 
 .breadcrumb {
-    color: var(--text-secondary);
     font-size: 0.95rem;
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 8px 15px;
-    background-color: var(--background-color);
+    background-color: var(--surface-color);
     border-radius: var(--radius-sm);
-    border: 2px solid var(--border-color);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .crumb-link {
