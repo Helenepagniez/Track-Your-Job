@@ -87,3 +87,28 @@
 textarea {
     resize: vertical;
 }
+
+::ng-deep .mat-step-icon {
+    background-color: var(--primary-color) !important;
+    color: var(--surface-color) !important;
+}
+
+::ng-deep .mat-step-icon-state-edit {
+    background-color: var(--primary-color) !important;
+    color: var(--surface-color) !important;
+}
+
+::ng-deep .mat-step-icon-selected {
+    background-color: var(--primary-color) !important;
+    color: var(--surface-color) !important;
+}
+
+::ng-deep .mat-step-icon-state-done {
+    background-color: var(--primary-color) !important;
+    color: var(--surface-color) !important;
+}
+
+::ng-deep .mat-step-label {
+    color: var(--primary-color) !important;
+    font-size: 20px !important;
+}
