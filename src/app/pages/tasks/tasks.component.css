@@ -155,7 +155,6 @@
     background-color: var(--background-color);
     border-radius: var(--radius-md);
     width: 90%;
-    max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -231,18 +230,21 @@
 
 .form-control {
     width: 100%;
-    padding: 10px;
+    padding: 10px 12px;
     margin-top: 5px;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-color);
-    background-color: var(--background-color);
     color: var(--text-color);
-    font-family: inherit;
+    transition: border-color 0.2s;
+    font: 16px Roboto, sans-serif;
+    letter-spacing: 0.5px;
 }
 
 .form-control:focus {
     outline: none;
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
+    border: 2px solid var(--primary-color);
 }
 
 /* View Toggle */

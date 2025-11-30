@@ -148,4 +148,20 @@ export class AuthService {
             }
         }
     }
+
+    deleteUser() {
+        const user = this.currentUser();
+        if (user) {
+            // Remove from users list
+            const users = this.getAllUsers();
+            const newUsers = users.filter(u => u.id !== user.id);
+            localStorage.setItem('track_your_job_users', JSON.stringify(newUsers));
+
+            // Remove password if exists
+            localStorage.removeItem(`track_your_job_pwd_${user.email}`);
+
+            // Logout
+            this.logout();
+        }
+    }
 }

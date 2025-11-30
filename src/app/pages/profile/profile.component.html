@@ -1,54 +1,65 @@
 <div class="profile-container">
     <div class="page-header">
         <h2>Mon Profil</h2>
-        <button class="btn btn-primary" (click)="isEditing ? saveProfile() : toggleEdit()">
-            {{ isEditing ? 'Enregistrer' : 'Modifier' }}
-        </button>
+        <div class="header-actions">
+            <div class="action-buttons">
+                <button class="btn btn-outline" (click)="toggleEdit()">
+                    ✎ Modifier
+                </button>
+                <button class="btn btn-danger" (click)="toggleDelete()">
+                    🗑️ Supprimer
+                </button>
+            </div>
+        </div>
     </div>
 
     <div class="profile-content">
         <div class="card profile-card">
             <div class="profile-avatar-section">
                 <div class="avatar-large">{{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}</div>
-                <div *ngIf="!isEditing">
+                <div>
                     <h3>{{ user.firstName }} {{ user.lastName }}</h3>
                     <p class="user-title">{{ user.title }}</p>
                     <p class="user-location">📍 {{ user.location }}</p>
                 </div>
             </div>
 
-            <div class="profile-form" *ngIf="isEditing">
-                <div class="form-group">
-                    <label class="form-label">Prénom</label>
-                    <input type="text" class="form-control" [(ngModel)]="user.firstName">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Nom</label>
-                    <input type="text" class="form-control" [(ngModel)]="user.lastName">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-control" [(ngModel)]="user.email">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Titre</label>
-                    <input type="text" class="form-control" [(ngModel)]="user.title">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Localisation</label>
-                    <input type="text" class="form-control" [(ngModel)]="user.location">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Bio</label>
-                    <textarea class="form-control" rows="3" [(ngModel)]="user.bio"></textarea>
-                </div>
-            </div>
-
-            <div class="profile-info" *ngIf="!isEditing">
+            <div class="profile-info">
                 <div class="info-section">
                     <h4>À propos</h4>
                     <p>{{ user.bio }}</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" *ngIf="isEditing">
+        <div class="modal-content stepper-modal">
+            <div class="modal-header">
+                <h3>Modifier votre profil</h3>
+                <button class="close-btn" (click)="closeEditModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <app-profile-form [user]="user" (save)="onUpdateUser($event)" (cancel)="closeEditModal()">
+                </app-profile-form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" *ngIf="isDeleting">
+        <div class="modal-content confirm-modal">
+            <div class="modal-header">
+                <h3>Supprimer votre profil ?</h3>
+                <button class="close-btn" (click)="cancelDelete()">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer votre profil ? Cette action est irréversible.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" (click)="cancelDelete()">Annuler</button>
+                <button class="btn btn-danger" (click)="confirmDelete()">Supprimer</button>
             </div>
         </div>
     </div>

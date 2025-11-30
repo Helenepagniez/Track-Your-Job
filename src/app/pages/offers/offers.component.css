@@ -182,16 +182,10 @@
     background-color: var(--background-color);
     border-radius: var(--radius-md);
     width: 90%;
-    max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     border: 1px solid var(--border-color);
-}
-
-.stepper-modal {
-    max-width: 900px;
-    width: 95%;
 }
 
 .modal-header {

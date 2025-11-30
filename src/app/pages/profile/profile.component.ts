@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
+import { ProfileFormComponent } from './profile-form/profile-form.component';
 
 @Component({
     selector: 'app-profile',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, ProfileFormComponent],
     templateUrl: './profile.component.html',
     styleUrl: './profile.component.css'
 })
@@ -21,6 +22,7 @@ export class ProfileComponent implements OnInit {
     };
 
     isEditing = false;
+    isDeleting = false;
 
     constructor(private authService: AuthService) { }
 
@@ -42,15 +44,36 @@ export class ProfileComponent implements OnInit {
         this.isEditing = !this.isEditing;
     }
 
-    saveProfile() {
+    closeEditModal() {
         this.isEditing = false;
-        const fullName = `${this.user.firstName} ${this.user.lastName}`.trim();
+    }
+
+    onUpdateUser(updatedData: any) {
+        this.isEditing = false;
+
+        // Update local user object
+        this.user = { ...this.user, ...updatedData };
+
+        const fullName = `${updatedData.firstName} ${updatedData.lastName}`.trim();
 
         this.authService.updateUserProfile({
             fullName,
-            title: this.user.title,
-            location: this.user.location,
-            bio: this.user.bio
+            title: updatedData.title,
+            location: updatedData.location,
+            bio: updatedData.bio
         });
+    }
+
+    toggleDelete() {
+        this.isDeleting = !this.isDeleting;
+    }
+
+    cancelDelete() {
+        this.isDeleting = false;
+    }
+
+    confirmDelete() {
+        this.authService.deleteUser();
+        this.isDeleting = false;
     }
 }

@@ -146,15 +146,12 @@ button {
 }
 
 /* Form Styles */
-.form-group {
-  margin-bottom: 20px;
-}
-
 .form-label {
   display: block;
   margin-bottom: 8px;
-  font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-color);
+  font: 600 16px Roboto, sans-serif;
+  letter-spacing: 0.5px;
 }
 
 .form-control {
@@ -162,16 +159,17 @@ button {
   padding: 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
-  background-color: var(--surface-color);
   color: var(--text-color);
-  font-size: 1rem;
   transition: border-color 0.2s ease;
+  font: 16px Roboto, sans-serif;
+  letter-spacing: 0.5px;
 }
 
 .form-control:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
+  border: 2px solid var(--primary-color);
 }
 
 html,
