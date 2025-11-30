@@ -153,6 +153,17 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+
+.btn-back i {
+    margin-right: 5px;
+    color: var(--surface-color);
+    font-size: 18px;
+}
+
+.btn-back:hover i {
+    color: var(--primary-color);
+}
+
 .breadcrumb {
     font-size: 0.95rem;
     display: flex;
