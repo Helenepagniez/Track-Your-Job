@@ -121,7 +121,7 @@
 .subtitle {
     display: flex;
     align-items: center;
-    font: 16px Roboto, sans-serif;
+    font: 14px Roboto, sans-serif;
     letter-spacing: 0.5px;
 }
 
@@ -323,15 +323,25 @@
 .btn-danger {
     background-color: var(--danger-color);
     color: white;
-    border: none;
-    padding: 8px 16px;
     border-radius: var(--radius-sm);
     cursor: pointer;
-    font-weight: 500;
+    font: 500 14px Roboto, sans-serif;
+    border: 2px solid var(--danger-color);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
 }
 
 .btn-danger:hover {
     opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-danger i {
+    font-size: 14px;
 }
 
 @media (max-width: 768px) {

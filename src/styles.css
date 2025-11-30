@@ -111,6 +111,7 @@ button {
 .btn-primary {
   background-color: var(--primary-color);
   color: white;
+  font: 500 14px Roboto, sans-serif;
 }
 
 .btn-primary:hover {
@@ -123,6 +124,7 @@ button {
   background-color: transparent;
   border: 2px solid var(--primary-color);
   color: var(--primary-color);
+  font: 500 14px Roboto, sans-serif;
 }
 
 .btn-outline:hover {

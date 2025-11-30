@@ -66,6 +66,14 @@
     overflow-y: auto;
 }
 
+.sidebar-nav i {
+    font-size: 22px;
+    width: 24px;
+    text-align: center;
+    margin-right: 12px;
+    color: var(--primary-color);
+}
+
 .nav-item {
     display: flex;
     align-items: center;
@@ -118,6 +126,13 @@
 .sidebar-footer {
     padding: 20px 0;
     border-top: 1px solid var(--border-color);
+}
+
+.logout i {
+    font-size: 22px;
+    width: 24px;
+    text-align: center;
+    margin-right: 12px;
 }
 
 .logout {

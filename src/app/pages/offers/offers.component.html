@@ -8,7 +8,7 @@
 
     <div class="filters-bar glass">
         <div class="search-box">
-            <i class="icon">🔍</i>
+            <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" placeholder="Rechercher une offre..." class="search-input" [ngModel]="searchTerm()"
                 (ngModelChange)="searchTerm.set($event)">
         </div>
@@ -34,15 +34,15 @@
                 </div>
                 <div class="offer-actions">
                     <button mat-icon-button [matMenuTriggerFor]="offerMenu" class="menu-trigger">
-                        <mat-icon>more_vert</mat-icon>
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
                     </button>
                     <mat-menu #offerMenu="matMenu">
-                        <button mat-menu-item (click)="openAddModal(offer)">
-                            <mat-icon>edit</mat-icon>
+                        <button mat-menu-item (click)="openAddModal(offer)" class="modify-btn">
+                            <i class="fa-solid fa-pen"></i>
                             <span>Modifier</span>
                         </button>
-                        <button mat-menu-item (click)="confirmDelete(offer.id, $event)">
-                            <mat-icon>delete</mat-icon>
+                        <button mat-menu-item (click)="confirmDelete(offer.id, $event)" class="delete-btn">
+                            <i class="fa-solid fa-trash-can"></i>
                             <span>Supprimer</span>
                         </button>
                     </mat-menu>

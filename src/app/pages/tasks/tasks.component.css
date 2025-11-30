@@ -117,23 +117,30 @@
     color: #ff4444;
 }
 
-.task-actions {
-    background-color: var(--surface-color);
-    border-radius: var(--radius-sm);
-    padding: 5px;
-}
-
-.task-actions:hover {
-    background-color: var(--danger-color);
-    color: var(--background-color);
+.task-actions:hover .btn-icon {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .task-actions .btn-icon {
-    background: none;
-    border: none;
+    background-color: var(--danger-color);
+    color: white;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 16px;
-    color: var(--surface-color);
+    font: 500 16px Roboto, sans-serif;
+    border: 2px solid var(--danger-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+    width: 35px;
+    height: 35px;
+}
+
+.task-actions.btn-icon i {
+    font-size: 14px;
 }
 
 /* Modal Styles */
@@ -257,7 +264,7 @@
 .view-toggle {
     display: flex;
     background-color: var(--surface-color);
-    padding: 4px;
+    padding: 6px;
     border-radius: 8px;
     border: 1px solid var(--border-color);
     gap: 4px;
@@ -265,20 +272,20 @@
 
 .toggle-btn {
     background: none;
+    color: var(--text-color);
     border: none;
-    padding: 6px 10px;
+    padding: 10px 15px;
     border-radius: 6px;
     cursor: pointer;
-    color: var(--text-secondary);
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    letter-spacing: 0.8px;
 }
 
 .toggle-btn:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-    color: var(--text-color);
+    background-color: rgba(0, 0, 0, 0.06);
 }
 
 .toggle-btn.active {
@@ -287,8 +294,14 @@
     box-shadow: 0 2px 4px rgba(0, 86, 179, 0.2);
 }
 
-.toggle-btn span {
-    font-size: 30px;
+.toggle-btn i {
+    font-size: 16px;
+    margin: 0 10px;
+}
+
+.toggle-btn i strong {
+    margin-left: 10px;
+    font-size: 15px;
 }
 
 /* Status Badge in List */

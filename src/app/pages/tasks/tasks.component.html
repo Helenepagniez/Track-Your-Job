@@ -5,11 +5,11 @@
             <div class="view-toggle">
                 <button class="toggle-btn" [class.active]="viewMode() === 'list'" (click)="setViewMode('list')"
                     title="Vue Liste">
-                    <span>📋</span> <strong>Vue Liste</strong>
+                    <i class="fa-solid fa-list-check"><strong>Vue Liste</strong></i>
                 </button>
                 <button class="toggle-btn" [class.active]="viewMode() === 'kanban'" (click)="setViewMode('kanban')"
                     title="Vue Kanban">
-                    <span>📊</span> <strong>Vue Kanban</strong>
+                    <i class="fa-solid fa-sitemap"><strong>Vue Kanban</strong></i>
                 </button>
             </div>
         </div>
@@ -43,7 +43,7 @@
                 </div>
             </div>
             <div class="task-actions">
-                <button class="btn-icon" (click)="deleteTask(task.id)">🗑️</button>
+                <button class="btn-icon" (click)="deleteTask(task.id)"><i class="fa-solid fa-trash-can"></i></button>
             </div>
         </div>
     </div>

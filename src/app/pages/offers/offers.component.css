@@ -38,8 +38,14 @@
     border: 1px solid var(--border-color);
 }
 
-.search-box .icon {
-    font-size: 14px;
+.search-box i {
+    font: 14px;
+    color: var(--primary-color);
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .search-box input {
@@ -264,20 +270,21 @@
     border-radius: var(--radius-sm) !important;
     margin: 0;
     border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 500 20px Roboto, sans-serif;
+    letter-spacing: 0.5px;
+    color: var(--primary-color);
+    width: 35px;
+    height: 35px;
 }
 
 .menu-trigger:hover {
     background-color: var(--primary-color) !important;
     border-radius: var(--radius-sm) !important;
     margin: 0;
-}
-
-.menu-trigger mat-icon {
-    color: var(--primary-color) !important;
-}
-
-.menu-trigger:hover mat-icon {
-    color: var(--surface-color) !important;
+    color: var(--surface-color);
 }
 
 /* Confirm Modal */

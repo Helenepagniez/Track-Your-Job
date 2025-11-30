@@ -9,23 +9,23 @@
         <nav class="sidebar-nav">
             <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"
                 class="nav-item" (click)="closeSidebar()">
-                <i class="icon">📊</i>
+                <i class="fa-solid fa-bars-progress"></i>
                 <span class="label">Résumé</span>
             </a>
             <a routerLink="/dashboard/offers" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
-                <i class="icon">💼</i>
+                <i class="fa-solid fa-briefcase"></i>
                 <span class="label">Offres</span>
             </a>
             <a routerLink="/dashboard/tasks" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
-                <i class="icon">✅</i>
+                <i class="fa-solid fa-square-check"></i>
                 <span class="label">Tâches</span>
             </a>
             <a routerLink="/dashboard/stats" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
-                <i class="icon">📈</i>
+                <i class="fa-solid fa-chart-pie"></i>
                 <span class="label">Statistiques</span>
             </a>
             <a routerLink="/dashboard/profile" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
-                <i class="icon">👤</i>
+                <i class="fa-solid fa-user"></i>
                 <span class="label">Profil</span>
             </a>
         </nav>
@@ -36,7 +36,7 @@
                 <span class="label">{{ themeService.darkMode() ? 'Light Mode' : 'Dark Mode' }}</span>
             </button>
             <button class="nav-item logout" (click)="logout()">
-                <i class="icon">🚪</i>
+                <i class="fa-solid fa-door-closed"></i>
                 <span class="label">Déconnexion</span>
             </button>
         </div>
