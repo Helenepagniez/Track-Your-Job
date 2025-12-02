@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { OffersService, JobOffer } from '../../core/services/offers.service';
-import { OfferFormComponent } from '../../components/offer-form/offer-form.component';
+import { OfferFormComponent } from './offer-form/offer-form.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';

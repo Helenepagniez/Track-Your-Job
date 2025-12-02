@@ -7,7 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
-import { JobOffer } from '../../core/services/offers.service';
+import { JobOffer } from '../../../core/services/offers.service';
 
 @Component({
     selector: 'app-offer-form',

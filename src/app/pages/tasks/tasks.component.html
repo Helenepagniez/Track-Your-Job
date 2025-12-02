@@ -27,10 +27,10 @@
             <div class="task-content">
                 <div class="task-title-row">
                     <span class="task-title">{{ task.title }}</span>
-                    <span class="priority-badge" [class]="task.priority.toLowerCase()">{{ task.priority }}</span>
-                    <span class="status-badge-small" [class]="task.status"
-                        *ngIf="task.status !== 'todo' && !task.completed">
-                        {{ task.status === 'in_progress' ? 'En cours' : '' }}
+                    <span class="priority-badge" [class]="task.priority">{{ task.priority.charAt(0).toUpperCase() +
+                        task.priority.slice(1)}}</span>
+                    <span class="status-badge-small" [class]="task.status">
+                        {{ (task.status.charAt(0).toUpperCase() + task.status.slice(1)).replace("_", " ") }}
                     </span>
                 </div>
                 <div class="task-meta">
@@ -43,6 +43,8 @@
                 </div>
             </div>
             <div class="task-actions">
+                <button class="btn btn-outline" (click)="updateTask(task.id)"><i
+                        class="fa-solid fa-pen"></i>Modifier</button>
                 <button class="btn-icon" (click)="deleteTask(task.id)"><i class="fa-solid fa-trash-can"></i></button>
             </div>
         </div>
@@ -60,7 +62,8 @@
                 <div class="kanban-card" *ngFor="let task of todoTasks()">
                     <div class="card-header">
                         <span class="priority-dot" [class]="task.priority.toLowerCase()"></span>
-                        <span class="priority-text">{{ task.priority }}</span>
+                        <span class="priority-text">{{ task.priority.charAt(0).toUpperCase() + task.priority.slice(1)
+                            }}</span>
                         <button class="btn-icon-sm" (click)="deleteTask(task.id)">×</button>
                     </div>
                     <h4>{{ task.title }}</h4>
@@ -69,7 +72,7 @@
                     </div>
                     <div class="card-footer">
                         <span class="due-date">📅 {{ task.dueDate | date:'dd MMM' }}</span>
-                        <button class="btn-move" (click)="updateTaskStatus(task.id, 'in_progress')">
+                        <button class="btn-move" (click)="updateTaskStatus(task.id, 'en_cours')">
                             Start →
                         </button>
                     </div>
@@ -87,7 +90,8 @@
                 <div class="kanban-card" *ngFor="let task of inProgressTasks()">
                     <div class="card-header">
                         <span class="priority-dot" [class]="task.priority.toLowerCase()"></span>
-                        <span class="priority-text">{{ task.priority }}</span>
+                        <span class="priority-text">{{ task.priority.charAt(0).toUpperCase() + task.priority.slice(1)
+                            }}</span>
                         <button class="btn-icon-sm" (click)="deleteTask(task.id)">×</button>
                     </div>
                     <h4>{{ task.title }}</h4>
@@ -95,11 +99,11 @@
                         <i class="icon">💼</i> {{ task.relatedOffer }}
                     </div>
                     <div class="card-footer">
-                        <button class="btn-move" (click)="updateTaskStatus(task.id, 'todo')">
+                        <button class="btn-move" (click)="updateTaskStatus(task.id, 'a_faire')">
                             ←
                         </button>
                         <span class="due-date">📅 {{ task.dueDate | date:'dd MMM' }}</span>
-                        <button class="btn-move" (click)="updateTaskStatus(task.id, 'done')">
+                        <button class="btn-move" (click)="updateTaskStatus(task.id, 'termine')">
                             Done →
                         </button>
                     </div>
@@ -117,7 +121,8 @@
                 <div class="kanban-card completed" *ngFor="let task of doneTasks()">
                     <div class="card-header">
                         <span class="priority-dot" [class]="task.priority.toLowerCase()"></span>
-                        <span class="priority-text">{{ task.priority }}</span>
+                        <span class="priority-text">{{ task.priority.charAt(0).toUpperCase() + task.priority.slice(1)
+                            }}</span>
                         <button class="btn-icon-sm" (click)="deleteTask(task.id)">×</button>
                     </div>
                     <h4>{{ task.title }}</h4>
@@ -126,7 +131,7 @@
                     </div>
                     <div class="card-footer">
                         <span class="due-date">📅 {{ task.dueDate | date:'dd MMM' }}</span>
-                        <button class="btn-move" (click)="updateTaskStatus(task.id, 'in_progress')">
+                        <button class="btn-move" (click)="updateTaskStatus(task.id, 'en_cours')">
                             ← Reopen
                         </button>
                     </div>
@@ -139,37 +144,7 @@
 <!-- Add Task Modal -->
 <div class="modal-overlay" *ngIf="showAddModal()" (click)="closeAddModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h3>Nouvelle Tâche</h3>
-            <button class="close-btn" (click)="closeAddModal()">×</button>
-        </div>
-        <div class="modal-body">
-            <div class="form-group">
-                <label class="form-label">Titre</label>
-                <input type="text" class="form-control" [(ngModel)]="newTask.title" placeholder="Ex: Relancer RH">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Date d'échéance</label>
-                <input type="date" class="form-control" [ngModel]="newTask.dueDate | date:'yyyy-MM-dd'"
-                    (ngModelChange)="newTask.dueDate = $event">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Priorité</label>
-                <select class="form-control" [(ngModel)]="newTask.priority">
-                    <option value="High">Haute</option>
-                    <option value="Medium">Moyenne</option>
-                    <option value="Low">Basse</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Offre liée (optionnel)</label>
-                <input type="text" class="form-control" [(ngModel)]="newTask.relatedOffer"
-                    placeholder="Ex: Senior Angular Developer">
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-outline" (click)="closeAddModal()">Annuler</button>
-            <button class="btn btn-primary" (click)="addTask()">Ajouter</button>
-        </div>
+        <app-task-form [task]="selectedTask()" (save)="handleSaveTask($event)" (cancel)="closeAddModal()">
+        </app-task-form>
     </div>
 </div>

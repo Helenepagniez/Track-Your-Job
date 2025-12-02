@@ -2,7 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { OffersService, JobOffer } from '../../../core/services/offers.service';
-import { OfferFormComponent } from '../../../components/offer-form/offer-form.component';
+import { OfferFormComponent } from '../offer-form/offer-form.component';
 
 @Component({
     selector: 'app-offer-detail',

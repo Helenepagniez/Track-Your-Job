@@ -85,17 +85,17 @@
     font-weight: 600;
 }
 
-.priority-badge.high {
+.priority-badge.haute {
     background-color: rgba(255, 68, 68, 0.1);
     color: #ff4444;
 }
 
-.priority-badge.medium {
+.priority-badge.moyenne {
     background-color: rgba(255, 187, 51, 0.1);
     color: #ffbb33;
 }
 
-.priority-badge.low {
+.priority-badge.faible {
     background-color: rgba(0, 200, 81, 0.1);
     color: #00c851;
 }
@@ -115,6 +115,13 @@
 
 .due-date.overdue {
     color: #ff4444;
+}
+
+.task-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
 }
 
 .task-actions:hover .btn-icon {
@@ -142,6 +149,7 @@
 .task-actions.btn-icon i {
     font-size: 14px;
 }
+
 
 /* Modal Styles */
 .modal-overlay {
@@ -312,6 +320,7 @@
     background-color: rgba(0, 168, 255, 0.1);
     color: var(--secondary-color);
     font-weight: 500;
+    white-space: nowrap;
 }
 
 /* Kanban Board */
