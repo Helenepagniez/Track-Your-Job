@@ -113,8 +113,7 @@ export class OffersComponent {
     }
 
     // Delete Logic
-    confirmDelete(id: number, event: Event) {
-        event.stopPropagation();
+    confirmDelete(id: number) {
         this.offerToDelete.set(id);
         this.showDeleteConfirm.set(true);
     }
