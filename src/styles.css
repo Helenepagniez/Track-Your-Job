@@ -183,3 +183,12 @@ body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
+
+[cdkDrag] {
+  cursor: grab !important;
+}
+
+.cdk-drag-dragging,
+.cdk-drag-preview {
+  cursor: grabbing !important;
+}

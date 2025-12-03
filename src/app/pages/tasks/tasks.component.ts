@@ -1,13 +1,14 @@
 import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DragDropModule, CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { TaskFormComponent } from './task-form/task-form.component';
 import { Task } from './task.model';
 
 @Component({
     selector: 'app-tasks',
     standalone: true,
-    imports: [CommonModule, FormsModule, TaskFormComponent],
+    imports: [CommonModule, FormsModule, DragDropModule, TaskFormComponent],
     templateUrl: './tasks.component.html',
     styleUrl: './tasks.component.css'
 })
@@ -51,6 +52,62 @@ export class TasksComponent {
     // Add Modal State
     showAddModal = signal(false);
     selectedTask = signal<Task | null>(null);
+
+    drop(event: CdkDragDrop<Task[]>) {
+        if (event.previousContainer === event.container) {
+            // Reordering within the same list
+            const list = [...event.container.data];
+            moveItemInArray(list, event.previousIndex, event.currentIndex);
+
+            const todo = event.container.id === 'todoList' ? list : [...this.todoTasks()];
+            const inProgress = event.container.id === 'inProgressList' ? list : [...this.inProgressTasks()];
+            const done = event.container.id === 'doneList' ? list : [...this.doneTasks()];
+
+            this.tasks.set([...todo, ...inProgress, ...done]);
+        } else {
+            // Moving between lists
+            const previousList = [...event.previousContainer.data];
+            const currentList = [...event.container.data];
+
+            transferArrayItem(
+                previousList,
+                currentList,
+                event.previousIndex,
+                event.currentIndex
+            );
+
+            // Update status of the moved item
+            const movedTask = currentList[event.currentIndex];
+            let newStatus: 'a_faire' | 'en_cours' | 'termine' = 'a_faire';
+
+            if (event.container.id === 'todoList') newStatus = 'a_faire';
+            else if (event.container.id === 'inProgressList') newStatus = 'en_cours';
+            else if (event.container.id === 'doneList') newStatus = 'termine';
+
+            movedTask.status = newStatus;
+            movedTask.completed = newStatus === 'termine';
+
+            let todo = [...this.todoTasks()];
+            let inProgress = [...this.inProgressTasks()];
+            let done = [...this.doneTasks()];
+
+            if (event.previousContainer.id === 'todoList') todo = previousList;
+            else if (event.previousContainer.id === 'inProgressList') inProgress = previousList;
+            else if (event.previousContainer.id === 'doneList') done = previousList;
+
+            if (event.container.id === 'todoList') todo = currentList;
+            else if (event.container.id === 'inProgressList') inProgress = currentList;
+            else if (event.container.id === 'doneList') done = currentList;
+
+            this.tasks.set([...todo, ...inProgress, ...done]);
+        }
+    }
+
+    dropList(event: CdkDragDrop<Task[]>) {
+        const tasksList = [...this.tasks()];
+        moveItemInArray(tasksList, event.previousIndex, event.currentIndex);
+        this.tasks.set(tasksList);
+    }
 
     setViewMode(mode: 'list' | 'kanban') {
         this.viewMode.set(mode);

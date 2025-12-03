@@ -19,8 +19,10 @@
     </div>
 
     <!-- List View -->
-    <div class="tasks-list glass" *ngIf="viewMode() === 'list'">
-        <div class="task-item" *ngFor="let task of tasks()" [class.completed]="task.completed">
+    <div class="tasks-list glass" *ngIf="viewMode() === 'list'" cdkDropList [cdkDropListData]="tasks()"
+        (cdkDropListDropped)="dropList($event)">
+        <div class="task-item" *ngFor="let task of tasks()" [class.completed]="task.completed" cdkDrag
+            [cdkDragData]="task">
             <div class="task-checkbox">
                 <input type="checkbox" [checked]="task.completed" (change)="toggleTask(task.id)">
             </div>
@@ -51,15 +53,16 @@
     </div>
 
     <!-- Kanban View -->
-    <div class="kanban-board" *ngIf="viewMode() === 'kanban'">
+    <div class="kanban-board" *ngIf="viewMode() === 'kanban'" cdkDropListGroup>
         <!-- Todo Column -->
         <div class="kanban-column todo">
             <div class="column-header">
                 <h3>À faire</h3>
                 <span class="count">{{ todoTasks().length }}</span>
             </div>
-            <div class="column-content">
-                <div class="kanban-card" *ngFor="let task of todoTasks()">
+            <div class="column-content" cdkDropList id="todoList" [cdkDropListData]="todoTasks()"
+                (cdkDropListDropped)="drop($event)">
+                <div class="kanban-card" *ngFor="let task of todoTasks()" cdkDrag [cdkDragData]="task">
                     <div class="card-header">
                         <span class="priority-badge" [class]="task.priority">{{ task.priority.charAt(0).toUpperCase() +
                             task.priority.slice(1)}}</span>
@@ -85,8 +88,9 @@
                 <h3>En cours</h3>
                 <span class="count">{{ inProgressTasks().length }}</span>
             </div>
-            <div class="column-content">
-                <div class="kanban-card" *ngFor="let task of inProgressTasks()">
+            <div class="column-content" cdkDropList id="inProgressList" [cdkDropListData]="inProgressTasks()"
+                (cdkDropListDropped)="drop($event)">
+                <div class="kanban-card" *ngFor="let task of inProgressTasks()" cdkDrag [cdkDragData]="task">
                     <div class="card-header">
                         <span class="priority-badge" [class]="task.priority">{{ task.priority.charAt(0).toUpperCase() +
                             task.priority.slice(1)}}</span>
@@ -115,8 +119,9 @@
                 <h3>Terminé</h3>
                 <span class="count">{{ doneTasks().length }}</span>
             </div>
-            <div class="column-content">
-                <div class="kanban-card completed" *ngFor="let task of doneTasks()">
+            <div class="column-content" cdkDropList id="doneList" [cdkDropListData]="doneTasks()"
+                (cdkDropListDropped)="drop($event)">
+                <div class="kanban-card completed" *ngFor="let task of doneTasks()" cdkDrag [cdkDragData]="task">
                     <div class="card-header">
                         <span class="priority-badge" [class]="task.priority">{{ task.priority.charAt(0).toUpperCase() +
                             task.priority.slice(1)}}</span>
