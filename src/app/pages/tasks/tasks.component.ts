@@ -53,6 +53,12 @@ export class TasksComponent {
     showAddModal = signal(false);
     selectedTask = signal<Task | null>(null);
 
+    dropList(event: CdkDragDrop<Task[]>) {
+        const currentTasks = [...this.tasks()];
+        moveItemInArray(currentTasks, event.previousIndex, event.currentIndex);
+        this.tasks.set(currentTasks);
+    }
+
     drop(event: CdkDragDrop<Task[]>) {
         if (event.previousContainer === event.container) {
             // Reordering within the same list
@@ -101,12 +107,6 @@ export class TasksComponent {
 
             this.tasks.set([...todo, ...inProgress, ...done]);
         }
-    }
-
-    dropList(event: CdkDragDrop<Task[]>) {
-        const tasksList = [...this.tasks()];
-        moveItemInArray(tasksList, event.previousIndex, event.currentIndex);
-        this.tasks.set(tasksList);
     }
 
     setViewMode(mode: 'list' | 'kanban') {

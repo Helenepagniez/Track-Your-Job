@@ -5,11 +5,11 @@
             <div class="view-toggle">
                 <button class="toggle-btn" [class.active]="viewMode() === 'list'" (click)="setViewMode('list')"
                     title="Vue Liste">
-                    <i class="fa-solid fa-list-check"><strong>Vue Liste</strong></i>
+                    <i class="fa-solid fa-list-check"><strong><span>Vue Liste</span></strong></i>
                 </button>
                 <button class="toggle-btn" [class.active]="viewMode() === 'kanban'" (click)="setViewMode('kanban')"
                     title="Vue Kanban">
-                    <i class="fa-solid fa-sitemap"><strong>Vue Kanban</strong></i>
+                    <i class="fa-solid fa-sitemap"><strong><span>Vue Kanban</span></strong></i>
                 </button>
             </div>
         </div>
@@ -66,7 +66,11 @@
                     <div class="card-header">
                         <span class="priority-badge" [class]="task.priority">{{ task.priority.charAt(0).toUpperCase() +
                             task.priority.slice(1)}}</span>
-                        <button class="btn-icon-sm" (click)="deleteTask(task.id)">×</button>
+                        <div class="round">
+                            <button class="btn-pen" (click)="updateTask(task.id)"><i
+                                    class="fa-solid fa-pen"></i></button>
+                            <button class="btn-icon-sm" (click)="deleteTask(task.id)">×</button>
+                        </div>
                     </div>
                     <h4>{{ task.title }}</h4>
                     <div class="card-meta" *ngIf="task.relatedOffer">
@@ -74,7 +78,7 @@
                     </div>
                     <div class="card-footer">
                         <span class="due-date">📅 {{ task.dueDate | date:'dd MMM' }}</span>
-                        <button class="btn-move" (click)="updateTaskStatus(task.id, 'en_cours')">
+                        <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'en_cours')">
                             Démarer <i class="fa-solid fa-arrow-right"></i>
                         </button>
                     </div>
@@ -94,18 +98,22 @@
                     <div class="card-header">
                         <span class="priority-badge" [class]="task.priority">{{ task.priority.charAt(0).toUpperCase() +
                             task.priority.slice(1)}}</span>
-                        <button class="btn-icon-sm" (click)="deleteTask(task.id)">×</button>
+                        <div class="round">
+                            <button class="btn-pen" (click)="updateTask(task.id)"><i
+                                    class="fa-solid fa-pen"></i></button>
+                            <button class="btn-icon-sm" (click)="deleteTask(task.id)">×</button>
+                        </div>
                     </div>
                     <h4>{{ task.title }}</h4>
                     <div class="card-meta" *ngIf="task.relatedOffer">
                         <i class="icon">💼</i> {{ task.relatedOffer }}
                     </div>
                     <div class="card-footer">
-                        <button class="btn-move" (click)="updateTaskStatus(task.id, 'a_faire')">
+                        <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'a_faire')">
                             <i class="fa-solid fa-arrow-left"></i> Recommencer
                         </button>
                         <span class="due-date">📅 {{ task.dueDate | date:'dd MMM' }}</span>
-                        <button class="btn-move" (click)="updateTaskStatus(task.id, 'termine')">
+                        <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'termine')">
                             Terminer <i class="fa-solid fa-arrow-right"></i>
                         </button>
                     </div>
@@ -125,7 +133,11 @@
                     <div class="card-header">
                         <span class="priority-badge" [class]="task.priority">{{ task.priority.charAt(0).toUpperCase() +
                             task.priority.slice(1)}}</span>
-                        <button class="btn-icon-sm" (click)="deleteTask(task.id)">×</button>
+                        <div class="round">
+                            <button class="btn-pen" (click)="updateTask(task.id)"><i
+                                    class="fa-solid fa-pen"></i></button>
+                            <button class="btn-icon-sm" (click)="deleteTask(task.id)">×</button>
+                        </div>
                     </div>
                     <h4>{{ task.title }}</h4>
                     <div class="card-meta" *ngIf="task.relatedOffer">
@@ -133,7 +145,7 @@
                     </div>
                     <div class="card-footer">
                         <span class="due-date">📅 {{ task.dueDate | date:'dd MMM' }}</span>
-                        <button class="btn-move" (click)="updateTaskStatus(task.id, 'en_cours')">
+                        <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'en_cours')">
                             <i class="fa-solid fa-arrow-left"></i> Rouvrir
                         </button>
                     </div>

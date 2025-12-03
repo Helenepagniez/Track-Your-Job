@@ -35,7 +35,7 @@
     padding: 15px;
     background-color: var(--background-color);
     border-radius: var(--radius-sm);
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
     transition: all 0.2s ease;
 }
 
@@ -75,7 +75,7 @@
 }
 
 .task-title {
-    font: 600 16px Roboto, sans-serif;
+    font: 500 16px Roboto, sans-serif;
     letter-spacing: 0.5px;
 }
 
@@ -276,14 +276,14 @@
     padding: 6px;
     border-radius: 8px;
     border: 1px solid var(--border-color);
-    gap: 4px;
+    gap: 8px;
 }
 
 .toggle-btn {
     background: none;
     color: var(--text-color);
     border: none;
-    padding: 10px 15px;
+    padding: 6px 8px;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -305,12 +305,12 @@
 
 .toggle-btn i {
     font-size: 16px;
-    margin: 0 10px;
 }
 
-.toggle-btn i strong {
+.toggle-btn i strong span {
     margin-left: 10px;
-    font-size: 15px;
+    font-size: 13px;
+    text-transform: none;
 }
 
 /* Status Badge in List */
@@ -366,7 +366,6 @@
 
 .column-header h3 {
     margin: 0;
-    font-size: 1rem;
     color: var(--primary-color);
     font: 700 16px Roboto, sans-serif;
     letter-spacing: 0.5px;
@@ -374,10 +373,9 @@
 
 .column-header .count {
     background-color: var(--primary-color);
-    padding: 2px 8px;
-    border-radius: var(--radius-lg);
-    font-size: 0.8rem;
-    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 50%;
+    font: 500 15px Roboto, sans-serif;
     color: var(--surface-color);
 }
 
@@ -394,7 +392,7 @@
     border-radius: var(--radius-sm);
     padding: 15px;
     box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     display: flex;
     flex-direction: column;
@@ -442,16 +440,57 @@
 }
 
 .btn-icon-sm {
-    background: var(--danger-color);
-    border: none;
     color: var(--surface-color);
     cursor: pointer;
-    font-size: 1.2rem;
+    font-size: 19px;
     padding: 0;
     line-height: 1;
     border-radius: var(--radius-lg);
     width: 24px;
     height: 24px;
+    background-color: var(--surface-color);
+    color: var(--danger-color);
+    border-color: var(--danger-color);
+    border: 2px solid var(--danger-color);
+}
+
+.btn-icon-sm:hover {
+    background-color: var(--danger-color);
+    color: var(--surface-color);
+    border-color: var(--danger-color);
+    border: none;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-pen {
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0;
+    line-height: 1;
+    border-radius: var(--radius-lg);
+    width: 24px;
+    height: 24px;
+    background-color: var(--surface-color);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+}
+
+.btn-pen:hover {
+    background-color: var(--primary-color);
+    color: var(--surface-color);
+    border-color: var(--primary-color);
+    border: none;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.round {
+    gap: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .kanban-card h4 {
@@ -484,19 +523,19 @@
 }
 
 .btn-move {
-    background: none;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    padding: 2px 8px;
-    font-size: 0.75rem;
-    background-color: rgba(0, 0, 0, 0.06);
+    background-color: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    font: 500 12px Roboto, sans-serif;
 }
 
 .btn-move:hover {
     background-color: var(--primary-color);
-    color: white;
-    border-color: var(--primary-color);
+    color: var(--surface-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
 
 /* Drag and Drop Styles */
 .cdk-drag-preview {
