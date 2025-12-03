@@ -232,9 +232,12 @@
 }
 
 .modal-body {
-    padding: 30px;
     max-height: calc(90vh - 140px);
     overflow-y: auto;
+}
+
+.modal-body-confirm {
+    padding: 30px;
 }
 
 /* Custom Scrollbar */

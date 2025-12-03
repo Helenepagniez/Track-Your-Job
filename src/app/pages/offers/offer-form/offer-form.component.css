@@ -2,6 +2,10 @@
     margin-bottom: 15px;
 }
 
+::ng-deep .mat-horizontal-stepper-wrapper {
+    background-color: var(--background-color);
+}
+
 .form-label {
     display: block;
     margin-bottom: 5px;
@@ -20,6 +24,7 @@
     transition: border-color 0.2s;
     font: 16px Roboto, sans-serif;
     letter-spacing: 0.5px;
+    background-color: var(--surface-color);
 }
 
 .form-control:focus {
