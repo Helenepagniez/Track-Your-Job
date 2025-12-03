@@ -19,7 +19,7 @@ export class TasksComponent {
         {
             id: 1,
             title: 'Relancer Tech Solutions Inc.',
-            dueDate: new Date('2023-11-30'),
+            dueDate: new Date('2025-11-30'),
             completed: false,
             status: 'a_faire',
             relatedOffer: 'Senior Angular Developer',
@@ -28,7 +28,7 @@ export class TasksComponent {
         {
             id: 2,
             title: 'Mettre à jour le CV',
-            dueDate: new Date('2023-12-01'),
+            dueDate: new Date('2025-12-01'),
             completed: false,
             status: 'en_cours',
             priority: 'moyenne'
@@ -36,7 +36,7 @@ export class TasksComponent {
         {
             id: 3,
             title: 'Rechercher des infos sur Creative Agency',
-            dueDate: new Date('2023-11-28'),
+            dueDate: new Date('2025-11-28'),
             completed: true,
             status: 'termine',
             relatedOffer: 'Frontend Engineer',
@@ -180,5 +180,16 @@ export class TasksComponent {
             this.selectedTask.set(task);
             this.showAddModal.set(true);
         }
+    }
+
+    getDaysLeft(dueDate: Date): number {
+        const today = new Date();
+        const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const startOfDue = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+
+        const diffMs = startOfDue.getTime() - startOfToday.getTime();
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+        return diffDays;
     }
 }
