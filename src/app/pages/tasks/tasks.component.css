@@ -426,6 +426,11 @@
     color: var(--text-secondary);
 }
 
+.kanban-card h4 {
+    font: 500 16px Roboto, sans-serif;
+    letter-spacing: 0.5px;
+}
+
 .card-header {
     display: flex;
     align-items: center;
