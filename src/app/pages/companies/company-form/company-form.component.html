@@ -1,0 +1,91 @@
+<div class="form-container">
+    <div class="warning-box">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <p>Attention : Les modifications seront appliquées à toutes les offres liées à <strong>{{ companyName
+                }}</strong>.</p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()">
+        <!-- General Info -->
+        <div class="form-section">
+            <h3>Informations Générales</h3>
+
+            <div class="form-group">
+                <label>Description de l'entreprise</label>
+                <textarea [(ngModel)]="formData.description" name="description" rows="4"
+                    placeholder="Présentation de l'entreprise..."></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nombre d'employés</label>
+                    <input type="number" [(ngModel)]="formData.employees" name="employees" placeholder="Ex: 500">
+                </div>
+                <div class="form-group">
+                    <label>Année de création</label>
+                    <input type="number" [(ngModel)]="formData.founded" name="founded" placeholder="Ex: 2010">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Groupe / Filiale</label>
+                <input type="text" [(ngModel)]="formData.group" name="group" placeholder="Fait partie du groupe...">
+            </div>
+        </div>
+
+        <!-- Contacts -->
+        <div class="form-section">
+            <div class="section-header">
+                <h3>Contacts</h3>
+                <button type="button" class="btn-small" (click)="addContact()">+ Ajouter un contact</button>
+            </div>
+
+            <div class="contacts-list">
+                <div class="contact-card" *ngFor="let contact of formData.contacts; let i = index">
+                    <div class="contact-header">
+                        <span>Contact #{{ i + 1 }}</span>
+                        <button type="button" class="btn-icon danger" (click)="removeContact(i)">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nom</label>
+                            <input type="text" [(ngModel)]="contact.name" [name]="'contactName' + i"
+                                placeholder="Nom complet" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Rôle</label>
+                            <input type="text" [(ngModel)]="contact.role" [name]="'contactRole' + i"
+                                placeholder="RH, Manager...">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" [(ngModel)]="contact.email" [name]="'contactEmail' + i"
+                                placeholder="email@entreprise.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Téléphone</label>
+                            <input type="tel" [(ngModel)]="contact.phone" [name]="'contactPhone' + i"
+                                placeholder="+33 6...">
+                        </div>
+                    </div>
+                </div>
+
+                <div *ngIf="formData.contacts.length === 0" class="empty-contacts">
+                    Aucun contact ajouté via ce formulaire. Les contacts récupérés des offres individuelles sont gérés
+                    automatiquement.
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <button type="button" class="btn btn-outline" (click)="cancel.emit()">Annuler</button>
+            <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+        </div>
+    </form>
+</div>

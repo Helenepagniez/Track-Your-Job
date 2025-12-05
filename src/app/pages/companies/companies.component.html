@@ -1,0 +1,69 @@
+<div class="page-container fade-in">
+    <!-- Header -->
+    <header class="page-header">
+        <div class="header-content">
+            <h1>Entreprises</h1>
+            <p class="subtitle">Gérez votre réseau et retrouvez vos contacts</p>
+        </div>
+        
+        <!-- Search Bar -->
+        <div class="search-bar glass">
+            <i class="fa-solid fa-search"></i>
+            <input 
+                type="text" 
+                placeholder="Rechercher une entreprise..." 
+                [ngModel]="searchTerm()" 
+                (ngModelChange)="searchTerm.set($event)"
+            >
+        </div>
+    </header>
+
+    <!-- Content -->
+    <div class="companies-grid">
+        <div *ngFor="let company of companies()" class="company-card glass hover-effect">
+            <div class="card-header">
+                <div class="company-avatar">{{ company.name.charAt(0) }}</div>
+                <div class="company-info">
+                    <h2>{{ company.name }}</h2>
+                    <span class="offer-count">{{ company.offerCount }} offre{{ company.offerCount > 1 ? 's' : '' }}</span>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="contacts-section" *ngIf="company.contacts.length > 0; else noContacts">
+                    <h4>Contacts</h4>
+                    <div class="contact-list">
+                        <div class="contact-item" *ngFor="let contact of company.contacts.slice(0, 2)">
+                            <div class="contact-avatar-small">{{ contact.name.charAt(0) }}</div>
+                            <div class="contact-details">
+                                <span class="name">{{ contact.name }}</span>
+                                <span class="role" *ngIf="contact.role">{{ contact.role }}</span>
+                            </div>
+                        </div>
+                        <div *ngIf="company.contacts.length > 2" class="more-contacts">
+                            +{{ company.contacts.length - 2 }} autre(s)
+                        </div>
+                    </div>
+                </div>
+                <ng-template #noContacts>
+                    <div class="no-contacts">
+                        <p>Aucun contact enregistré</p>
+                    </div>
+                </ng-template>
+            </div>
+
+            <div class="card-footer">
+                <button class="btn-details" (click)="viewDetails(company.name)">
+                    Voir détails <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="companies().length === 0" class="empty-state">
+        <div class="empty-icon">🏢</div>
+        <h3>Aucune entreprise trouvée</h3>
+        <p>Essayez de modifier votre recherche ou ajoutez de nouvelles offres.</p>
+    </div>
+</div>

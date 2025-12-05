@@ -22,6 +22,12 @@ export interface JobOffer {
         employees?: number;
         founded?: number;
         group?: string;
+        contacts?: {
+            name: string;
+            role?: string;
+            email?: string;
+            phone?: string;
+        }[];
     };
 }
 
@@ -77,5 +83,37 @@ export class OffersService {
 
     deleteOffer(id: number) {
         this.offers.update(offers => offers.filter(o => o.id !== id));
+    }
+
+    // Company Management Helpers
+    getCompany(name: string): { info: any, offers: JobOffer[] } | null {
+        const companyOffers = this.offers().filter(o => o.company === name);
+        if (companyOffers.length === 0) return null;
+
+        // Return info from the most recently added offer as the source of truth
+        const latestOffer = companyOffers.sort((a, b) =>
+            new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime()
+        )[0];
+
+        return {
+            info: latestOffer.companyInfo || {},
+            offers: companyOffers
+        };
+    }
+
+    updateCompanyDetails(companyName: string, newInfo: any) {
+        this.offers.update(offers => offers.map(o => {
+            if (o.company === companyName) {
+                return {
+                    ...o,
+                    companyInfo: {
+                        ...o.companyInfo,
+                        ...newInfo
+                    },
+                    companyDescription: newInfo.description !== undefined ? newInfo.description : o.companyDescription
+                };
+            }
+            return o;
+        }));
     }
 }

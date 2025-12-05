@@ -1,0 +1,132 @@
+<div class="detail-container fade-in" *ngIf="companyData() as data">
+    <!-- Breadcrumb & Back -->
+    <div class="nav-header">
+        <button class="btn-back" routerLink="/dashboard/companies">
+            <i class="fa-solid fa-circle-left"></i> Retour
+        </button>
+        <div class="breadcrumb">
+            <span class="crumb-link" routerLink="/dashboard/companies">Entreprises</span>
+            <span class="separator">></span>
+            <span class="current">{{ data.info.name || companyName() }}</span>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <div class="company-header-card glass">
+        <div class="header-main">
+            <div class="company-logo-large">{{ (data.info.name || companyName()).charAt(0) }}</div>
+            <div class="header-info">
+                <h1>{{ data.info.name || companyName() }}</h1>
+                <div class="subtitle">
+                    <span class="location" *ngIf="data.info.group"><i class="fa-solid fa-building"></i> Groupe {{
+                        data.info.group }}</span>
+                    <span class="separator" *ngIf="data.info.group">•</span>
+                    <span class="stats-summary" *ngIf="stats() as s">
+                        {{ s.total }} Candidature(s) ({{ s.details }})
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-outline" (click)="openEditModal()">
+                <i class="fa-solid fa-pen"></i> Modifier Entreprise
+            </button>
+        </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="content-grid">
+        <!-- Main Column: Description & Offers -->
+        <div class="main-column">
+            <!-- About Section -->
+            <div class="card section">
+                <h3>À propos de l'entreprise</h3>
+                <p *ngIf="data.info.description || data.info.companyDescription; else noDesc">
+                    {{ data.info.description || data.info.companyDescription }}
+                </p>
+                <ng-template #noDesc>
+                    <p class="placeholder-text">Aucune description disponible. Ajoutez-en une en modifiant l'entreprise.
+                    </p>
+                </ng-template>
+
+                <div class="company-metrics">
+                    <div class="metric" *ngIf="data.info.employees">
+                        <i class="fa-solid fa-users"></i>
+                        <div>
+                            <span class="label">Employés</span>
+                            <span class="value">{{ data.info.employees }}</span>
+                        </div>
+                    </div>
+                    <div class="metric" *ngIf="data.info.founded">
+                        <i class="fa-solid fa-flag"></i>
+                        <div>
+                            <span class="label">Création</span>
+                            <span class="value">{{ data.info.founded }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Offers List -->
+            <div class="card section">
+                <h3>Offres chez {{ companyName() }}</h3>
+                <div class="offers-list">
+                    <div *ngFor="let offer of data.offers" class="offer-item" (click)="viewOffer(offer.id)">
+                        <div class="offer-info">
+                            <h4>{{ offer.title }}</h4>
+                            <span class="offer-date">Ajouté le {{ offer.dateAdded | date:'dd MMM yyyy' }}</span>
+                        </div>
+                        <div class="offer-status">
+                            <span class="status-badge" [style.background-color]="statusColors[offer.status] + '20'"
+                                [style.color]="statusColors[offer.status]">
+                                {{ getStatusLabel(offer.status) }}
+                            </span>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Column: Contacts -->
+        <div class="sidebar-column">
+            <div class="card section">
+                <h3>Contacts clics</h3>
+                <div class="contacts-list"
+                    *ngIf="data.info.contacts && data.info.contacts.length > 0; else noSideContacts">
+                    <div class="contact-item" *ngFor="let contact of data.info.contacts">
+                        <div class="contact-avatar">{{ contact.name.charAt(0) }}</div>
+                        <div class="contact-info">
+                            <div class="name">{{ contact.name }}</div>
+                            <div class="role">{{ contact.role }}</div>
+                            <div class="contact-links">
+                                <a *ngIf="contact.email" [href]="'mailto:' + contact.email" title="Envoyer un email"><i
+                                        class="fa-solid fa-envelope"></i></a>
+                                <a *ngIf="contact.phone" [href]="'tel:' + contact.phone" title="Appeler"><i
+                                        class="fa-solid fa-phone"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <ng-template #noSideContacts>
+                    <p class="placeholder-text">Aucun contact enregistré.</p>
+                </ng-template>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" *ngIf="showEditModal()" (click)="closeEditModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Modifier {{ companyName() }}</h3>
+            <button class="close-btn" (click)="closeEditModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <app-company-form [companyName]="companyName()" [initialData]="companyData()?.info"
+                (save)="onSaveCompany($event)" (cancel)="closeEditModal()">
+            </app-company-form>
+        </div>
+    </div>
+</div>

@@ -12,13 +12,18 @@
                 <i class="fa-solid fa-bars-progress"></i>
                 <span class="label">Résumé</span>
             </a>
+            <a routerLink="/dashboard/tasks" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+                <i class="fa-solid fa-square-check"></i>
+                <span class="label">Tâches</span>
+            </a>
             <a routerLink="/dashboard/offers" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
                 <i class="fa-solid fa-briefcase"></i>
                 <span class="label">Offres</span>
             </a>
-            <a routerLink="/dashboard/tasks" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
-                <i class="fa-solid fa-square-check"></i>
-                <span class="label">Tâches</span>
+
+            <a routerLink="/dashboard/companies" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+                <i class="fa-solid fa-building"></i>
+                <span class="label">Entreprises</span>
             </a>
             <a routerLink="/dashboard/stats" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
                 <i class="fa-solid fa-chart-pie"></i>
