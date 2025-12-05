@@ -11,10 +11,13 @@ import { RouterModule } from '@angular/router';
 })
 export class SummaryComponent {
     stats = [
-        { title: 'Candidatures', value: 12, icon: '📝', color: 'var(--primary-color)' },
-        { title: 'Entretiens', value: 3, icon: '🤝', color: 'var(--accent-color)' },
-        { title: 'En attente', value: 5, icon: '⏳', color: 'var(--warning-color)' },
-        { title: 'Refus', value: 2, icon: '❌', color: 'var(--danger-color)' }
+        { title: 'Candidatures', value: 12, icon: '📝' },
+        { title: 'Entretiens', value: 3, icon: '🤝' },
+        { title: 'En attente', value: 5, icon: '⏳' },
+        { title: 'Refus', value: 2, icon: '❌' },
+        { title: 'Taux de réponses', value: '15%', icon: '📝' },
+        { title: 'Entreprises', value: 5, icon: '🤝' },
+        { title: 'A postuler', value: 5, icon: '⏳' }
     ];
 
     recentActivities = [

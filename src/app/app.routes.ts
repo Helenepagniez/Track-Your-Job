@@ -39,10 +39,6 @@ export const routes: Routes = [
                 loadComponent: () => import('./pages/tasks/tasks.component').then(m => m.TasksComponent)
             },
             {
-                path: 'stats',
-                loadComponent: () => import('./pages/stats/stats.component').then(m => m.StatsComponent)
-            },
-            {
                 path: 'profile',
                 loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent)
             }

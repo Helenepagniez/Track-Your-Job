@@ -3,12 +3,13 @@
 
     <div class="stats-grid">
         <div class="card stat-card" *ngFor="let stat of stats">
-            <div class="stat-icon" [style.background-color]="stat.color + '20'" [style.color]="stat.color">
+            <div class="stat-icon">
                 {{ stat.icon }}
             </div>
             <div class="stat-info">
                 <h3>{{ stat.value }}</h3>
                 <p>{{ stat.title }}</p>
+                <p class="stat-change">+2% ce mois-ci</p>
             </div>
         </div>
     </div>

@@ -51,6 +51,12 @@ h2 {
     letter-spacing: 0.5px;
 }
 
+.stat-info .stat-change {
+    margin: 0;
+    font: 600 12px Roboto, sans-serif;
+    letter-spacing: 0.5px;
+}
+
 .content-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
