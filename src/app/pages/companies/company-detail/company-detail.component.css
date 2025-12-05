@@ -285,7 +285,6 @@ html.dark-mode h3 {
 
 .contact-item {
     display: flex;
-    align-items: center;
     gap: 1rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--border-color);
@@ -300,38 +299,64 @@ html.dark-mode h3 {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: var(--bg-secondary);
+    background: var(--primary-color);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
-    color: var(--text-primary);
+    font-weight: 700;
+    color: var(--surface-color);
+    text-transform: capitalize;
 }
 
 .contact-info .name {
-    font-weight: 600;
-    color: var(--text-primary);
+    font-weight: 700;
+    color: var(--primary-color);
+    font: 600 16px Roboto, sans-serif;
+    text-transform: capitalize;
+    margin-bottom: 0.25rem;
 }
 
 .contact-info .role {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
+    font: 600 14px Roboto, sans-serif;
+    color: var(--text-color);
     margin-bottom: 0.25rem;
+    text-transform: capitalize;
 }
 
 .contact-links {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    flex-direction: column;
 }
 
 .contact-links a {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
+    color: var(--primary-color);
+    font-size: 17px;
     transition: color 0.2s;
 }
 
 .contact-links a:hover {
     color: var(--primary-color);
+}
+
+.contact-links p {
+    margin: 0;
+    font: 500 13px Roboto, sans-serif;
+    color: var(--text-color);
+}
+
+.contact-link {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: 0.5rem;
+}
+
+.contact-link .row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-direction: row;
 }
 
 /* Modal */

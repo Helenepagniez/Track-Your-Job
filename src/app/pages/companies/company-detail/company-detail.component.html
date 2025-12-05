@@ -41,13 +41,9 @@
             <!-- About Section -->
             <div class="card section">
                 <h3>À propos de l'entreprise</h3>
-                <p *ngIf="data.info.description || data.info.companyDescription; else noDesc">
+                <p *ngIf="data.info.description || data.info.companyDescription">
                     {{ data.info.description || data.info.companyDescription }}
                 </p>
-                <ng-template #noDesc>
-                    <p class="placeholder-text">Aucune description disponible. Ajoutez-en une en modifiant l'entreprise.
-                    </p>
-                </ng-template>
 
                 <div class="company-metrics">
                     <div class="metric" *ngIf="data.info.employees">
@@ -91,25 +87,31 @@
         <div class="sidebar-column">
             <div class="card section">
                 <h3>Contacts</h3>
-                <div class="contacts-list"
-                    *ngIf="data.info.contacts && data.info.contacts.length > 0; else noSideContacts">
+                <div class="contacts-list" *ngIf="data.info.contacts && data.info.contacts.length > 0">
                     <div class="contact-item" *ngFor="let contact of data.info.contacts">
                         <div class="contact-avatar">{{ contact.name.charAt(0) }}</div>
                         <div class="contact-info">
                             <div class="name">{{ contact.name }}</div>
                             <div class="role">{{ contact.role }}</div>
                             <div class="contact-links">
-                                <a *ngIf="contact.email" [href]="'mailto:' + contact.email" title="Envoyer un email"><i
-                                        class="fa-solid fa-envelope"></i></a>
-                                <a *ngIf="contact.phone" [href]="'tel:' + contact.phone" title="Appeler"><i
-                                        class="fa-solid fa-phone"></i></a>
+                                <div class="contact-link">
+                                    <a class="row" *ngIf="contact.email" [href]="'mailto:' + contact.email"
+                                        title="Envoyer un email">
+                                        <i class="fa-solid fa-envelope"></i>
+                                        <p>{{ contact.email }}</p>
+                                    </a>
+                                </div>
+                                <div class="contact-link">
+                                    <a class="row" *ngIf="contact.phone" [href]="'tel:' + contact.phone"
+                                        title="Appeler">
+                                        <i class="fa-solid fa-phone"></i>
+                                        <p>{{ contact.phone }}</p>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <ng-template #noSideContacts>
-                    <p class="placeholder-text">Aucun contact enregistré.</p>
-                </ng-template>
             </div>
         </div>
     </div>

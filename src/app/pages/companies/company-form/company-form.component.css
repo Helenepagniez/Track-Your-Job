@@ -101,11 +101,15 @@ textarea:focus {
 }
 
 .contact-card {
-    background: var(--bg-secondary);
+    background: var(--surface-color);
     border: 1px solid var(--border-color);
     padding: 1rem;
     border-radius: 8px;
     margin-bottom: 1rem;
+}
+
+.contact-card input {
+    background-color: var(--background-color);
 }
 
 .contact-header {
@@ -116,6 +120,11 @@ textarea:focus {
     font-size: 0.85rem;
     color: var(--text-secondary);
     font-weight: 600;
+}
+
+.contact-header span {
+    color: var(--primary-color);
+    font: 600 16px Roboto, sans-serif;
 }
 
 .btn-icon.danger {
