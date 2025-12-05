@@ -341,53 +341,103 @@ html.dark-mode h3 {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    animation: fadeIn 0.2s ease-out;
+    backdrop-filter: blur(5px);
 }
 
 .modal-content {
-    background: var(--bg-primary);
+    background-color: var(--background-color);
+    border-radius: var(--radius-md);
     width: 90%;
-    max-width: 600px;
     max-height: 90vh;
-    border-radius: 20px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
 }
 
 .modal-header {
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid var(--border-color);
+    padding: 24px 30px;
+    border-bottom: 2px solid var(--primary-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background: linear-gradient(135deg, rgba(0, 86, 179, 0.05) 0%, rgba(0, 168, 255, 0.05) 100%);
 }
 
 .modal-header h3 {
     margin: 0;
-    border: none;
-    padding: 0;
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    font-weight: 600;
 }
 
 .close-btn {
     background: none;
     border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
+    font-size: 1.8rem;
     color: var(--text-secondary);
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
 }
 
+.close-btn:hover {
+    background-color: rgba(214, 48, 49, 0.1);
+    color: var(--danger-color);
+    transform: rotate(90deg);
+}
+
+
 .modal-body {
-    padding: 2rem;
-    overflow-y: auto;
+    padding: 20px;
+}
+
+.modal-footer {
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-color);
+    font: 600 16px Roboto, sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    margin-top: 5px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    transition: border-color 0.2s;
+    font: 16px Roboto, sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
+    border: 2px solid var(--primary-color);
 }
 
 /* Animations */

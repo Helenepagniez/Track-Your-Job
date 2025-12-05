@@ -1,10 +1,4 @@
 <div class="form-container">
-    <div class="warning-box">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        <p>Attention : Les modifications seront appliquées à toutes les offres liées à <strong>{{ companyName
-                }}</strong>.</p>
-    </div>
-
     <form (ngSubmit)="onSubmit()">
         <!-- General Info -->
         <div class="form-section">
@@ -14,6 +8,13 @@
                 <label>Description de l'entreprise</label>
                 <textarea [(ngModel)]="formData.description" name="description" rows="4"
                     placeholder="Présentation de l'entreprise..."></textarea>
+            </div>
+            <div class="warning-box">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <p>Attention : Les modifications de l'encadré ci-dessus seront appliquées à toutes les offres liées à
+                    <strong>{{ companyName
+                        }}</strong>.
+                </p>
             </div>
 
             <div class="form-row">
@@ -37,7 +38,7 @@
         <div class="form-section">
             <div class="section-header">
                 <h3>Contacts</h3>
-                <button type="button" class="btn-small" (click)="addContact()">+ Ajouter un contact</button>
+                <button type="button" class="btn btn-outline" (click)="addContact()">+ Ajouter un contact</button>
             </div>
 
             <div class="contacts-list">
@@ -45,7 +46,7 @@
                     <div class="contact-header">
                         <span>Contact #{{ i + 1 }}</span>
                         <button type="button" class="btn-icon danger" (click)="removeContact(i)">
-                            <i class="fa-solid fa-trash"></i>
+                            <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
 
@@ -70,14 +71,9 @@
                         <div class="form-group">
                             <label>Téléphone</label>
                             <input type="tel" [(ngModel)]="contact.phone" [name]="'contactPhone' + i"
-                                placeholder="+33 6...">
+                                placeholder="+33 6 12 34 56 78">
                         </div>
                     </div>
-                </div>
-
-                <div *ngIf="formData.contacts.length === 0" class="empty-contacts">
-                    Aucun contact ajouté via ce formulaire. Les contacts récupérés des offres individuelles sont gérés
-                    automatiquement.
                 </div>
             </div>
         </div>
