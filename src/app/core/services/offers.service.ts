@@ -19,6 +19,7 @@ export interface JobOffer {
     recruitmentProcess?: string;
     others?: string;
     companyInfo?: {
+        id?: number;
         employees?: number;
         founded?: number;
         group?: string;

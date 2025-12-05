@@ -159,7 +159,6 @@
     background-color: var(--surface-color);
     border-radius: var(--radius-md);
     padding: 25px;
-    border: 1px solid var(--border-color);
     margin-bottom: 20px;
 }
 
@@ -170,6 +169,18 @@
     padding-bottom: 10px;
     font: 700 22px Roboto, sans-serif;
     letter-spacing: 0.5px;
+}
+
+.card.section .description {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-direction: row;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card.section .description h3 {
+    border-bottom: none;
 }
 
 .info-block {

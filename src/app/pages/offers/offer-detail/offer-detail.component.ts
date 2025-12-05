@@ -91,4 +91,8 @@ export class OfferDetailComponent implements OnInit {
             this.router.navigate(['/dashboard/offers']);
         }
     }
+
+    viewCompany(companyName: string) {
+        this.router.navigate(['/dashboard/companies', companyName]);
+    }
 }

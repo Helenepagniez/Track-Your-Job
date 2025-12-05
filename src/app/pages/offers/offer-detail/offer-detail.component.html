@@ -46,7 +46,7 @@
     <div class="content-grid">
         <!-- Main Info -->
         <div class="main-column">
-            <div class="card section">
+            <div class="card section" *ngIf="o.description || o.missions || o.profile">
                 <h3>Description du poste</h3>
                 <div class="info-block" *ngIf="o.missions">
                     <h4>Missions</h4>
@@ -62,8 +62,11 @@
                 </div>
             </div>
 
-            <div class="card section" *ngIf="o.companyDescription">
-                <h3>À propos de l'entreprise</h3>
+            <div class="card section">
+                <div class="description">
+                    <h3>À propos de l'entreprise</h3>
+                    <button class="btn btn-outline" (click)="viewCompany(o.company)">Voir l'entreprise</button>
+                </div>
                 <p>{{ o.companyDescription }}</p>
                 <div class="company-stats" *ngIf="o.companyInfo">
                     <div class="stat" *ngIf="o.companyInfo.employees">
