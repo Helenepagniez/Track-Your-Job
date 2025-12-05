@@ -22,7 +22,7 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
-  --font-family: 'Inter', sans-serif;
+  --font-family: 'Roboto', sans-serif;
 }
 
 [data-theme='dark'] {

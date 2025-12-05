@@ -3,64 +3,19 @@
         <div class="header-left">
             <h2>Mes Tâches</h2>
             <div class="view-toggle">
-                <button class="toggle-btn" [class.active]="viewMode() === 'list'" (click)="setViewMode('list')"
-                    title="Vue Liste">
-                    <i class="fa-solid fa-list-check"><strong><span>Vue Liste</span></strong></i>
-                </button>
                 <button class="toggle-btn" [class.active]="viewMode() === 'kanban'" (click)="setViewMode('kanban')"
                     title="Vue Kanban">
                     <i class="fa-solid fa-sitemap"><strong><span>Vue Kanban</span></strong></i>
+                </button>
+                <button class="toggle-btn" [class.active]="viewMode() === 'list'" (click)="setViewMode('list')"
+                    title="Vue Liste">
+                    <i class="fa-solid fa-list-check"><strong><span>Vue Liste</span></strong></i>
                 </button>
             </div>
         </div>
         <button class="btn btn-primary" (click)="openAddModal()">
             <span>+</span> Nouvelle Tâche
         </button>
-    </div>
-
-    <!-- List View -->
-    <div class="tasks-list glass" *ngIf="viewMode() === 'list'" cdkDropList [cdkDropListData]="tasks()"
-        (cdkDropListDropped)="dropList($event)">
-        <div class="task-item" *ngFor="let task of tasks()" [class.completed]="task.completed" cdkDrag
-            [cdkDragData]="task">
-            <div class="task-checkbox">
-                <input type="checkbox" [checked]="task.completed" (change)="toggleTask(task.id)">
-            </div>
-            <div class="task-content">
-                <div class="task-title-row">
-                    <span class="task-title">{{ task.title }}</span>
-                    <span class="priority-badge" [class]="task.priority">{{ task.priority.charAt(0).toUpperCase() +
-                        task.priority.slice(1)}}</span>
-                    <span class="status-badge-small" [class]="task.status">
-                        {{ (task.status.charAt(0).toUpperCase() + task.status.slice(1)).replace("_", " ") }}
-                    </span>
-                </div>
-                <div class="task-meta">
-                    <span *ngIf="task.relatedOffer" class="related-offer">
-                        <i class="icon">💼</i> {{ task.relatedOffer }}
-                    </span>
-                    <span class="due-date" [class.overdue]="!task.completed && getDaysLeft(task.dueDate) < 0">
-                        <i class="icon">📅</i> {{ task.dueDate | date:'dd MMM' }}
-                        <ng-container *ngIf="!task.completed">
-                            <span *ngIf="getDaysLeft(task.dueDate) > 0">
-                                · {{ getDaysLeft(task.dueDate) }} jours restants
-                            </span>
-                            <span *ngIf="getDaysLeft(task.dueDate) === 0">
-                                · Dernier jour !
-                            </span>
-                            <span *ngIf="getDaysLeft(task.dueDate) < 0">
-                                · En retard de {{ -getDaysLeft(task.dueDate) }} jours
-                            </span>
-                        </ng-container>
-                    </span>
-                </div>
-            </div>
-            <div class="task-actions">
-                <button class="btn btn-outline" (click)="updateTask(task.id)"><i
-                        class="fa-solid fa-pen"></i>Modifier</button>
-                <button class="btn-icon" (click)="deleteTask(task.id)"><i class="fa-solid fa-trash-can"></i></button>
-            </div>
-        </div>
     </div>
 
     <!-- Kanban View -->
@@ -190,6 +145,53 @@
             </div>
         </div>
     </div>
+
+    <!-- List View -->
+    <div class="tasks-list glass" *ngIf="viewMode() === 'list'" cdkDropList [cdkDropListData]="tasks()"
+        (cdkDropListDropped)="dropList($event)">
+        <div class="task-item" *ngFor="let task of tasks()" [class.completed]="task.completed" cdkDrag
+            [cdkDragData]="task">
+            <div class="task-checkbox">
+                <input type="checkbox" [checked]="task.completed" (change)="toggleTask(task.id)">
+            </div>
+            <div class="task-content">
+                <div class="task-title-row">
+                    <span class="task-title">{{ task.title }}</span>
+                    <span class="priority-badge" [class]="task.priority">{{ task.priority.charAt(0).toUpperCase() +
+                        task.priority.slice(1)}}</span>
+                    <span class="status-badge-small" [class]="task.status">
+                        {{ (task.status.charAt(0).toUpperCase() + task.status.slice(1)).replace("_", " ") }}
+                    </span>
+                </div>
+                <div class="task-meta">
+                    <span *ngIf="task.relatedOffer" class="related-offer">
+                        <i class="icon">💼</i> {{ task.relatedOffer }}
+                    </span>
+                    <span class="due-date" [class.overdue]="!task.completed && getDaysLeft(task.dueDate) < 0">
+                        <i class="icon">📅</i> {{ task.dueDate | date:'dd MMM' }}
+                        <ng-container *ngIf="!task.completed">
+                            <span *ngIf="getDaysLeft(task.dueDate) > 0">
+                                · {{ getDaysLeft(task.dueDate) }} jours restants
+                            </span>
+                            <span *ngIf="getDaysLeft(task.dueDate) === 0">
+                                · Dernier jour !
+                            </span>
+                            <span *ngIf="getDaysLeft(task.dueDate) < 0">
+                                · En retard de {{ -getDaysLeft(task.dueDate) }} jours
+                            </span>
+                        </ng-container>
+                    </span>
+                </div>
+            </div>
+            <div class="task-actions">
+                <button class="btn btn-outline" (click)="updateTask(task.id)"><i
+                        class="fa-solid fa-pen"></i>Modifier</button>
+                <button class="btn-icon" (click)="deleteTask(task.id)"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+        </div>
+    </div>
+
+
 </div>
 
 <!-- Add Task Modal -->
