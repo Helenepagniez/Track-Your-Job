@@ -13,7 +13,7 @@ import { Task } from './task.model';
     styleUrl: './tasks.component.css'
 })
 export class TasksComponent {
-    viewMode = signal<'list' | 'kanban'>('list');
+    viewMode = signal<'list' | 'kanban'>('kanban');
 
     tasks = signal<Task[]>([
         {
