@@ -1,4 +1,4 @@
-<div class="detail-container fade-in" *ngIf="companyData() as data">
+<div class="detail-container" *ngIf="companyData() as data">
     <!-- Breadcrumb & Back -->
     <div class="nav-header">
         <button class="btn-back" routerLink="/dashboard/companies">
@@ -77,8 +77,7 @@
                             <span class="offer-date">Ajouté le {{ offer.dateAdded | date:'dd MMM yyyy' }}</span>
                         </div>
                         <div class="offer-status">
-                            <span class="status-badge" [style.background-color]="statusColors[offer.status] + '20'"
-                                [style.color]="statusColors[offer.status]">
+                            <span class="status-badge">
                                 {{ getStatusLabel(offer.status) }}
                             </span>
                             <i class="fa-solid fa-chevron-right"></i>

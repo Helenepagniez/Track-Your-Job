@@ -1,22 +1,19 @@
-<div class="page-container fade-in">
+<div class="companies-container">
     <!-- Header -->
     <header class="page-header">
         <div class="header-content">
-            <h1>Entreprises</h1>
-            <p class="subtitle">Gérez votre réseau et retrouvez vos contacts</p>
-        </div>
-        
-        <!-- Search Bar -->
-        <div class="search-bar glass">
-            <i class="fa-solid fa-search"></i>
-            <input 
-                type="text" 
-                placeholder="Rechercher une entreprise..." 
-                [ngModel]="searchTerm()" 
-                (ngModelChange)="searchTerm.set($event)"
-            >
+            <h2>Mon Répertoire des Entreprises</h2>
         </div>
     </header>
+
+    <!-- Search Bar -->
+    <div class="filters-bar glass">
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Rechercher une entreprise..." class="search-input" [ngModel]="searchTerm()"
+                (ngModelChange)="searchTerm.set($event)">
+        </div>
+    </div>
 
     <!-- Content -->
     <div class="companies-grid">
@@ -24,13 +21,14 @@
             <div class="card-header">
                 <div class="company-avatar">{{ company.name.charAt(0) }}</div>
                 <div class="company-info">
-                    <h2>{{ company.name }}</h2>
-                    <span class="offer-count">{{ company.offerCount }} offre{{ company.offerCount > 1 ? 's' : '' }}</span>
+                    <h3>{{ company.name }}</h3>
+                    <span class="offer-count">{{ company.offerCount }} offre{{ company.offerCount > 1 ? 's' : ''
+                        }}</span>
                 </div>
             </div>
 
             <div class="card-body">
-                <div class="contacts-section" *ngIf="company.contacts.length > 0; else noContacts">
+                <div class="contacts-section" *ngIf="company.contacts.length > 0">
                     <h4>Contacts</h4>
                     <div class="contact-list">
                         <div class="contact-item" *ngFor="let contact of company.contacts.slice(0, 2)">
@@ -45,15 +43,10 @@
                         </div>
                     </div>
                 </div>
-                <ng-template #noContacts>
-                    <div class="no-contacts">
-                        <p>Aucun contact enregistré</p>
-                    </div>
-                </ng-template>
             </div>
 
             <div class="card-footer">
-                <button class="btn-details" (click)="viewDetails(company.name)">
+                <button class="btn btn-outline btn-sm" (click)="viewDetails(company.name)">
                     Voir détails <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
