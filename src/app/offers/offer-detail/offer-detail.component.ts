@@ -92,7 +92,11 @@ export class OfferDetailComponent implements OnInit {
         }
     }
 
-    viewCompany(companyName: string) {
-        this.router.navigate(['/entreprises', companyName]);
+    viewCompany(offer: JobOffer) {
+        if (offer.companyInfo?.id) {
+            this.router.navigate(['/entreprises', offer.companyInfo.id]);
+        } else {
+            this.router.navigate(['/entreprises', offer.company]);
+        }
     }
 }

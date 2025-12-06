@@ -1,11 +1,11 @@
 <div class="detail-container" *ngIf="companyData() as data">
     <!-- Breadcrumb & Back -->
     <div class="nav-header">
-        <button class="btn-back" routerLink="/companies">
+        <button class="btn-back" routerLink="/entreprises">
             <i class="fa-solid fa-circle-left"></i> Retour
         </button>
         <div class="breadcrumb">
-            <span class="crumb-link" routerLink="/companies">Entreprises</span>
+            <span class="crumb-link" routerLink="/entreprises">Entreprises</span>
             <span class="separator">></span>
             <span class="current">{{ data.info.name || companyName() }}</span>
         </div>

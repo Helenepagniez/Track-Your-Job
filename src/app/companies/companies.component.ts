@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { OffersService, JobOffer } from '../core/services/offers.service';
 
 interface CompanySummary {
+    id?: number;
     name: string;
     offerCount: number;
     contacts: any[]; // Using any for simplicity as defined in service
@@ -32,11 +33,18 @@ export class CompaniesComponent {
         offers.forEach(offer => {
             if (!companyMap.has(offer.company)) {
                 companyMap.set(offer.company, {
+                    id: offer.companyInfo?.id,
                     name: offer.company,
                     offerCount: 0,
                     contacts: [],
                     latestOfferDate: new Date(0) // Epoch
                 });
+            } else {
+                // Should we try to find an ID if the previous one was undefined?
+                const existing = companyMap.get(offer.company)!;
+                if (!existing.id && offer.companyInfo?.id) {
+                    existing.id = offer.companyInfo.id;
+                }
             }
 
             const summary = companyMap.get(offer.company)!;
@@ -68,8 +76,12 @@ export class CompaniesComponent {
             .sort((a, b) => b.latestOfferDate.getTime() - a.latestOfferDate.getTime());
     });
 
-    viewDetails(companyName: string) {
-        // Navigate to detail page. Encoding the name to handle spaces/special chars
-        this.router.navigate(['/entreprises', encodeURIComponent(companyName)]);
+    viewDetails(company: CompanySummary) {
+        if (company.id) {
+            this.router.navigate(['/entreprises', company.id]);
+        } else {
+            // Navigate to detail page. Encoding the name to handle spaces/special chars
+            this.router.navigate(['/entreprises', company.name]); // No need to encodeURIComponent here, the router usually handles it or it's cleaner to let router handle URL construction
+        }
     }
 }

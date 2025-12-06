@@ -46,7 +46,7 @@ export class OffersService {
             salary: '60k - 75k €',
             dateAdded: new Date('2023-10-25'),
             description: 'We are looking for an experienced Angular developer to lead our frontend team.',
-            companyInfo: { employees: 500, founded: 2010 }
+            companyInfo: { id: 1, employees: 500, founded: 2010 }
         },
         {
             id: 2,
@@ -55,7 +55,8 @@ export class OffersService {
             status: 'Applied',
             location: 'Remote',
             dateAdded: new Date('2023-11-01'),
-            description: 'Join our creative team to build stunning web experiences.'
+            description: 'Join our creative team to build stunning web experiences.',
+            companyInfo: { id: 2 }
         },
         {
             id: 3,
@@ -64,7 +65,8 @@ export class OffersService {
             status: 'To Apply',
             location: 'Lyon, France',
             dateAdded: new Date('2023-11-05'),
-            description: 'Full stack role using Angular and Node.js.'
+            description: 'Full stack role using Angular and Node.js.',
+            companyInfo: { id: 3 }
         }
     ]);
 
@@ -87,8 +89,20 @@ export class OffersService {
     }
 
     // Company Management Helpers
-    getCompany(name: string): { info: any, offers: JobOffer[] } | null {
-        const companyOffers = this.offers().filter(o => o.company === name);
+    getCompany(identifier: string | number): { name: string, info: any, offers: JobOffer[] } | null {
+        let companyOffers: JobOffer[] = [];
+
+        // Check if identifier is a number (ID) or looks like one
+        const searchId = Number(identifier);
+        const isIdSearch = !isNaN(searchId) && searchId > 0;
+
+        if (isIdSearch) {
+            companyOffers = this.offers().filter(o => o.companyInfo?.id === searchId);
+        } else {
+            // Search by name
+            companyOffers = this.offers().filter(o => o.company === identifier);
+        }
+
         if (companyOffers.length === 0) return null;
 
         // Return info from the most recently added offer as the source of truth
@@ -97,6 +111,7 @@ export class OffersService {
         )[0];
 
         return {
+            name: latestOffer.company,
             info: latestOffer.companyInfo || {},
             offers: companyOffers
         };

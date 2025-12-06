@@ -16,14 +16,17 @@ export class CompanyDetailComponent implements OnInit {
     private router = inject(Router);
     private offersService = inject(OffersService);
 
-    companyName = signal<string>('');
+    identifier = signal<string | number>('');
 
     // Computed Company Data
     companyData = computed(() => {
-        const name = this.companyName();
-        if (!name) return null;
-        return this.offersService.getCompany(name);
+        const id = this.identifier();
+        if (!id) return null;
+        return this.offersService.getCompany(id);
     });
+
+    // Valid company name from loaded data
+    companyName = computed(() => this.companyData()?.name ?? '');
 
     // Stats Computed
     stats = computed(() => {
@@ -60,9 +63,15 @@ export class CompanyDetailComponent implements OnInit {
 
     ngOnInit() {
         this.route.paramMap.subscribe(params => {
-            const name = params.get('id');
-            if (name) {
-                this.companyName.set(decodeURIComponent(name));
+            const idParam = params.get('id');
+            if (idParam) {
+                // Check if it's a numeric ID
+                const id = Number(idParam);
+                if (!isNaN(id) && id > 0) {
+                    this.identifier.set(id);
+                } else {
+                    this.identifier.set(decodeURIComponent(idParam));
+                }
             }
         });
     }
@@ -87,9 +96,11 @@ export class CompanyDetailComponent implements OnInit {
     }
 
     onSaveCompany(newData: any) {
-        this.offersService.updateCompanyDetails(this.companyName(), newData);
-        this.closeEditModal();
-        // Force refresh or just let signals handle it (signals handle it)
+        const name = this.companyName();
+        if (name) {
+            this.offersService.updateCompanyDetails(name, newData);
+            this.closeEditModal();
+        }
     }
 
     viewOffer(id: number) {
