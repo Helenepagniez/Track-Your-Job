@@ -14,8 +14,13 @@
 
                     <div class="form-group">
                         <label class="form-label">Entreprise *</label>
-                        <input matInput formControlName="company" placeholder="Ex: Google" required
-                            class="form-control">
+                        <input matInput formControlName="company" placeholder="Ex: Google" required class="form-control"
+                            [matAutocomplete]="auto">
+                        <mat-autocomplete #auto="matAutocomplete">
+                            <mat-option *ngFor="let company of filteredCompanies()" [value]="company">
+                                {{company}}
+                            </mat-option>
+                        </mat-autocomplete>
                     </div>
 
                     <div class="form-group">

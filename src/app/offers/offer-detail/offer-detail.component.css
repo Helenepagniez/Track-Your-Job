@@ -177,6 +177,7 @@
     justify-content: space-between;
     flex-direction: row;
     border-bottom: 1px solid var(--border-color);
+    margin: 0 0 20px;
 }
 
 .card.section .description h3 {

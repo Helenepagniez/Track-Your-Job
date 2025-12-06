@@ -7,7 +7,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
-import { JobOffer } from '../../core/services/offers.service';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { JobOffer, OffersService } from '../../core/services/offers.service';
 
 @Component({
     selector: 'app-offer-form',
@@ -20,19 +21,22 @@ import { JobOffer } from '../../core/services/offers.service';
         MatInputModule,
         MatButtonModule,
         MatSelectModule,
-        MatOptionModule
+        MatOptionModule,
+        MatAutocompleteModule
     ],
     templateUrl: './offer-form.component.html',
     styleUrl: './offer-form.component.css'
 })
 export class OfferFormComponent implements OnInit {
     private _formBuilder = inject(FormBuilder);
+    private _offersService = inject(OffersService);
 
     @Input() offer: JobOffer | null = null;
     @Output() save = new EventEmitter<Partial<JobOffer>>();
     @Output() cancel = new EventEmitter<void>();
 
     isEditing = signal(false);
+    filteredCompanies = signal<string[]>([]);
 
     firstFormGroup: FormGroup = this._formBuilder.group({
         title: ['', Validators.required],
@@ -57,6 +61,10 @@ export class OfferFormComponent implements OnInit {
     });
 
     ngOnInit() {
+        this.firstFormGroup.get('company')?.valueChanges.subscribe(value => {
+            this._filterCompanies(value || '');
+        });
+
         if (this.offer) {
             this.isEditing.set(true);
             this.firstFormGroup.patchValue({
@@ -108,5 +116,25 @@ export class OfferFormComponent implements OnInit {
 
             this.save.emit(offerData);
         }
+    }
+
+    private _filterCompanies(value: string) {
+        const filterValue = value.toLowerCase();
+
+        // Get unique companies from offers
+        const uniqueCompanies = Array.from(new Set(this._offersService.offers().map(o => o.company))).sort();
+
+        if (!filterValue) {
+            this.filteredCompanies.set([]);
+            return;
+        }
+
+        const filtered = uniqueCompanies.filter(company => {
+            const words = company.toLowerCase().split(' ');
+            // Check if query matches start of any word
+            return words.some(word => word.startsWith(filterValue));
+        });
+
+        this.filteredCompanies.set(filtered);
     }
 }
