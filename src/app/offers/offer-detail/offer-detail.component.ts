@@ -42,7 +42,7 @@ export class OfferDetailComponent implements OnInit {
         if (foundOffer) {
             this.offer.set(foundOffer);
         } else {
-            this.router.navigate(['/offers']);
+            this.router.navigate(['/offres']);
         }
     }
 
@@ -88,11 +88,11 @@ export class OfferDetailComponent implements OnInit {
     deleteOffer() {
         if (this.offer()) {
             this.offersService.deleteOffer(this.offer()!.id);
-            this.router.navigate(['/offers']);
+            this.router.navigate(['/offres']);
         }
     }
 
     viewCompany(companyName: string) {
-        this.router.navigate(['/companies', companyName]);
+        this.router.navigate(['/entreprises', companyName]);
     }
 }

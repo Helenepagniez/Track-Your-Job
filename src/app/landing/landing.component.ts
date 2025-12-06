@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, OnInit, inject } from '@angular/core';
+import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../core/services/auth.service';
 
 @Component({
     selector: 'app-landing',
@@ -9,4 +10,13 @@ import { CommonModule } from '@angular/common';
     templateUrl: './landing.component.html',
     styleUrl: './landing.component.css'
 })
-export class LandingComponent { }
+export class LandingComponent implements OnInit {
+    private authService = inject(AuthService);
+    private router = inject(Router);
+
+    ngOnInit() {
+        if (this.authService.isAuthenticated()) {
+            this.router.navigate(['/resume']);
+        }
+    }
+}

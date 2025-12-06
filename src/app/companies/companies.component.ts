@@ -70,6 +70,6 @@ export class CompaniesComponent {
 
     viewDetails(companyName: string) {
         // Navigate to detail page. Encoding the name to handle spaces/special chars
-        this.router.navigate(['/companies', encodeURIComponent(companyName)]);
+        this.router.navigate(['/entreprises', encodeURIComponent(companyName)]);
     }
 }

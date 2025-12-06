@@ -29,13 +29,13 @@ export class RegisterComponent {
         }
 
         if (this.authService.register(this.fullName, this.email, this.password)) {
-            this.router.navigate(['/summary']);
+            this.router.navigate(['/resume']);
         }
     }
 
     registerWithGoogle() {
         if (this.authService.loginWithGoogle()) {
-            this.router.navigate(['/summary']);
+            this.router.navigate(['/resume']);
         }
     }
 }

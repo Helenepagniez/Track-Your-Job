@@ -22,13 +22,13 @@ export class LoginComponent {
 
     onSubmit() {
         if (this.authService.login(this.email, this.password)) {
-            this.router.navigate(['/summary']);
+            this.router.navigate(['/resume']);
         }
     }
 
     loginWithGoogle() {
         if (this.authService.loginWithGoogle()) {
-            this.router.navigate(['/summary']);
+            this.router.navigate(['/resume']);
         }
     }
 }

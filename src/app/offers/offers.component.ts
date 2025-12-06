@@ -72,7 +72,7 @@ export class OffersComponent {
 
     // Navigation
     viewDetails(id: number) {
-        this.router.navigate(['/offers', id]);
+        this.router.navigate(['/offres', id]);
     }
 
     // Modal Methods

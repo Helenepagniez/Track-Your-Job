@@ -9,37 +9,37 @@ export const routes: Routes = [
     { path: 'auth/login', component: LoginComponent },
     { path: 'auth/register', component: RegisterComponent },
     {
-        path: 'summary',
+        path: 'resume',
         canActivate: [authGuard],
         loadComponent: () => import('./summary/summary.component').then(m => m.SummaryComponent)
     },
     {
-        path: 'offers',
+        path: 'offres',
         canActivate: [authGuard],
         loadComponent: () => import('./offers/offers.component').then(m => m.OffersComponent)
     },
     {
-        path: 'offers/:id',
+        path: 'offres/:id',
         canActivate: [authGuard],
         loadComponent: () => import('./offers/offer-detail/offer-detail.component').then(m => m.OfferDetailComponent)
     },
     {
-        path: 'companies',
+        path: 'entreprises',
         canActivate: [authGuard],
         loadComponent: () => import('./companies/companies.component').then(m => m.CompaniesComponent)
     },
     {
-        path: 'companies/:id',
+        path: 'entreprises/:id',
         canActivate: [authGuard],
         loadComponent: () => import('./companies/company-detail/company-detail.component').then(m => m.CompanyDetailComponent)
     },
     {
-        path: 'tasks',
+        path: 'taches',
         canActivate: [authGuard],
         loadComponent: () => import('./tasks/tasks.component').then(m => m.TasksComponent)
     },
     {
-        path: 'profile',
+        path: 'profil',
         canActivate: [authGuard],
         loadComponent: () => import('./profile/profile.component').then(m => m.ProfileComponent)
     },

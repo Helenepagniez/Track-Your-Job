@@ -93,6 +93,6 @@ export class CompanyDetailComponent implements OnInit {
     }
 
     viewOffer(id: number) {
-        this.router.navigate(['/offers', id]);
+        this.router.navigate(['/offres', id]);
     }
 }
