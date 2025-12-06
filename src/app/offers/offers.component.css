@@ -248,24 +248,7 @@
     padding: 30px;
 }
 
-/* Custom Scrollbar */
-.modal-body::-webkit-scrollbar {
-    width: 8px;
-}
 
-.modal-body::-webkit-scrollbar-track {
-    background: var(--background-color);
-    border-radius: 10px;
-}
-
-.modal-body::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
-    border-radius: 10px;
-}
-
-.modal-body::-webkit-scrollbar-thumb:hover {
-    background: var(--secondary-color);
-}
 
 .modal-footer {
     padding: 20px;
