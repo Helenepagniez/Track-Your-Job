@@ -61,8 +61,19 @@ export class OfferFormComponent implements OnInit {
     });
 
     ngOnInit() {
+        // Watch for company selection to auto-populate company description
         this.firstFormGroup.get('company')?.valueChanges.subscribe(value => {
             this._filterCompanies(value || '');
+
+            // If user selects an existing company, populate the company description
+            if (value && !this.isEditing()) {
+                const existingOffer = this._offersService.offers().find(o => o.company === value);
+                if (existingOffer?.companyDescription) {
+                    this.secondFormGroup.patchValue({
+                        companyDescription: existingOffer.companyDescription
+                    });
+                }
+            }
         });
 
         if (this.offer) {

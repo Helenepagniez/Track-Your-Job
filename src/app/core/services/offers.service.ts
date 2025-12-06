@@ -74,14 +74,90 @@ export class OffersService {
         return this.offers().find(o => o.id === id);
     }
 
+    /**
+     * Get the company ID for a given company name.
+     * If the company already exists, return its ID.
+     * Otherwise, create a new unique ID.
+     */
+    private getOrCreateCompanyId(companyName: string): number {
+        // Find an existing offer with this company name
+        const existingOffer = this.offers().find(o => o.company === companyName);
+
+        if (existingOffer?.companyInfo?.id) {
+            return existingOffer.companyInfo.id;
+        }
+
+        // Create a new unique company ID
+        // Use a hash-like approach based on company name to ensure consistency
+        const allCompanyIds = this.offers()
+            .map(o => o.companyInfo?.id)
+            .filter((id): id is number => id !== undefined);
+
+        const maxId = allCompanyIds.length > 0 ? Math.max(...allCompanyIds) : 0;
+        return maxId + 1;
+    }
+
     addOffer(offer: JobOffer) {
-        this.offers.update(offers => [offer, ...offers]);
+        // Ensure the offer has a companyInfo.id
+        const companyId = this.getOrCreateCompanyId(offer.company);
+
+        // Check if there's an existing company description
+        const existingOffer = this.offers().find(o => o.company === offer.company);
+        const existingDescription = existingOffer?.companyDescription;
+
+        const offerWithCompanyId: JobOffer = {
+            ...offer,
+            companyInfo: {
+                ...offer.companyInfo,
+                id: companyId
+            },
+            // Use the new description if provided, otherwise inherit from existing offers
+            companyDescription: offer.companyDescription || existingDescription
+        };
+
+        this.offers.update(offers => {
+            const newOffers = [offerWithCompanyId, ...offers];
+
+            // If the new offer has a companyDescription, propagate it to all offers of the same company
+            if (offerWithCompanyId.companyDescription) {
+                return newOffers.map(o =>
+                    o.company === offerWithCompanyId.company
+                        ? { ...o, companyDescription: offerWithCompanyId.companyDescription }
+                        : o
+                );
+            }
+
+            return newOffers;
+        });
     }
 
     updateOffer(updatedOffer: JobOffer) {
-        this.offers.update(offers => offers.map(o =>
-            o.id === updatedOffer.id ? updatedOffer : o
-        ));
+        // Ensure the offer has a companyInfo.id
+        const companyId = this.getOrCreateCompanyId(updatedOffer.company);
+        const offerWithCompanyId: JobOffer = {
+            ...updatedOffer,
+            companyInfo: {
+                ...updatedOffer.companyInfo,
+                id: companyId
+            }
+        };
+
+        this.offers.update(offers => {
+            const updatedOffers = offers.map(o =>
+                o.id === offerWithCompanyId.id ? offerWithCompanyId : o
+            );
+
+            // If the updated offer has a companyDescription, propagate it to all offers of the same company
+            if (offerWithCompanyId.companyDescription) {
+                return updatedOffers.map(o =>
+                    o.company === offerWithCompanyId.company
+                        ? { ...o, companyDescription: offerWithCompanyId.companyDescription }
+                        : o
+                );
+            }
+
+            return updatedOffers;
+        });
     }
 
     deleteOffer(id: number) {
@@ -112,7 +188,10 @@ export class OffersService {
 
         return {
             name: latestOffer.company,
-            info: latestOffer.companyInfo || {},
+            info: {
+                ...latestOffer.companyInfo || {},
+                description: latestOffer.companyDescription
+            },
             offers: companyOffers
         };
     }
