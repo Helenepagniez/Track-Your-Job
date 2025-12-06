@@ -55,6 +55,10 @@
     font-size: 0.95rem;
 }
 
+textarea {
+    resize: vertical;
+}
+
 @media (max-width: 768px) {
     .profile-form {
         grid-template-columns: 1fr;

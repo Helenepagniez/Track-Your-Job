@@ -67,6 +67,10 @@ textarea {
     background-color: var(--surface-color);
 }
 
+textarea {
+    resize: vertical;
+}
+
 input:focus,
 textarea:focus {
     outline: none;

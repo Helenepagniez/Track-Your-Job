@@ -132,6 +132,7 @@
     margin: 0;
     font: 500 14px Roboto, sans-serif;
     letter-spacing: 0.5px;
+    text-transform: capitalize;
 }
 
 .offer-actions .btn-icon {
