@@ -118,7 +118,7 @@
 </div>
 
 <!-- Edit Modal -->
-<div class="modal-overlay" *ngIf="showEditModal()" (click)="closeEditModal()">
+<div class="modal-overlay" *ngIf="showEditModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
             <h3>Modifier {{ companyName() }}</h3>

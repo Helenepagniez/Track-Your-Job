@@ -129,7 +129,7 @@
 </div>
 
 <!-- Edit Modal -->
-<div class="modal-overlay" *ngIf="showEditModal()" (click)="closeEditModal()">
+<div class="modal-overlay" *ngIf="showEditModal()">
     <div class="modal-content stepper-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
             <h3>Modifier l'offre</h3>
@@ -143,7 +143,7 @@
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal-overlay" *ngIf="showDeleteConfirm()" (click)="cancelDelete()">
+<div class="modal-overlay" *ngIf="showDeleteConfirm()">
     <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
             <h3>Supprimer l'offre ?</h3>

@@ -207,7 +207,7 @@
 </div>
 
 <!-- Add Task Modal -->
-<div class="modal-overlay" *ngIf="showAddModal()" (click)="closeAddModal()">
+<div class="modal-overlay" *ngIf="showAddModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
         <app-task-form [task]="selectedTask()" (save)="handleSaveTask($event)" (cancel)="closeAddModal()">
         </app-task-form>
