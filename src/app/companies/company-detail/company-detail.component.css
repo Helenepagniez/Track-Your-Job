@@ -130,6 +130,10 @@
     letter-spacing: 0.5px;
 }
 
+.subtitle .location {
+    font-weight: 600;
+}
+
 .header-actions {
     display: flex;
     gap: 1rem;
