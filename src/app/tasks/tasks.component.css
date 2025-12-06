@@ -79,6 +79,10 @@
     letter-spacing: 0.5px;
 }
 
+.task-title::first-letter {
+    text-transform: capitalize;
+}
+
 .priority-badge {
     font-size: 0.75rem;
     padding: 2px 8px;
@@ -429,6 +433,11 @@
 .kanban-card h4 {
     font: 500 16px Roboto, sans-serif;
     letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.kanban-card h4::first-letter {
+    text-transform: capitalize;
 }
 
 .card-header {
@@ -496,13 +505,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.kanban-card h4 {
-    margin: 0;
-    font-size: 0.95rem;
-    color: var(--text-color);
-    line-height: 1.4;
 }
 
 .card-meta {
