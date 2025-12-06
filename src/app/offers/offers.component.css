@@ -12,6 +12,7 @@
 
 .page-header h2 {
     background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin: 0;
@@ -171,11 +172,15 @@
 }
 
 .status-badge {
-    padding: 5px 10px;
-    border-radius: 20px;
-    font: 16px Roboto, sans-serif;
-    font-weight: 600;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    font: 600 14px Roboto, sans-serif;
     letter-spacing: 0.5px;
+    transition: transform 0.2s ease;
+}
+
+.status-badge:hover {
+    transform: scale(1.05);
 }
 
 /* Modal Styles */

@@ -62,8 +62,8 @@
             </div>
 
             <div class="offer-footer">
-                <span class="status-badge" [style.background-color]="statusColors[offer.status] + '20'"
-                    [style.color]="statusColors[offer.status]">
+                <span class="status-badge" [style.background-color]="statusColors[offer.status].background"
+                    [style.color]="statusColors[offer.status].color" [style.border]="statusColors[offer.status].border">
                     {{ getStatusLabel(offer.status) }}
                 </span>
                 <button class="btn btn-outline btn-sm" (click)="viewDetails(offer.id)">Voir détails <i

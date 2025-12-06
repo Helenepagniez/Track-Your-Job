@@ -27,8 +27,8 @@
             </div>
         </div>
         <div class="header-actions">
-            <span class="status-badge" [style.background-color]="statusColors[o.status] + '20'"
-                [style.color]="statusColors[o.status]">
+            <span class="status-badge" [style.background-color]="statusColors[o.status].background"
+                [style.color]="statusColors[o.status].color" [style.border]="statusColors[o.status].border">
                 {{ getStatusLabel(o.status) }}
             </span>
             <div class="action-buttons">

@@ -134,6 +134,27 @@
     font-weight: 600;
 }
 
+.status-badges-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.status-badges-inline .status-badge {
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    transition: transform 0.2s ease;
+    margin: 2px 0;
+}
+
+.status-badges-inline .status-badge:hover {
+    transform: scale(1.05);
+}
+
 .header-actions {
     display: flex;
     gap: 1rem;
@@ -265,14 +286,17 @@ html.dark-mode h3 {
 }
 
 .offer-status .status-badge {
-    border-radius: 20px;
+    border-radius: var(--radius-sm);
     font: 600 14px Roboto, sans-serif;
     letter-spacing: 0.5px;
     text-align: center;
     width: fit-content;
     padding: 0.5rem 1rem;
-    border: 2px solid var(--border-color);
-    background-color: var(--surface-color);
+    transition: transform 0.2s ease;
+}
+
+.offer-status .status-badge:hover {
+    transform: scale(1.05);
 }
 
 .offer-status i {

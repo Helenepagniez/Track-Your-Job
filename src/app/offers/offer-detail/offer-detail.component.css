@@ -138,9 +138,14 @@
 
 .status-badge {
     padding: 8px 16px;
-    border-radius: 20px;
-    font-weight: 600;
+    border-radius: var(--radius-sm);
+    font: 600 14px Roboto, sans-serif;
     font-size: 0.9rem;
+    transition: transform 0.2s ease;
+}
+
+.status-badge:hover {
+    transform: scale(1.05);
 }
 
 .action-buttons {

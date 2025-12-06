@@ -21,9 +21,13 @@
                     <span class="location" *ngIf="data.info.group"><i class="fa-solid fa-building"></i> Groupe {{
                         data.info.group }}</span>
                     <span class="separator" *ngIf="data.info.group">•</span>
-                    <span class="stats-summary" *ngIf="stats() as s">
-                        {{ s.total }} Candidature(s) ({{ s.details }})
-                    </span>
+                    <div class="status-badges-inline">
+                        <span *ngFor="let badge of getStatusBadges()" class="status-badge"
+                            [style.background-color]="badge.background" [style.color]="badge.color"
+                            [style.border]="badge.border">
+                            {{ badge.count }} offre {{ badge.label }}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -73,7 +77,9 @@
                             <span class="offer-date">Ajouté le {{ offer.dateAdded | date:'dd MMM yyyy' }}</span>
                         </div>
                         <div class="offer-status">
-                            <span class="status-badge">
+                            <span class="status-badge" [style.background-color]="statusColors[offer.status].background"
+                                [style.color]="statusColors[offer.status].color"
+                                [style.border]="statusColors[offer.status].border">
                                 {{ getStatusLabel(offer.status) }}
                             </span>
                             <i class="fa-solid fa-chevron-right"></i>

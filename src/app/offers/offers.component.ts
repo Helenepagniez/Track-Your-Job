@@ -51,12 +51,32 @@ export class OffersComponent {
     showDeleteConfirm = signal(false);
     offerToDelete = signal<number | null>(null);
 
-    statusColors: Record<string, string> = {
-        'To Apply': 'var(--text-secondary)',
-        'Applied': 'var(--primary-color)',
-        'Interview': 'var(--warning-color)',
-        'Offer': 'var(--success-color)',
-        'Rejected': 'var(--danger-color)'
+    statusColors: Record<string, { color: string, background: string, border: string }> = {
+        'To Apply': {
+            color: '#4d5457ff',
+            background: 'rgba(99, 110, 114, 0.2)',
+            border: '2px solid #4d5457ff'
+        },
+        'Applied': {
+            color: '#0056b3',
+            background: 'rgba(0, 87, 179, 0.2)',
+            border: '2px solid #0056b3'
+        },
+        'Interview': {
+            color: '#ffbb00ff',
+            background: 'rgba(255, 196, 0, 0.18)',
+            border: '2px solid #ffbb00ff'
+        },
+        'Offer': {
+            color: '#00997aff',
+            background: 'rgba(3, 211, 169, 0.2)',
+            border: '2px solid #00997aff'
+        },
+        'Rejected': {
+            color: '#d63031',
+            background: 'rgba(214, 48, 49, 0.2)',
+            border: '2px solid #d63031'
+        }
     };
 
     getStatusLabel(status: string): string {

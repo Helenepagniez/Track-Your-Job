@@ -53,12 +53,32 @@ export class CompanyDetailComponent implements OnInit {
 
     showEditModal = signal(false);
 
-    statusColors: Record<string, string> = {
-        'To Apply': 'var(--text-secondary)',
-        'Applied': 'var(--primary-color)',
-        'Interview': 'var(--warning-color)',
-        'Offer': 'var(--success-color)',
-        'Rejected': 'var(--danger-color)'
+    statusColors: Record<string, { color: string, background: string, border: string }> = {
+        'To Apply': {
+            color: '#4d5457ff',
+            background: 'rgba(99, 110, 114, 0.2)',
+            border: '2px solid #4d5457ff'
+        },
+        'Applied': {
+            color: '#0056b3',
+            background: 'rgba(0, 87, 179, 0.2)',
+            border: '2px solid #0056b3'
+        },
+        'Interview': {
+            color: '#ffbb00ff',
+            background: 'rgba(255, 196, 0, 0.18)',
+            border: '2px solid #ffbb00ff'
+        },
+        'Offer': {
+            color: '#00997aff',
+            background: 'rgba(3, 211, 169, 0.2)',
+            border: '2px solid #00997aff'
+        },
+        'Rejected': {
+            color: '#d63031',
+            background: 'rgba(214, 48, 49, 0.2)',
+            border: '2px solid #d63031'
+        }
     };
 
     ngOnInit() {
@@ -85,6 +105,42 @@ export class CompanyDetailComponent implements OnInit {
             'Rejected': 'Refusé'
         };
         return labels[status] || status;
+    }
+
+    getStatusBadges(): Array<{ count: number, label: string, color: string, background: string, status: string, border: string }> {
+        const data = this.companyData();
+        if (!data) return [];
+
+        const statusLabels: { [key: string]: string } = {
+            'To Apply': 'à postuler',
+            'Applied': 'en attente',
+            'Interview': 'en entretien',
+            'Offer': 'reçue',
+            'Rejected': 'refusé'
+        };
+
+        const statusCounts: Record<string, number> = {};
+        data.offers.forEach(o => {
+            statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
+        });
+
+        const badges: Array<{ count: number, label: string, color: string, background: string, status: string, border: string }> = [];
+
+        (Object.keys(statusCounts) as Array<keyof typeof statusCounts>).forEach(status => {
+            const count = statusCounts[status];
+            if (count > 0) {
+                badges.push({
+                    count,
+                    label: statusLabels[status],
+                    color: this.statusColors[status].color,
+                    background: this.statusColors[status].background,
+                    border: this.statusColors[status].border,
+                    status
+                });
+            }
+        });
+
+        return badges;
     }
 
     openEditModal() {
