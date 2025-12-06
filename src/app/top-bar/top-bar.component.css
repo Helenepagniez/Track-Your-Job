@@ -37,7 +37,7 @@
 .avatar {
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: var(--radius-sm);
     background: var(--accent-color);
     color: white;
     display: flex;

@@ -84,25 +84,27 @@
 }
 
 .priority-badge {
-    font-size: 0.75rem;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-weight: 600;
+    font: 600 12px Roboto, sans-serif;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
 }
 
 .priority-badge.haute {
     background-color: rgba(255, 68, 68, 0.1);
     color: #ff4444;
+    border: 2px solid #ff4444;
 }
 
 .priority-badge.moyenne {
     background-color: rgba(255, 187, 51, 0.1);
     color: #ffbb33;
+    border: 2px solid #ffbb33;
 }
 
 .priority-badge.faible {
     background-color: rgba(0, 200, 81, 0.1);
     color: #00c851;
+    border: 2px solid #00c851;
 }
 
 .task-meta {
@@ -319,12 +321,12 @@
 
 /* Status Badge in List */
 .status-badge-small {
-    font-size: 0.75rem;
-    padding: 2px 8px;
-    border-radius: 12px;
+    font: 500 12px Roboto, sans-serif;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--secondary-color);
     background-color: rgba(0, 168, 255, 0.1);
     color: var(--secondary-color);
-    font-weight: 500;
     white-space: nowrap;
 }
 
@@ -378,7 +380,7 @@
 .column-header .count {
     background-color: var(--primary-color);
     padding: 5px 10px;
-    border-radius: 50%;
+    border-radius: var(--radius-sm);
     font: 500 15px Roboto, sans-serif;
     color: var(--surface-color);
 }
@@ -459,7 +461,7 @@
     font-size: 19px;
     padding: 0;
     line-height: 1;
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-sm);
     width: 24px;
     height: 24px;
     background-color: var(--surface-color);
@@ -482,7 +484,7 @@
     font-size: 13px;
     padding: 0;
     line-height: 1;
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-sm);
     width: 24px;
     height: 24px;
     background-color: var(--surface-color);
