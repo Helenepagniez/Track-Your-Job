@@ -2,7 +2,7 @@ import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { OffersService, JobOffer } from '../../core/services/offers.service';
+import { OffersService, JobOffer } from '../core/services/offers.service';
 
 interface CompanySummary {
     name: string;
@@ -70,6 +70,6 @@ export class CompaniesComponent {
 
     viewDetails(companyName: string) {
         // Navigate to detail page. Encoding the name to handle spaces/special chars
-        this.router.navigate(['/dashboard/companies', encodeURIComponent(companyName)]);
+        this.router.navigate(['/companies', encodeURIComponent(companyName)]);
     }
 }

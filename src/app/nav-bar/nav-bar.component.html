@@ -1,0 +1,42 @@
+<aside class="sidebar glass" [class.collapsed]="layoutService.isSidebarCollapsed()">
+    <div class="sidebar-header">
+        <div class="logo-icon">TJ</div>
+        <span class="logo-text">Track Your Job</span>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a routerLink="/summary" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item"
+            (click)="closeSidebar()">
+            <i class="fa-solid fa-bars-progress"></i>
+            <span class="label">Résumé</span>
+        </a>
+        <a routerLink="/tasks" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+            <i class="fa-solid fa-square-check"></i>
+            <span class="label">Tâches</span>
+        </a>
+        <a routerLink="/offers" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+            <i class="fa-solid fa-briefcase"></i>
+            <span class="label">Offres</span>
+        </a>
+
+        <a routerLink="/companies" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+            <i class="fa-solid fa-building"></i>
+            <span class="label">Entreprises</span>
+        </a>
+        <a routerLink="/profile" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+            <i class="fa-solid fa-user"></i>
+            <span class="label">Profil</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <button class="nav-item" (click)="themeService.toggleTheme()">
+            <i class="icon">{{ themeService.darkMode() ? '☀️' : '🌙' }}</i>
+            <span class="label">{{ themeService.darkMode() ? 'Light Mode' : 'Dark Mode' }}</span>
+        </button>
+        <button class="nav-item logout" (click)="logout()">
+            <i class="fa-solid fa-door-closed"></i>
+            <span class="label">Déconnexion</span>
+        </button>
+    </div>
+</aside>

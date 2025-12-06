@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
     selector: 'app-login',
@@ -22,13 +22,13 @@ export class LoginComponent {
 
     onSubmit() {
         if (this.authService.login(this.email, this.password)) {
-            this.router.navigate(['/dashboard']);
+            this.router.navigate(['/summary']);
         }
     }
 
     loginWithGoogle() {
         if (this.authService.loginWithGoogle()) {
-            this.router.navigate(['/dashboard']);
+            this.router.navigate(['/summary']);
         }
     }
 }

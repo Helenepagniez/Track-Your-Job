@@ -2,7 +2,7 @@ import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { OffersService, JobOffer } from '../../core/services/offers.service';
+import { OffersService, JobOffer } from '../core/services/offers.service';
 import { OfferFormComponent } from './offer-form/offer-form.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
@@ -72,7 +72,7 @@ export class OffersComponent {
 
     // Navigation
     viewDetails(id: number) {
-        this.router.navigate(['/dashboard/offers', id]);
+        this.router.navigate(['/offers', id]);
     }
 
     // Modal Methods

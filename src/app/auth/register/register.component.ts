@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
     selector: 'app-register',
@@ -29,13 +29,13 @@ export class RegisterComponent {
         }
 
         if (this.authService.register(this.fullName, this.email, this.password)) {
-            this.router.navigate(['/dashboard']);
+            this.router.navigate(['/summary']);
         }
     }
 
     registerWithGoogle() {
         if (this.authService.loginWithGoogle()) {
-            this.router.navigate(['/dashboard']);
+            this.router.navigate(['/summary']);
         }
     }
 }

@@ -1,1 +1,14 @@
-<router-outlet />
+@if (authService.isAuthenticated()) {
+<div class="app-layout" [class.collapsed]="layoutService.isSidebarCollapsed()">
+    <div class="sidebar-overlay" (click)="layoutService.closeSidebar()"></div>
+    <app-nav-bar></app-nav-bar>
+    <main class="main-content">
+        <app-top-bar></app-top-bar>
+        <div class="content-area">
+            <router-outlet></router-outlet>
+        </div>
+    </main>
+</div>
+} @else {
+<router-outlet></router-outlet>
+}

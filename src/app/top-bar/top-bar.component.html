@@ -1,0 +1,8 @@
+<header class="topbar glass">
+    <button class="toggle-btn" (click)="toggleSidebar()">☰</button>
+    <div class="user-info">
+        <span><span class="bonjour">Bonjour, </span><strong>{{ authService.currentUser()?.fullName ||
+                'Utilisateur' }}</strong></span>
+        <div class="avatar">{{ authService.currentUser()?.fullName?.charAt(0) || 'U' }}</div>
+    </div>
+</header>

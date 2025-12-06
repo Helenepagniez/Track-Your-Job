@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { OffersService, JobOffer } from '../../../core/services/offers.service';
+import { OffersService, JobOffer } from '../../core/services/offers.service';
 import { OfferFormComponent } from '../offer-form/offer-form.component';
 
 @Component({
@@ -42,7 +42,7 @@ export class OfferDetailComponent implements OnInit {
         if (foundOffer) {
             this.offer.set(foundOffer);
         } else {
-            this.router.navigate(['/dashboard/offers']);
+            this.router.navigate(['/offers']);
         }
     }
 
@@ -88,11 +88,11 @@ export class OfferDetailComponent implements OnInit {
     deleteOffer() {
         if (this.offer()) {
             this.offersService.deleteOffer(this.offer()!.id);
-            this.router.navigate(['/dashboard/offers']);
+            this.router.navigate(['/offers']);
         }
     }
 
     viewCompany(companyName: string) {
-        this.router.navigate(['/dashboard/companies', companyName]);
+        this.router.navigate(['/companies', companyName]);
     }
 }

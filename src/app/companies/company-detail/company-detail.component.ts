@@ -1,7 +1,7 @@
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { OffersService, JobOffer } from '../../../core/services/offers.service';
+import { OffersService, JobOffer } from '../../core/services/offers.service';
 import { CompanyFormComponent } from '../company-form/company-form.component';
 
 @Component({
@@ -93,6 +93,6 @@ export class CompanyDetailComponent implements OnInit {
     }
 
     viewOffer(id: number) {
-        this.router.navigate(['/dashboard/offers', id]);
+        this.router.navigate(['/offers', id]);
     }
 }

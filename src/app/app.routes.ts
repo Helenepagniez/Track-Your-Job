@@ -1,8 +1,7 @@
 import { Routes } from '@angular/router';
-import { LandingComponent } from './pages/landing/landing.component';
-import { LoginComponent } from './pages/auth/login/login.component';
-import { RegisterComponent } from './pages/auth/register/register.component';
-import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { LandingComponent } from './landing/landing.component';
+import { LoginComponent } from './auth/login/login.component';
+import { RegisterComponent } from './auth/register/register.component';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -10,39 +9,39 @@ export const routes: Routes = [
     { path: 'auth/login', component: LoginComponent },
     { path: 'auth/register', component: RegisterComponent },
     {
-        path: 'dashboard',
-        component: DashboardComponent,
+        path: 'summary',
         canActivate: [authGuard],
-        children: [
-            {
-                path: '',
-                loadComponent: () => import('./pages/dashboard/summary/summary.component').then(m => m.SummaryComponent)
-            },
-            {
-                path: 'offers',
-                loadComponent: () => import('./pages/offers/offers.component').then(m => m.OffersComponent)
-            },
-            {
-                path: 'offers/:id',
-                loadComponent: () => import('./pages/offers/offer-detail/offer-detail.component').then(m => m.OfferDetailComponent)
-            },
-            {
-                path: 'companies',
-                loadComponent: () => import('./pages/companies/companies.component').then(m => m.CompaniesComponent)
-            },
-            {
-                path: 'companies/:id',
-                loadComponent: () => import('./pages/companies/company-detail/company-detail.component').then(m => m.CompanyDetailComponent)
-            },
-            {
-                path: 'tasks',
-                loadComponent: () => import('./pages/tasks/tasks.component').then(m => m.TasksComponent)
-            },
-            {
-                path: 'profile',
-                loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent)
-            }
-        ]
+        loadComponent: () => import('./summary/summary.component').then(m => m.SummaryComponent)
+    },
+    {
+        path: 'offers',
+        canActivate: [authGuard],
+        loadComponent: () => import('./offers/offers.component').then(m => m.OffersComponent)
+    },
+    {
+        path: 'offers/:id',
+        canActivate: [authGuard],
+        loadComponent: () => import('./offers/offer-detail/offer-detail.component').then(m => m.OfferDetailComponent)
+    },
+    {
+        path: 'companies',
+        canActivate: [authGuard],
+        loadComponent: () => import('./companies/companies.component').then(m => m.CompaniesComponent)
+    },
+    {
+        path: 'companies/:id',
+        canActivate: [authGuard],
+        loadComponent: () => import('./companies/company-detail/company-detail.component').then(m => m.CompanyDetailComponent)
+    },
+    {
+        path: 'tasks',
+        canActivate: [authGuard],
+        loadComponent: () => import('./tasks/tasks.component').then(m => m.TasksComponent)
+    },
+    {
+        path: 'profile',
+        canActivate: [authGuard],
+        loadComponent: () => import('./profile/profile.component').then(m => m.ProfileComponent)
     },
     { path: '**', redirectTo: '' }
 ];
