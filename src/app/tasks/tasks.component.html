@@ -39,8 +39,11 @@
                         </div>
                     </div>
                     <h4>{{ task.title }}</h4>
-                    <div class="card-meta" *ngIf="task.relatedOffer">
-                        <i class="icon">💼</i> {{ task.relatedOffer }}
+                    <div class="card-meta" *ngIf="task.relatedOffers && task.relatedOffers.length">
+                        <i class="icon">💼</i>
+                        <span *ngFor="let offer of task.relatedOffers; let last = last">
+                            {{ offer }}{{ !last ? ', ' : '' }}
+                        </span>
                     </div>
                     <div class="card-footer">
                         <span class="due-date" [class.overdue]="!task.completed && getDaysLeft(task.dueDate) < 0">
@@ -84,8 +87,11 @@
                         </div>
                     </div>
                     <h4>{{ task.title }}</h4>
-                    <div class="card-meta" *ngIf="task.relatedOffer">
-                        <i class="icon">💼</i> {{ task.relatedOffer }}
+                    <div class="card-meta" *ngIf="task.relatedOffers && task.relatedOffers.length">
+                        <i class="icon">💼</i>
+                        <span *ngFor="let offer of task.relatedOffers; let last = last">
+                            {{ offer }}{{ !last ? ', ' : '' }}
+                        </span>
                     </div>
                     <div class="card-footer">
                         <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'a_faire')">
@@ -132,8 +138,11 @@
                         </div>
                     </div>
                     <h4>{{ task.title }}</h4>
-                    <div class="card-meta" *ngIf="task.relatedOffer">
-                        <i class="icon">💼</i> {{ task.relatedOffer }}
+                    <div class="card-meta" *ngIf="task.relatedOffers && task.relatedOffers.length">
+                        <i class="icon">💼</i>
+                        <span *ngFor="let offer of task.relatedOffers; let last = last">
+                            {{ offer }}{{ !last ? ', ' : '' }}
+                        </span>
                     </div>
                     <div class="card-footer">
                         <span class="due-date">📅 {{ task.dueDate | date:'dd MMM' }}</span>
@@ -164,8 +173,11 @@
                     </span>
                 </div>
                 <div class="task-meta">
-                    <span *ngIf="task.relatedOffer" class="related-offer">
-                        <i class="icon">💼</i> {{ task.relatedOffer }}
+                    <span *ngIf="task.relatedOffers && task.relatedOffers.length" class="related-offer">
+                        <i class="icon">💼</i>
+                        <span *ngFor="let offer of task.relatedOffers; let last = last">
+                            {{ offer }}{{ !last ? ', ' : '' }}
+                        </span>
                     </span>
                     <span class="due-date" [class.overdue]="!task.completed && getDaysLeft(task.dueDate) < 0">
                         <i class="icon">📅</i> {{ task.dueDate | date:'dd MMM' }}

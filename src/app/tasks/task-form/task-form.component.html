@@ -21,9 +21,28 @@
         </select>
     </div>
     <div class="form-group">
-        <label class="form-label">Offre liée (optionnel)</label>
-        <input type="text" class="form-control" [(ngModel)]="formData.relatedOffer"
-            placeholder="Ex: Senior Angular Developer">
+        <label class="form-label">Offres liées (optionnel)</label>
+
+        <div class="chips-container" *ngIf="formData.relatedOffers && formData.relatedOffers.length > 0">
+            <span class="chip" *ngFor="let offer of formData.relatedOffers; let i = index">
+                {{ offer }}
+                <span class="remove-chip" (click)="removeOffer(i)">×</span>
+            </span>
+        </div>
+
+        <div class="autocomplete-wrapper">
+            <input type="text" class="form-control" [(ngModel)]="searchTerm" (ngModelChange)="onSearchInput()"
+                (blur)="onBlur()" placeholder="Ex: Senior Angular Developer">
+
+            <ul class="suggestions-list" *ngIf="showSuggestions">
+                <li *ngFor="let offer of filteredOffers" (mousedown)="selectOffer(offer)">
+                    {{getOfferLabel(offer)}}
+                </li>
+                <li *ngIf="filteredOffers.length === 0" class="no-results">
+                    Aucune offre trouvée
+                </li>
+            </ul>
+        </div>
     </div>
     <div class="form-group">
         <label class="form-label">Statut</label>

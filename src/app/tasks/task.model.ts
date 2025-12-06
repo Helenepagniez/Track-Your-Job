@@ -4,6 +4,6 @@ export interface Task {
     dueDate: Date;
     completed: boolean;
     status: 'a_faire' | 'en_cours' | 'termine';
-    relatedOffer?: string;
+    relatedOffers?: string[];
     priority: 'haute' | 'moyenne' | 'faible';
 }

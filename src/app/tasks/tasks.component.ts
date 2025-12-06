@@ -22,7 +22,7 @@ export class TasksComponent {
             dueDate: new Date('2025-11-30'),
             completed: false,
             status: 'a_faire',
-            relatedOffer: 'Senior Angular Developer',
+            relatedOffers: ['Senior Angular Developer - Tech Solutions Inc. - Interview'],
             priority: 'haute'
         },
         {
@@ -39,7 +39,7 @@ export class TasksComponent {
             dueDate: new Date('2025-11-28'),
             completed: true,
             status: 'termine',
-            relatedOffer: 'Frontend Engineer',
+            relatedOffers: ['Frontend Engineer - Creative Agency - Applied'],
             priority: 'faible'
         }
     ]);
@@ -167,7 +167,7 @@ export class TasksComponent {
                 completed: false,
                 status: 'a_faire',
                 priority: processedData.priority || 'moyenne',
-                relatedOffer: processedData.relatedOffer
+                relatedOffers: processedData.relatedOffers
             };
             this.tasks.update(tasks => [newTask, ...tasks]);
         }
