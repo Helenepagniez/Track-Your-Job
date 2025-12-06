@@ -13,6 +13,7 @@
 
 .header-content h2 {
     background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font: 700 40px Roboto, sans-serif;
@@ -74,20 +75,18 @@
 
 /* Grid */
 .companies-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 15px;
 }
 
 .company-card {
     border-radius: 16px;
     padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
     box-shadow: var(--shadow-sm);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    height: 100%;
+    width: 320px;
 }
 
 .company-card:hover {
@@ -97,7 +96,7 @@
 .card-header {
     display: flex;
     gap: 15px;
-    align-items: flex-start;
+    width: 270px;
     margin-bottom: 15px;
 }
 
@@ -114,34 +113,58 @@
     font-weight: bold;
 }
 
+.company-info {
+    width: 195px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+}
+
 .company-info h3 {
     margin: 0 0 5px 0;
     font: 700 19px Roboto, sans-serif;
     color: var(--primary-color);
     letter-spacing: 0.5px;
+    text-wrap: wrap;
 }
 
 .offer-main-info {
     flex: 1;
 }
 
-.offer-count {
-    color: var(--text-secondary);
-    background: rgba(var(--primary-rgb), 0.1);
-    /* Assuming variable exists or fallback */
-    background: #eef2ff;
-    color: var(--primary-color);
-    padding: 2px 8px;
-    border-radius: 20px;
-    font: 14px Roboto, sans-serif;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+.offer-status-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 html.dark-mode .offer-count {
     background: rgba(255, 255, 255, 0.1);
     color: var(--text-primary);
 }
+
+.status-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    transition: transform 0.2s ease;
+    margin: 2px 0;
+}
+
+.status-badge:hover {
+    transform: scale(1.05);
+}
+
 
 
 /* Card Body - Contacts */

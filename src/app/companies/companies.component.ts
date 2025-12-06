@@ -10,6 +10,13 @@ interface CompanySummary {
     offerCount: number;
     contacts: any[]; // Using any for simplicity as defined in service
     latestOfferDate: Date;
+    statusCounts: {
+        'To Apply': number;
+        'Applied': number;
+        'Interview': number;
+        'Offer': number;
+        'Rejected': number;
+    };
 }
 
 @Component({
@@ -37,7 +44,14 @@ export class CompaniesComponent {
                     name: offer.company,
                     offerCount: 0,
                     contacts: [],
-                    latestOfferDate: new Date(0) // Epoch
+                    latestOfferDate: new Date(0), // Epoch
+                    statusCounts: {
+                        'To Apply': 0,
+                        'Applied': 0,
+                        'Interview': 0,
+                        'Offer': 0,
+                        'Rejected': 0
+                    }
                 });
             } else {
                 // Should we try to find an ID if the previous one was undefined?
@@ -49,6 +63,7 @@ export class CompaniesComponent {
 
             const summary = companyMap.get(offer.company)!;
             summary.offerCount++;
+            summary.statusCounts[offer.status]++;
 
             // Collect contacts if any
             if (offer.companyInfo?.contacts) {
@@ -76,6 +91,34 @@ export class CompaniesComponent {
             .sort((a, b) => b.latestOfferDate.getTime() - a.latestOfferDate.getTime());
     });
 
+    statusColors: Record<string, { color: string, background: string, border: string }> = {
+        'To Apply': {
+            color: '#4d5457ff',
+            background: 'rgba(99, 110, 114, 0.2)',
+            border: '2px solid #4d5457ff'
+        },
+        'Applied': {
+            color: '#0056b3',
+            background: 'rgba(0, 87, 179, 0.2)',
+            border: '2px solid #0056b3'
+        },
+        'Interview': {
+            color: '#ffbb00ff',
+            background: 'rgba(255, 196, 0, 0.18)',
+            border: '2px solid #ffbb00ff'
+        },
+        'Offer': {
+            color: '#00997aff',
+            background: 'rgba(3, 211, 169, 0.2)',
+            border: '2px solid #00997aff'
+        },
+        'Rejected': {
+            color: '#d63031',
+            background: 'rgba(214, 48, 49, 0.2)',
+            border: '2px solid #d63031'
+        }
+    };
+
     viewDetails(company: CompanySummary) {
         if (company.id) {
             this.router.navigate(['/entreprises', company.id]);
@@ -83,5 +126,54 @@ export class CompaniesComponent {
             // Navigate to detail page. Encoding the name to handle spaces/special chars
             this.router.navigate(['/entreprises', company.name]); // No need to encodeURIComponent here, the router usually handles it or it's cleaner to let router handle URL construction
         }
+    }
+
+    getStatusBreakdown(company: CompanySummary): string {
+        const statusLabels: { [key: string]: string } = {
+            'To Apply': 'à postuler',
+            'Applied': 'en attente',
+            'Interview': ' en entretien',
+            'Offer': ' reçue',
+            'Rejected': 'refusé'
+        };
+
+        const parts: string[] = [];
+
+        (Object.keys(company.statusCounts) as Array<keyof typeof company.statusCounts>).forEach(status => {
+            const count = company.statusCounts[status];
+            if (count > 0) {
+                parts.push(`${count} ${statusLabels[status]}`);
+            }
+        });
+
+        return parts.join(', ');
+    }
+
+    getStatusBadges(company: CompanySummary): Array<{ count: number, label: string, color: string, background: string, status: string, border: string }> {
+        const statusLabels: { [key: string]: string } = {
+            'To Apply': 'à postuler',
+            'Applied': 'en attente',
+            'Interview': 'en entretien',
+            'Offer': ' reçue',
+            'Rejected': 'refusé'
+        };
+
+        const badges: Array<{ count: number, label: string, color: string, background: string, status: string, border: string }> = [];
+
+        (Object.keys(company.statusCounts) as Array<keyof typeof company.statusCounts>).forEach(status => {
+            const count = company.statusCounts[status];
+            if (count > 0) {
+                badges.push({
+                    count,
+                    label: statusLabels[status],
+                    color: this.statusColors[status].color,
+                    background: this.statusColors[status].background,
+                    border: this.statusColors[status].border,
+                    status
+                });
+            }
+        });
+
+        return badges;
     }
 }
