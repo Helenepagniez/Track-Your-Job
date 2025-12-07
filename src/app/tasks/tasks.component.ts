@@ -1,9 +1,10 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DragDropModule, CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { TaskFormComponent } from './task-form/task-form.component';
 import { Task } from './task.model';
+import { TasksService } from '../core/services/tasks.service';
 
 @Component({
     selector: 'app-tasks',
@@ -13,36 +14,11 @@ import { Task } from './task.model';
     styleUrl: './tasks.component.css'
 })
 export class TasksComponent {
+    private tasksService = inject(TasksService);
+
     viewMode = signal<'list' | 'kanban'>('kanban');
 
-    tasks = signal<Task[]>([
-        {
-            id: 1,
-            title: 'Relancer Tech Solutions Inc.',
-            dueDate: new Date('2025-11-30'),
-            completed: false,
-            status: 'a_faire',
-            relatedOffers: ['Senior Angular Developer - Tech Solutions Inc. - Interview'],
-            priority: 'haute'
-        },
-        {
-            id: 2,
-            title: 'Mettre à jour le CV',
-            dueDate: new Date('2025-12-01'),
-            completed: false,
-            status: 'en_cours',
-            priority: 'moyenne'
-        },
-        {
-            id: 3,
-            title: 'Rechercher des infos sur Creative Agency',
-            dueDate: new Date('2025-11-28'),
-            completed: true,
-            status: 'termine',
-            relatedOffers: ['Frontend Engineer - Creative Agency - Applied'],
-            priority: 'faible'
-        }
-    ]);
+    tasks = this.tasksService.tasks;
 
     // Computed columns for Kanban
     todoTasks = computed(() => this.tasks().filter(t => t.status === 'a_faire'));
@@ -56,7 +32,7 @@ export class TasksComponent {
     dropList(event: CdkDragDrop<Task[]>) {
         const currentTasks = [...this.tasks()];
         moveItemInArray(currentTasks, event.previousIndex, event.currentIndex);
-        this.tasks.set(currentTasks);
+        this.tasksService.setTasks(currentTasks);
     }
 
     drop(event: CdkDragDrop<Task[]>) {
@@ -69,7 +45,7 @@ export class TasksComponent {
             const inProgress = event.container.id === 'inProgressList' ? list : [...this.inProgressTasks()];
             const done = event.container.id === 'doneList' ? list : [...this.doneTasks()];
 
-            this.tasks.set([...todo, ...inProgress, ...done]);
+            this.tasksService.setTasks([...todo, ...inProgress, ...done]);
         } else {
             // Moving between lists
             const previousList = [...event.previousContainer.data];
@@ -105,7 +81,7 @@ export class TasksComponent {
             else if (event.container.id === 'inProgressList') inProgress = currentList;
             else if (event.container.id === 'doneList') done = currentList;
 
-            this.tasks.set([...todo, ...inProgress, ...done]);
+            this.tasksService.setTasks([...todo, ...inProgress, ...done]);
         }
     }
 
@@ -114,29 +90,15 @@ export class TasksComponent {
     }
 
     toggleTask(id: number) {
-        this.tasks.update(tasks =>
-            tasks.map(t => {
-                if (t.id === id) {
-                    const newCompleted = !t.completed;
-                    return {
-                        ...t,
-                        completed: newCompleted,
-                        status: newCompleted ? 'termine' : 'a_faire'
-                    };
-                }
-                return t;
-            })
-        );
+        this.tasksService.toggleTask(id);
     }
 
     updateTaskStatus(id: number, newStatus: 'a_faire' | 'en_cours' | 'termine') {
-        this.tasks.update(tasks =>
-            tasks.map(t => t.id === id ? { ...t, status: newStatus, completed: newStatus === 'termine' } : t)
-        );
+        this.tasksService.updateTaskStatus(id, newStatus);
     }
 
     deleteTask(id: number) {
-        this.tasks.update(tasks => tasks.filter(t => t.id !== id));
+        this.tasksService.deleteTask(id);
     }
 
     openAddModal() {
@@ -157,7 +119,8 @@ export class TasksComponent {
 
         if (this.selectedTask()) {
             // Update existing
-            this.tasks.update(tasks => tasks.map(t => t.id === this.selectedTask()!.id ? { ...t, ...processedData } as Task : t));
+            const updatedTask: Task = { ...this.selectedTask()!, ...processedData } as Task;
+            this.tasksService.updateTask(updatedTask);
         } else {
             // Add new
             const newTask: Task = {
@@ -169,7 +132,7 @@ export class TasksComponent {
                 priority: processedData.priority || 'moyenne',
                 relatedOffers: processedData.relatedOffers
             };
-            this.tasks.update(tasks => [newTask, ...tasks]);
+            this.tasksService.addTask(newTask);
         }
         this.closeAddModal();
     }

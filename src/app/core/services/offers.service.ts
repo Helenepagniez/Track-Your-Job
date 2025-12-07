@@ -1,10 +1,17 @@
 import { Injectable, signal, computed } from '@angular/core';
+import { TasksService } from './tasks.service';
+
+export interface StatusHistoryEntry {
+    status: string;
+    date: Date;
+    details?: string;
+}
 
 export interface JobOffer {
     id: number;
     title: string;
     company: string;
-    status: 'To Apply' | 'Applied' | 'Interview' | 'Offer' | 'Rejected';
+    status: 'To Apply' | 'Applied' | 'Interview' | 'Offer' | 'Rejected' | 'To Relaunch' | 'No Response';
     location: string;
     salary?: string;
     dateAdded: Date;
@@ -18,6 +25,9 @@ export interface JobOffer {
     benefits?: string;
     recruitmentProcess?: string;
     others?: string;
+    statusHistory?: StatusHistoryEntry[];
+    interviewDate?: Date;
+    interviewType?: 'Préqual' | 'Entretien Physique' | 'Entretien Téléphonique' | 'Entretien Visio';
     companyInfo?: {
         id?: number;
         employees?: number;
@@ -46,7 +56,13 @@ export class OffersService {
             salary: '60k - 75k €',
             dateAdded: new Date('2023-10-25'),
             description: 'We are looking for an experienced Angular developer to lead our frontend team.',
-            companyInfo: { id: 1, employees: 500, founded: 2010 }
+            companyInfo: { id: 1, employees: 500, founded: 2010 },
+            statusHistory: [
+                { status: 'Applied', date: new Date('2023-10-25') },
+                { status: 'Interview', date: new Date('2023-10-28') }
+            ],
+            interviewDate: new Date(Date.now() + 86400000), // Tomorrow
+            interviewType: 'Entretien Visio'
         },
         {
             id: 2,
@@ -56,7 +72,10 @@ export class OffersService {
             location: 'Remote',
             dateAdded: new Date('2023-11-01'),
             description: 'Join our creative team to build stunning web experiences.',
-            companyInfo: { id: 2 }
+            companyInfo: { id: 2 },
+            statusHistory: [
+                { status: 'Applied', date: new Date('2023-11-01') }
+            ]
         },
         {
             id: 3,
@@ -66,7 +85,23 @@ export class OffersService {
             location: 'Lyon, France',
             dateAdded: new Date('2023-11-05'),
             description: 'Full stack role using Angular and Node.js.',
-            companyInfo: { id: 3 }
+            companyInfo: { id: 3 },
+            statusHistory: [
+                { status: 'To Apply', date: new Date('2023-11-05') }
+            ]
+        },
+        {
+            id: 4,
+            title: 'Test Relaunch Automation',
+            company: 'Test Corp',
+            status: 'Applied',
+            location: 'Paris',
+            dateAdded: new Date(Date.now() - 1728000000), // ~20 days ago (20 * 24 * 3600 * 1000)
+            description: 'This offer should automatically switch to To Relaunch',
+            companyInfo: { id: 4 },
+            statusHistory: [
+                { status: 'Applied', date: new Date(Date.now() - 1728000000) }
+            ]
         }
     ]);
 
@@ -97,6 +132,82 @@ export class OffersService {
         return maxId + 1;
     }
 
+    // ... inside class OffersService
+    constructor(private tasksService: TasksService) {
+        // Run automation check on initialization
+        this.checkAndAutomateOffers();
+    }
+
+    private checkAndAutomateOffers() {
+        const now = new Date();
+        const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
+        const fiveWeeksMs = 35 * 24 * 60 * 60 * 1000;
+
+        this.offers.update(offers => {
+            const updatedOffers = offers.map(offer => {
+                // We are looking for offers with status 'Applied' (En attente)
+                if (offer.status === 'Applied') {
+                    // Find the date we switched to 'Applied'
+                    // For now, if no history, fallback to dateAdded if status was Applied on add
+                    // But we will implement history tracking now.
+                    // If no history, we assume dateAdded is the start.
+
+                    let applicationDate = offer.dateAdded;
+                    if (offer.statusHistory && offer.statusHistory.length > 0) {
+                        const appliedEntry = [...offer.statusHistory].reverse().find(h => h.status === 'Applied');
+                        if (appliedEntry) {
+                            applicationDate = new Date(appliedEntry.date);
+                        }
+                    }
+
+                    const timeDiff = now.getTime() - new Date(applicationDate).getTime();
+
+                    // Check 5 weeks -> 'No Response'
+                    if (timeDiff >= fiveWeeksMs) {
+                        // Create status change entry
+                        const newHistory: StatusHistoryEntry[] = [
+                            ...(offer.statusHistory || []),
+                            { status: 'No Response', date: new Date() }
+                        ];
+                        // Explicitly cast or typed object
+                        const updatedOffer: JobOffer = {
+                            ...offer,
+                            status: 'No Response',
+                            statusHistory: newHistory
+                        };
+                        return updatedOffer;
+                    }
+                    // Check 2 weeks -> 'To Relaunch'
+                    else if (timeDiff >= twoWeeksMs) {
+                        // Create Task
+                        this.tasksService.addTask({
+                            id: Date.now(),
+                            title: 'À relancer',
+                            dueDate: new Date(),
+                            completed: false,
+                            status: 'a_faire',
+                            priority: 'haute',
+                            relatedOffers: [`${offer.title} - ${offer.company} - To Relaunch`]
+                        });
+
+                        const newHistory: StatusHistoryEntry[] = [
+                            ...(offer.statusHistory || []),
+                            { status: 'To Relaunch', date: new Date() }
+                        ];
+                        const updatedOffer: JobOffer = {
+                            ...offer,
+                            status: 'To Relaunch',
+                            statusHistory: newHistory
+                        };
+                        return updatedOffer;
+                    }
+                }
+                return offer;
+            });
+            return updatedOffers;
+        });
+    }
+
     addOffer(offer: JobOffer) {
         // Ensure the offer has a companyInfo.id
         const companyId = this.getOrCreateCompanyId(offer.company);
@@ -106,8 +217,19 @@ export class OffersService {
         const existingDescription = existingOffer?.companyDescription;
         const existingCompanyInfo = existingOffer?.companyInfo;
 
+        // Initialize history with 'To Apply' always
+        const initialHistory: StatusHistoryEntry[] = [
+            { status: 'To Apply', date: offer.dateAdded }
+        ];
+
+        // If current status is different, add it to history
+        if (offer.status !== 'To Apply') {
+            initialHistory.push({ status: offer.status, date: new Date() });
+        }
+
         const offerWithCompanyId: JobOffer = {
             ...offer,
+            statusHistory: initialHistory,
             companyInfo: {
                 id: companyId,
                 // Inherit existing company info, but allow new values to override
@@ -143,12 +265,25 @@ export class OffersService {
         const companyId = this.getOrCreateCompanyId(updatedOffer.company);
 
         // Get the current company data to preserve it
-        const existingOffer = this.offers().find(o => o.company === updatedOffer.company);
+        const currentOffer = this.offers().find(o => o.id === updatedOffer.id);
+        const existingOffer = this.offers().find(o => o.company === updatedOffer.company); // Might be same or different if company name changed (unlikely use case but possible)
+
         const currentCompanyDescription = existingOffer?.companyDescription;
         const existingCompanyInfo = existingOffer?.companyInfo;
 
+        // Check for status change to update history
+        let newHistory = updatedOffer.statusHistory || [];
+        if (currentOffer && currentOffer.status !== updatedOffer.status) {
+            newHistory = [
+                ...(currentOffer.statusHistory || []),
+                { status: updatedOffer.status, date: new Date() }
+            ];
+            // If we are reverting to 'Applied' or changing to 'Applied', the date is now.
+        }
+
         const offerWithCompanyId: JobOffer = {
             ...updatedOffer,
+            statusHistory: newHistory,
             companyInfo: {
                 id: companyId,
                 // Preserve existing company info

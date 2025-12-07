@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { OffersService, JobOffer } from '../../core/services/offers.service';
@@ -16,7 +16,14 @@ export class OfferDetailComponent implements OnInit {
     private router = inject(Router);
     private offersService = inject(OffersService);
 
-    offer = signal<JobOffer | undefined>(undefined);
+    offerId = signal<number | null>(null);
+
+    offer = computed(() => {
+        const id = this.offerId();
+        if (!id) return undefined;
+        return this.offersService.offers().find(o => o.id === id);
+    });
+
     showEditModal = signal(false);
     showDeleteConfirm = signal(false);
 
@@ -30,6 +37,16 @@ export class OfferDetailComponent implements OnInit {
             color: '#0056b3',
             background: 'rgba(0, 87, 179, 0.2)',
             border: '2px solid #0056b3'
+        },
+        'To Relaunch': {
+            color: '#e67e22',
+            background: 'rgba(230, 126, 34, 0.2)',
+            border: '2px solid #e67e22'
+        },
+        'No Response': {
+            color: '#754600ff',
+            background: 'rgba(117, 70, 0, 0.2)',
+            border: '2px solid #754600ff'
         },
         'Interview': {
             color: '#ffbb00ff',
@@ -52,24 +69,17 @@ export class OfferDetailComponent implements OnInit {
         this.route.paramMap.subscribe(params => {
             const id = Number(params.get('id'));
             if (id) {
-                this.loadOffer(id);
+                this.offerId.set(id);
             }
         });
-    }
-
-    loadOffer(id: number) {
-        const foundOffer = this.offersService.getOffer(id);
-        if (foundOffer) {
-            this.offer.set(foundOffer);
-        } else {
-            this.router.navigate(['/offres']);
-        }
     }
 
     getStatusLabel(status: string): string {
         const labels: Record<string, string> = {
             'To Apply': 'À postuler',
             'Applied': 'En attente',
+            'To Relaunch': 'À relancer',
+            'No Response': 'Sans réponse',
             'Interview': 'Entretien',
             'Offer': 'Offre reçue',
             'Rejected': 'Refusé'
@@ -92,7 +102,6 @@ export class OfferDetailComponent implements OnInit {
                 ...offerData
             };
             this.offersService.updateOffer(updatedOffer);
-            this.offer.set(updatedOffer);
             this.closeEditModal();
         }
     }

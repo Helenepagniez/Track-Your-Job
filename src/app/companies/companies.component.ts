@@ -8,7 +8,7 @@ interface CompanySummary {
     id?: number;
     name: string;
     offerCount: number;
-    contacts: any[]; // Using any for simplicity as defined in service
+    contacts: any[];
     latestOfferDate: Date;
     statusCounts: {
         'To Apply': number;
@@ -16,6 +16,8 @@ interface CompanySummary {
         'Interview': number;
         'Offer': number;
         'Rejected': number;
+        'To Relaunch': number;
+        'No Response': number;
     };
 }
 
@@ -50,7 +52,9 @@ export class CompaniesComponent {
                         'Applied': 0,
                         'Interview': 0,
                         'Offer': 0,
-                        'Rejected': 0
+                        'Rejected': 0,
+                        'To Relaunch': 0,
+                        'No Response': 0
                     }
                 });
             } else {
@@ -102,6 +106,16 @@ export class CompaniesComponent {
             background: 'rgba(0, 87, 179, 0.2)',
             border: '2px solid #0056b3'
         },
+        'To Relaunch': {
+            color: '#e67e22',
+            background: 'rgba(230, 126, 34, 0.2)',
+            border: '2px solid #e67e22'
+        },
+        'No Response': {
+            color: '#754600ff',
+            background: 'rgba(117, 70, 0, 0.2)',
+            border: '2px solid #754600ff'
+        },
         'Interview': {
             color: '#ffbb00ff',
             background: 'rgba(255, 196, 0, 0.18)',
@@ -132,6 +146,8 @@ export class CompaniesComponent {
         const statusLabels: { [key: string]: string } = {
             'To Apply': 'à postuler',
             'Applied': 'en attente',
+            'To Relaunch': 'à relancer',
+            'No Response': 'sans réponse',
             'Interview': ' en entretien',
             'Offer': ' reçue',
             'Rejected': 'refusé'
@@ -153,6 +169,8 @@ export class CompaniesComponent {
         const statusLabels: { [key: string]: string } = {
             'To Apply': 'à postuler',
             'Applied': 'en attente',
+            'To Relaunch': 'à relancer',
+            'No Response': 'sans réponse',
             'Interview': 'en entretien',
             'Offer': ' reçue',
             'Rejected': 'refusé'

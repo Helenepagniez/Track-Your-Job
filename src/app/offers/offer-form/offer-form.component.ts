@@ -36,6 +36,7 @@ export class OfferFormComponent implements OnInit {
     @Output() cancel = new EventEmitter<void>();
 
     isEditing = signal(false);
+    isExistingCompanySelected = signal(false);
     filteredCompanies = signal<string[]>([]);
 
     firstFormGroup: FormGroup = this._formBuilder.group({
@@ -57,7 +58,9 @@ export class OfferFormComponent implements OnInit {
         benefits: [''],
         recruitmentProcess: [''],
         others: [''],
-        status: ['To Apply', Validators.required]
+        status: ['To Apply', Validators.required],
+        interviewDate: [''],
+        interviewType: ['']
     });
 
     ngOnInit() {
@@ -66,18 +69,43 @@ export class OfferFormComponent implements OnInit {
             this._filterCompanies(value || '');
 
             // If user selects an existing company, populate the company description
-            if (value && !this.isEditing()) {
-                const existingOffer = this._offersService.offers().find(o => o.company === value);
-                if (existingOffer?.companyDescription) {
+            const existingOffer = this._offersService.offers().find(o => o.company === value);
+            if (existingOffer) {
+                this.isExistingCompanySelected.set(true);
+                if (existingOffer.companyDescription) {
                     this.secondFormGroup.patchValue({
                         companyDescription: existingOffer.companyDescription
                     });
                 }
+            } else {
+                this.isExistingCompanySelected.set(false);
             }
+        });
+
+        // Watch for status changes to clear/set validators for interview fields
+        this.thirdFormGroup.get('status')?.valueChanges.subscribe(status => {
+            const dateControl = this.thirdFormGroup.get('interviewDate');
+            const typeControl = this.thirdFormGroup.get('interviewType');
+
+            if (status === 'Interview') {
+                dateControl?.setValidators([Validators.required]);
+                typeControl?.setValidators([Validators.required]);
+            } else {
+                dateControl?.clearValidators();
+                typeControl?.clearValidators();
+
+                this.thirdFormGroup.patchValue({
+                    interviewDate: null,
+                    interviewType: null
+                });
+            }
+            dateControl?.updateValueAndValidity();
+            typeControl?.updateValueAndValidity();
         });
 
         if (this.offer) {
             this.isEditing.set(true);
+            this.isExistingCompanySelected.set(true);
 
             // Get the latest company data to ensure we have the most up-to-date information
             const companyData = this._offersService.getCompany(this.offer.company);
@@ -102,7 +130,9 @@ export class OfferFormComponent implements OnInit {
                 benefits: this.offer.benefits,
                 recruitmentProcess: this.offer.recruitmentProcess,
                 others: this.offer.others,
-                status: this.offer.status
+                status: this.offer.status,
+                interviewDate: this.offer.interviewDate ? new Date(this.offer.interviewDate) : null,
+                interviewType: this.offer.interviewType
             });
         }
     }
@@ -129,7 +159,10 @@ export class OfferFormComponent implements OnInit {
                 recruitmentProcess: step3.recruitmentProcess,
                 others: step3.others,
                 status: step3.status || 'To Apply',
-                description: step2.missions // Fallback
+                description: step2.missions, // Fallback
+
+                interviewDate: step3.interviewDate ? new Date(step3.interviewDate) : undefined,
+                interviewType: step3.interviewType
             };
 
             this.save.emit(offerData);

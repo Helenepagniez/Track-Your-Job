@@ -65,9 +65,10 @@
                 <div class="form-group">
                     <label class="form-label">Présentation entreprise</label>
                     <textarea matInput formControlName="companyDescription" rows="3" class="form-control"
-                        [readonly]="isEditing()"
-                        [placeholder]="isEditing() ? 'Modifiable uniquement depuis la page entreprise' : 'Description de l\'entreprise...'"></textarea>
-                    <small *ngIf="isEditing()" style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">
+                        [readonly]="isEditing() || isExistingCompanySelected()"
+                        [placeholder]="(isEditing() || isExistingCompanySelected()) ? 'Modifiable uniquement depuis la page entreprise' : 'Description de l\'entreprise...'"></textarea>
+                    <small *ngIf="isEditing() || isExistingCompanySelected()"
+                        style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">
                         💡 Pour modifier la présentation de l'entreprise, rendez-vous sur la page de l'entreprise
                     </small>
                 </div>
@@ -115,10 +116,29 @@
                     <select formControlName="status" required class="form-control">
                         <option value="To Apply">À postuler</option>
                         <option value="Applied">En attente</option>
+                        <option value="To Relaunch">À relancer</option>
+                        <option value="No Response">Sans réponse</option>
                         <option value="Interview">Entretien</option>
                         <option value="Offer">Offre reçue</option>
                         <option value="Rejected">Refusé</option>
                     </select>
+                </div>
+
+                <div class="form-grid" *ngIf="thirdFormGroup.get('status')?.value === 'Interview'">
+                    <div class="form-group">
+                        <label class="form-label">Date de l'entretien *</label>
+                        <input type="date" formControlName="interviewDate" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Type d'entretien *</label>
+                        <select formControlName="interviewType" class="form-control">
+                            <option value="Préqual">Préqual</option>
+                            <option value="Entretien Physique">Entretien Physique</option>
+                            <option value="Entretien Téléphonique">Entretien Téléphonique</option>
+                            <option value="Entretien Visio">Entretien Visio</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="stepper-actions">

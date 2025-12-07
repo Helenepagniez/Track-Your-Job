@@ -64,6 +64,16 @@ export class CompanyDetailComponent implements OnInit {
             background: 'rgba(0, 87, 179, 0.2)',
             border: '2px solid #0056b3'
         },
+        'To Relaunch': {
+            color: '#e67e22',
+            background: 'rgba(230, 126, 34, 0.2)',
+            border: '2px solid #e67e22'
+        },
+        'No Response': {
+            color: '#754600ff',
+            background: 'rgba(117, 70, 0, 0.2)',
+            border: '2px solid #754600ff'
+        },
         'Interview': {
             color: '#ffbb00ff',
             background: 'rgba(255, 196, 0, 0.18)',
@@ -100,6 +110,8 @@ export class CompanyDetailComponent implements OnInit {
         const labels: Record<string, string> = {
             'To Apply': 'À postuler',
             'Applied': 'En attente',
+            'To Relaunch': 'À relancer',
+            'No Response': 'Sans réponse',
             'Interview': 'Entretien',
             'Offer': 'Offre reçue',
             'Rejected': 'Refusé'
@@ -114,6 +126,8 @@ export class CompanyDetailComponent implements OnInit {
         const statusLabels: { [key: string]: string } = {
             'To Apply': 'à postuler',
             'Applied': 'en attente',
+            'To Relaunch': 'à relancer',
+            'No Response': 'sans réponse',
             'Interview': 'en entretien',
             'Offer': 'reçue',
             'Rejected': 'refusé'
