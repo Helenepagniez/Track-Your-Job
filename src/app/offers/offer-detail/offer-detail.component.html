@@ -167,8 +167,8 @@
                 </div>
                 <ul class="status-history">
                     <li *ngFor="let history of getSortedStatusHistory(o.statusHistory || [])">
-                        <span class="history-status">{{ getStatusLabel(history.status) }}</span>
-                        <span class="history-separator">le</span>
+                        <span class="history-status" [style.color]="statusColors[history.status].color">{{
+                            getStatusLabel(history.status) }}</span>
                         <span class="history-date">{{ history.date | date:'dd/MM/yyyy' }}</span>
                     </li>
                 </ul>
