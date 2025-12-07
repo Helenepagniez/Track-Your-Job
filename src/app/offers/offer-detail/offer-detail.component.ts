@@ -1,13 +1,14 @@
 import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { OffersService, JobOffer } from '../../core/services/offers.service';
+import { FormsModule } from '@angular/forms';
+import { OffersService, JobOffer, StatusHistoryEntry, Interview } from '../../core/services/offers.service';
 import { OfferFormComponent } from '../offer-form/offer-form.component';
 
 @Component({
     selector: 'app-offer-detail',
     standalone: true,
-    imports: [CommonModule, RouterModule, OfferFormComponent],
+    imports: [CommonModule, RouterModule, OfferFormComponent, FormsModule],
     templateUrl: './offer-detail.component.html',
     styleUrl: './offer-detail.component.css'
 })
@@ -26,6 +27,16 @@ export class OfferDetailComponent implements OnInit {
 
     showEditModal = signal(false);
     showDeleteConfirm = signal(false);
+    showInterviewsModal = signal(false);
+    showStatusHistoryModal = signal(false);
+
+    // Temp storage for editing
+    editingInterviews: Interview[] = [];
+    editingStatusHistory: StatusHistoryEntry[] = [];
+
+    // For adding new items in modals
+    newInterview: Interview = { date: new Date(), type: 'Entretien Visio' };
+    newStatusEntry: StatusHistoryEntry = { status: 'Applied', date: new Date() };
 
     statusColors: Record<string, { color: string, background: string, border: string }> = {
         'To Apply': {
@@ -55,7 +66,7 @@ export class OfferDetailComponent implements OnInit {
         },
         'Offer': {
             color: '#00997aff',
-            background: 'rgba(3, 211, 169, 0.2)',
+            background: 'rgba(0, 153, 122, 0.2)',
             border: '2px solid #00997aff'
         },
         'Rejected': {
@@ -64,6 +75,9 @@ export class OfferDetailComponent implements OnInit {
             border: '2px solid #d63031'
         }
     };
+
+    possibleStatuses = ['To Apply', 'Applied', 'To Relaunch', 'No Response', 'Interview', 'Offer', 'Rejected'];
+    interviewTypes: Interview['type'][] = ['Préqual', 'Entretien Physique', 'Entretien Téléphonique', 'Entretien Visio'];
 
     ngOnInit() {
         this.route.paramMap.subscribe(params => {
@@ -87,6 +101,30 @@ export class OfferDetailComponent implements OnInit {
         return labels[status] || status;
     }
 
+    // Helper to convert Date to YYYY-MM-DD string for input[type="date"]
+    dateToInputString(date: Date | string): string {
+        const d = typeof date === 'string' ? new Date(date) : date;
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    // Helper to convert YYYY-MM-DD string to Date
+    inputStringToDate(dateStr: string): Date {
+        return new Date(dateStr);
+    }
+
+    isPastDate(date: Date | string): boolean {
+        const d = new Date(date);
+        const now = new Date();
+        // Reset hours to compare dates only if needed, but for interviews time might matter.
+        // Let's keep it simple: strict inequality
+        return d < now;
+    }
+
+    // --- Edit Main Modal ---
+
     openEditModal() {
         this.showEditModal.set(true);
     }
@@ -97,14 +135,18 @@ export class OfferDetailComponent implements OnInit {
 
     onUpdateOffer(offerData: Partial<JobOffer>) {
         if (this.offer()) {
+            const { statusHistory, ...offerWithoutHistory } = this.offer()!;
             const updatedOffer: JobOffer = {
-                ...this.offer()!,
+                ...offerWithoutHistory,
                 ...offerData
+                // Don't include statusHistory - let the service manage it
             };
             this.offersService.updateOffer(updatedOffer);
             this.closeEditModal();
         }
     }
+
+    // --- Delete Offer ---
 
     confirmDelete() {
         this.showDeleteConfirm.set(true);
@@ -119,6 +161,153 @@ export class OfferDetailComponent implements OnInit {
             this.offersService.deleteOffer(this.offer()!.id);
             this.router.navigate(['/offres']);
         }
+    }
+
+    // --- Interviews Modal ---
+
+    openInterviewsModal() {
+        const o = this.offer();
+        if (o) {
+            // Clone interviews and convert dates to strings for input[type="date"]
+            this.editingInterviews = o.interviews ? o.interviews.map(i => ({
+                ...i,
+                date: this.dateToInputString(i.date) as any
+            })) : [];
+            // If legacy interviewDate exists but no interviews array, migrate it
+            if (this.editingInterviews.length === 0 && o.interviewDate && o.interviewType) {
+                this.editingInterviews.push({
+                    date: this.dateToInputString(o.interviewDate) as any,
+                    type: o.interviewType
+                });
+            }
+            this.newInterview = { date: this.dateToInputString(new Date()) as any, type: 'Entretien Visio' };
+            this.showInterviewsModal.set(true);
+        }
+    }
+
+    closeInterviewsModal() {
+        this.showInterviewsModal.set(false);
+    }
+
+    addInterview() {
+        this.editingInterviews.push({ ...this.newInterview });
+        this.newInterview = { date: this.dateToInputString(new Date()) as any, type: 'Entretien Visio' }; // Reset
+    }
+
+    removeInterview(index: number) {
+        this.editingInterviews.splice(index, 1);
+    }
+
+    saveInterviews() {
+        if (this.offer()) {
+            // Convert string dates back to Date objects
+            const interviewsWithDates = this.editingInterviews.map(i => ({
+                ...i,
+                date: this.inputStringToDate(i.date as any)
+            }));
+
+            // Sort by date descending
+            interviewsWithDates.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+            const updatedOffer: JobOffer = {
+                ...this.offer()!,
+                interviews: interviewsWithDates
+            };
+
+            // Sync legacy fields for compatibility
+            // Find upcoming interview
+            const now = new Date();
+            const upcoming = interviewsWithDates.filter(i => new Date(i.date) >= now).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+
+            if (upcoming) {
+                updatedOffer.interviewDate = upcoming.date;
+                updatedOffer.interviewType = upcoming.type;
+            } else if (interviewsWithDates.length > 0) {
+                // No upcoming, take the latest past
+                const latest = interviewsWithDates[0]; // already sorted desc
+                updatedOffer.interviewDate = latest.date;
+                updatedOffer.interviewType = latest.type;
+            } else {
+                updatedOffer.interviewDate = undefined;
+                updatedOffer.interviewType = undefined;
+            }
+
+            this.offersService.updateOffer(updatedOffer);
+            this.closeInterviewsModal();
+        }
+    }
+
+    // --- Status History Modal ---
+
+    openStatusHistoryModal() {
+        const o = this.offer();
+        if (o) {
+            // Clone, sort by date descending, and convert dates to strings
+            this.editingStatusHistory = o.statusHistory ?
+                [...o.statusHistory]
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .map(entry => ({
+                        ...entry,
+                        date: this.dateToInputString(entry.date) as any
+                    })) : [];
+            this.newStatusEntry = { status: 'Applied', date: this.dateToInputString(new Date()) as any };
+            this.showStatusHistoryModal.set(true);
+        }
+    }
+
+    closeStatusHistoryModal() {
+        this.showStatusHistoryModal.set(false);
+    }
+
+    addStatusHistory() {
+        this.editingStatusHistory.push({ ...this.newStatusEntry });
+        this.newStatusEntry = { status: 'Applied', date: this.dateToInputString(new Date()) as any };
+    }
+
+    removeStatusHistory(index: number) {
+        this.editingStatusHistory.splice(index, 1);
+    }
+
+    saveStatusHistory() {
+        if (this.offer()) {
+            // Convert string dates back to Date objects
+            const historyWithDates = this.editingStatusHistory.map(entry => ({
+                ...entry,
+                date: this.inputStringToDate(entry.date as any)
+            }));
+
+            // Sort by date descending (most recent first)
+            historyWithDates.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+            // Get the most recent status (first after sorting)
+            const mostRecentStatus = historyWithDates.length > 0 ? historyWithDates[0].status : this.offer()!.status;
+
+            const updatedOffer: JobOffer = {
+                ...this.offer()!,
+                statusHistory: historyWithDates,
+                status: mostRecentStatus as any // Sync current status with most recent history entry
+            };
+            this.offersService.updateOffer(updatedOffer);
+            this.closeStatusHistoryModal();
+        }
+    }
+
+    getUpcomingInterviews(interviews: Interview[]): Interview[] {
+        const now = new Date();
+        return interviews
+            .filter(i => new Date(i.date) >= now)
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // Soonest first
+    }
+
+    getPastInterviews(interviews: Interview[]): Interview[] {
+        const now = new Date();
+        return interviews
+            .filter(i => new Date(i.date) < now)
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // Most recent first
+    }
+
+    getSortedStatusHistory(history: StatusHistoryEntry[]): StatusHistoryEntry[] {
+        return [...history].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }
 
     viewCompany(offer: JobOffer) {

@@ -7,6 +7,12 @@ export interface StatusHistoryEntry {
     details?: string;
 }
 
+export interface Interview {
+    date: Date;
+    type: 'Préqual' | 'Entretien Physique' | 'Entretien Téléphonique' | 'Entretien Visio';
+    details?: string;
+}
+
 export interface JobOffer {
     id: number;
     title: string;
@@ -28,6 +34,7 @@ export interface JobOffer {
     statusHistory?: StatusHistoryEntry[];
     interviewDate?: Date;
     interviewType?: 'Préqual' | 'Entretien Physique' | 'Entretien Téléphonique' | 'Entretien Visio';
+    interviews?: Interview[];
     companyInfo?: {
         id?: number;
         employees?: number;
@@ -62,7 +69,12 @@ export class OffersService {
                 { status: 'Interview', date: new Date('2023-10-28') }
             ],
             interviewDate: new Date(Date.now() + 86400000), // Tomorrow
-            interviewType: 'Entretien Visio'
+            interviewType: 'Entretien Visio',
+            interviews: [
+                { date: new Date(Date.now() + 86400000), type: 'Entretien Visio', details: 'Entretien technique avec le CTO' },
+                { date: new Date('2023-11-01'), type: 'Entretien Téléphonique', details: 'Premier contact RH' },
+                { date: new Date('2023-11-05'), type: 'Préqual' }
+            ]
         },
         {
             id: 2,
@@ -266,20 +278,31 @@ export class OffersService {
 
         // Get the current company data to preserve it
         const currentOffer = this.offers().find(o => o.id === updatedOffer.id);
-        const existingOffer = this.offers().find(o => o.company === updatedOffer.company); // Might be same or different if company name changed (unlikely use case but possible)
+        const existingOffer = this.offers().find(o => o.company === updatedOffer.company);
 
         const currentCompanyDescription = existingOffer?.companyDescription;
         const existingCompanyInfo = existingOffer?.companyInfo;
 
         // Check for status change to update history
         let newHistory = updatedOffer.statusHistory || [];
-        if (currentOffer && currentOffer.status !== updatedOffer.status) {
+
+        // Detect if statusHistory is being edited from the modal
+        // The modal always provides a new array (cloned), so if the reference is different, it's from the modal
+        const currentHistory = currentOffer?.statusHistory || [];
+        const isHistoryBeingEditedFromModal = updatedOffer.statusHistory &&
+            updatedOffer.statusHistory !== currentHistory;
+
+        // If status changed and history is NOT being edited from modal, add new entry
+        if (!isHistoryBeingEditedFromModal && currentOffer && currentOffer.status !== updatedOffer.status) {
             newHistory = [
                 ...(currentOffer.statusHistory || []),
                 { status: updatedOffer.status, date: new Date() }
             ];
-            // If we are reverting to 'Applied' or changing to 'Applied', the date is now.
+        } else if (!isHistoryBeingEditedFromModal && currentOffer) {
+            // If status didn't change and history is not being edited, preserve current history
+            newHistory = currentOffer.statusHistory || [];
         }
+        // else: if history is being edited from modal, use the provided history as-is (newHistory already set)
 
         const offerWithCompanyId: JobOffer = {
             ...updatedOffer,

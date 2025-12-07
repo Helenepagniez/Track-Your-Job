@@ -112,22 +112,54 @@
                             <a [href]="o.link" target="_blank" class="link">Voir l'annonce</a>
                         </div>
                     </li>
-                    <li *ngIf="o.interviewDate">
-                        <span class="icon">🗓️</span>
-                        <div>
-                            <span class="label">Entretien</span>
-                            <span class="value">
-                                {{ o.interviewType }} le {{ o.interviewDate | date:'dd/MM/yyyy' }}
-                            </span>
-                        </div>
-                    </li>
                 </ul>
             </div>
 
+            <!-- Interviews Section (separate card) -->
+            <div class="card section" *ngIf="o.interviews && o.interviews.length > 0">
+                <div class="section-header">
+                    <h3>Entretiens</h3>
+                    <button class="btn-icon-edit" (click)="openInterviewsModal()" title="Modifier les entretiens">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                </div>
+                <div class="interview-sections">
+                    <!-- Upcoming Interviews -->
+                    <div class="interview-section" *ngIf="getUpcomingInterviews(o.interviews).length > 0">
+                        <h5 class="interview-subtitle">À venir</h5>
+                        <div class="interview-items">
+                            <div *ngFor="let interview of getUpcomingInterviews(o.interviews)" class="interview-item">
+                                <span class="interview-type">{{ interview.type }}</span>
+                                <span class="interview-date">le {{ interview.date | date:'dd/MM/yyyy' }}</span>
+                                <span class="interview-details" *ngIf="interview.details">- {{ interview.details
+                                    }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Past Interviews -->
+                    <div class="interview-section" *ngIf="getPastInterviews(o.interviews).length > 0">
+                        <h5 class="interview-subtitle">Passés</h5>
+                        <div class="interview-items">
+                            <div *ngFor="let interview of getPastInterviews(o.interviews)" class="interview-item past">
+                                <span class="interview-type">{{ interview.type }}</span>
+                                <span class="interview-date">le {{ interview.date | date:'dd/MM/yyyy' }}</span>
+                                <span class="interview-details" *ngIf="interview.details">- {{ interview.details
+                                    }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card section" *ngIf="o.statusHistory && o.statusHistory.length > 0">
-                <h3>Historique des statuts</h3>
+                <div class="section-header">
+                    <h3>Historique du statut</h3>
+                    <button class="btn-icon-edit" (click)="openStatusHistoryModal()" title="Modifier l'historique">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                </div>
                 <ul class="status-history">
-                    <li *ngFor="let history of o.statusHistory">
+                    <li *ngFor="let history of getSortedStatusHistory(o.statusHistory || [])">
                         <span class="history-status">{{ getStatusLabel(history.status) }}</span>
                         <span class="history-separator">le</span>
                         <span class="history-date">{{ history.date | date:'dd/MM/yyyy' }}</span>
@@ -180,6 +212,157 @@
         <div class="modal-footer">
             <button class="btn btn-outline" (click)="cancelDelete()">Annuler</button>
             <button class="btn btn-danger" (click)="deleteOffer()">Supprimer</button>
+        </div>
+    </div>
+</div>
+
+<!-- Interviews Edit Modal -->
+<div class="modal-overlay" *ngIf="showInterviewsModal()">
+    <div class="modal-content edit-list-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Gérer les entretiens</h3>
+            <button class="close-btn" (click)="closeInterviewsModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="edit-list-container">
+                <!-- Existing Interviews -->
+                <div class="existing-items" *ngIf="editingInterviews.length > 0">
+                    <h4>Entretiens enregistrés</h4>
+                    <div class="item-list">
+                        <div *ngFor="let interview of editingInterviews; let i = index" class="edit-item">
+                            <div class="item-content">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Type</label>
+                                        <select [(ngModel)]="interview.type" class="form-control">
+                                            <option *ngFor="let type of interviewTypes" [value]="type">{{ type }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Date</label>
+                                        <input type="date" [(ngModel)]="interview.date" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Détails (optionnel)</label>
+                                    <input type="text" [(ngModel)]="interview.details" class="form-control"
+                                        placeholder="Ex: Avec le CTO">
+                                </div>
+                            </div>
+                            <button class="btn-remove" (click)="removeInterview(i)" title="Supprimer">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add New Interview -->
+                <div class="add-new-section">
+                    <h4>Ajouter un entretien</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select [(ngModel)]="newInterview.type" class="form-control">
+                                <option *ngFor="let type of interviewTypes" [value]="type">{{ type }}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" [(ngModel)]="newInterview.date" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Détails (optionnel)</label>
+                        <input type="text" [(ngModel)]="newInterview.details" class="form-control"
+                            placeholder="Ex: Avec le CTO">
+                    </div>
+                    <button class="btn btn-outline" (click)="addInterview()">
+                        <i class="fa-solid fa-plus"></i> Ajouter
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" (click)="closeInterviewsModal()">Annuler</button>
+            <button class="btn btn-primary" (click)="saveInterviews()">Enregistrer</button>
+        </div>
+    </div>
+</div>
+
+<!-- Status History Edit Modal -->
+<div class="modal-overlay" *ngIf="showStatusHistoryModal()">
+    <div class="modal-content edit-list-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Gérer l'historique des statuts</h3>
+            <button class="close-btn" (click)="closeStatusHistoryModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="edit-list-container">
+                <!-- Existing Status History -->
+                <div class="existing-items" *ngIf="editingStatusHistory.length > 0">
+                    <h4>Historique enregistré</h4>
+                    <div class="item-list">
+                        <div *ngFor="let entry of editingStatusHistory; let i = index" class="edit-item">
+                            <div class="item-content">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Statut</label>
+                                        <select [(ngModel)]="entry.status" class="form-control">
+                                            <option *ngFor="let status of possibleStatuses" [value]="status">
+                                                {{ getStatusLabel(status) }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Date</label>
+                                        <input type="date" [(ngModel)]="entry.date" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Détails (optionnel)</label>
+                                    <input type="text" [(ngModel)]="entry.details" class="form-control"
+                                        placeholder="Ex: Relance par email">
+                                </div>
+                            </div>
+                            <button class="btn-remove" (click)="removeStatusHistory(i)" title="Supprimer">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add New Status -->
+                <div class="add-new-section">
+                    <h4>Ajouter un statut</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Statut</label>
+                            <select [(ngModel)]="newStatusEntry.status" class="form-control">
+                                <option *ngFor="let status of possibleStatuses" [value]="status">
+                                    {{ getStatusLabel(status) }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" [(ngModel)]="newStatusEntry.date" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Détails (optionnel)</label>
+                        <input type="text" [(ngModel)]="newStatusEntry.details" class="form-control"
+                            placeholder="Ex: Relance par email">
+                    </div>
+                    <button class="btn btn-outline" (click)="addStatusHistory()">
+                        <i class="fa-solid fa-plus"></i> Ajouter
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" (click)="closeStatusHistoryModal()">Annuler</button>
+            <button class="btn btn-primary" (click)="saveStatusHistory()">Enregistrer</button>
         </div>
     </div>
 </div>
