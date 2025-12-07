@@ -127,15 +127,18 @@ export class OffersService {
      * Otherwise, create a new unique ID.
      */
     private getOrCreateCompanyId(companyName: string): number {
-        // Find an existing offer with this company name
-        const existingOffer = this.offers().find(o => o.company === companyName);
+        // Find ALL offers with this company name and collect their IDs
+        const offersWithSameCompany = this.offers().filter(o => o.company === companyName);
+        const existingIds = offersWithSameCompany
+            .map(o => o.companyInfo?.id)
+            .filter((id): id is number => id !== undefined);
 
-        if (existingOffer?.companyInfo?.id) {
-            return existingOffer.companyInfo.id;
+        // If we found at least one ID, use the first one (they should all be the same after normalization)
+        if (existingIds.length > 0) {
+            return existingIds[0];
         }
 
         // Create a new unique company ID
-        // Use a hash-like approach based on company name to ensure consistency
         const allCompanyIds = this.offers()
             .map(o => o.companyInfo?.id)
             .filter((id): id is number => id !== undefined);
@@ -146,8 +149,43 @@ export class OffersService {
 
     // ... inside class OffersService
     constructor(private tasksService: TasksService) {
+        // Normalize company IDs first
+        this.normalizeCompanyIds();
         // Run automation check on initialization
         this.checkAndAutomateOffers();
+    }
+
+    /**
+     * Ensures all offers from the same company share the same companyInfo.id
+     */
+    private normalizeCompanyIds() {
+        this.offers.update(offers => {
+            const companyIdMap = new Map<string, number>();
+
+            // First pass: collect or create company IDs
+            offers.forEach(offer => {
+                if (!companyIdMap.has(offer.company)) {
+                    // Use existing ID if available, otherwise create a new one
+                    const existingId = offer.companyInfo?.id;
+                    if (existingId) {
+                        companyIdMap.set(offer.company, existingId);
+                    } else {
+                        // Create new ID
+                        const maxId = Math.max(0, ...Array.from(companyIdMap.values()));
+                        companyIdMap.set(offer.company, maxId + 1);
+                    }
+                }
+            });
+
+            // Second pass: apply the normalized IDs
+            return offers.map(offer => ({
+                ...offer,
+                companyInfo: {
+                    ...offer.companyInfo,
+                    id: companyIdMap.get(offer.company)!
+                }
+            }));
+        });
     }
 
     private checkAndAutomateOffers() {
@@ -239,9 +277,31 @@ export class OffersService {
             initialHistory.push({ status: offer.status, date: new Date() });
         }
 
+        // Convert legacy interview fields to interviews array if status is Interview
+        let interviews = offer.interviews || [];
+        if (offer.status === 'Interview' && offer.interviewDate && offer.interviewType) {
+            // Check if this interview already exists in the array
+            const interviewExists = interviews.some(i =>
+                new Date(i.date).getTime() === new Date(offer.interviewDate!).getTime() &&
+                i.type === offer.interviewType
+            );
+
+            if (!interviewExists) {
+                interviews = [
+                    ...interviews,
+                    {
+                        date: new Date(offer.interviewDate),
+                        type: offer.interviewType,
+                        details: undefined
+                    }
+                ];
+            }
+        }
+
         const offerWithCompanyId: JobOffer = {
             ...offer,
             statusHistory: initialHistory,
+            interviews: interviews.length > 0 ? interviews : undefined,
             companyInfo: {
                 id: companyId,
                 // Inherit existing company info, but allow new values to override
@@ -259,16 +319,22 @@ export class OffersService {
         this.offers.update(offers => {
             const newOffers = [offerWithCompanyId, ...offers];
 
-            // If the new offer has a companyDescription, propagate it to all offers of the same company
-            if (offerWithCompanyId.companyDescription) {
-                return newOffers.map(o =>
-                    o.company === offerWithCompanyId.company
-                        ? { ...o, companyDescription: offerWithCompanyId.companyDescription }
-                        : o
-                );
-            }
-
-            return newOffers;
+            // IMPORTANT: Propagate the companyId to ALL offers of the same company
+            // This ensures consistency across all offers
+            return newOffers.map(o => {
+                if (o.company === offerWithCompanyId.company) {
+                    return {
+                        ...o,
+                        companyInfo: {
+                            ...o.companyInfo,
+                            id: companyId
+                        },
+                        // If the new offer has a companyDescription, propagate it
+                        companyDescription: offerWithCompanyId.companyDescription || o.companyDescription
+                    };
+                }
+                return o;
+            });
         });
     }
 
@@ -304,28 +370,78 @@ export class OffersService {
         }
         // else: if history is being edited from modal, use the provided history as-is (newHistory already set)
 
+        // Convert legacy interview fields to interviews array if status is Interview
+        // Detect if interviews are being edited from the modal
+        const isInterviewsBeingEditedFromModal = updatedOffer.interviews &&
+            updatedOffer.interviews !== currentOffer?.interviews;
+
+        let interviews = updatedOffer.interviews || currentOffer?.interviews || [];
+
+        // Only auto-convert if interviews are NOT being edited from modal
+        if (!isInterviewsBeingEditedFromModal &&
+            updatedOffer.status === 'Interview' &&
+            updatedOffer.interviewDate &&
+            updatedOffer.interviewType) {
+
+            // Check if this interview already exists in the array
+            const interviewExists = interviews.some(i =>
+                new Date(i.date).getTime() === new Date(updatedOffer.interviewDate!).getTime() &&
+                i.type === updatedOffer.interviewType
+            );
+
+            if (!interviewExists) {
+                interviews = [
+                    ...interviews,
+                    {
+                        date: new Date(updatedOffer.interviewDate),
+                        type: updatedOffer.interviewType,
+                        details: undefined
+                    }
+                ];
+            }
+        }
+
         const offerWithCompanyId: JobOffer = {
             ...updatedOffer,
             statusHistory: newHistory,
+            interviews: interviews.length > 0 ? interviews : undefined,
             companyInfo: {
-                id: companyId,
                 // Preserve existing company info
                 employees: existingCompanyInfo?.employees,
                 founded: existingCompanyInfo?.founded,
                 group: existingCompanyInfo?.group,
                 contacts: existingCompanyInfo?.contacts,
                 // But allow any explicitly provided values to override
-                ...updatedOffer.companyInfo
+                ...updatedOffer.companyInfo,
+                // IMPORTANT: Always use the calculated companyId, never the one from updatedOffer
+                // This ensures the ID is correct even when changing companies
+                id: companyId
             },
             // Preserve the existing company description - it should only be modified from company page
             companyDescription: currentCompanyDescription
         };
 
-        this.offers.update(offers =>
-            offers.map(o =>
+        this.offers.update(offers => {
+            // Update the specific offer
+            const updatedOffers = offers.map(o =>
                 o.id === offerWithCompanyId.id ? offerWithCompanyId : o
-            )
-        );
+            );
+
+            // IMPORTANT: Propagate the companyId to ALL offers of the same company
+            // This ensures consistency across all offers
+            return updatedOffers.map(o => {
+                if (o.company === offerWithCompanyId.company && o.id !== offerWithCompanyId.id) {
+                    return {
+                        ...o,
+                        companyInfo: {
+                            ...o.companyInfo,
+                            id: companyId
+                        }
+                    };
+                }
+                return o;
+            });
+        });
     }
 
     deleteOffer(id: number) {
@@ -347,10 +463,13 @@ export class OffersService {
             companyOffers = this.offers().filter(o => o.company === identifier);
         }
 
-        if (companyOffers.length === 0) return null;
+        if (companyOffers.length === 0) {
+            return null;
+        }
 
         // Return info from the most recently added offer as the source of truth
-        const latestOffer = companyOffers.sort((a, b) =>
+        // IMPORTANT: Create a copy before sorting to avoid mutating the original array
+        const latestOffer = [...companyOffers].sort((a, b) =>
             new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime()
         )[0];
 

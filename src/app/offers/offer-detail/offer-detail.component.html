@@ -116,14 +116,14 @@
             </div>
 
             <!-- Interviews Section (separate card) -->
-            <div class="card section" *ngIf="o.interviews && o.interviews.length > 0">
+            <div class="card section" *ngIf="o.status === 'Interview' || (o.interviews && o.interviews.length > 0)">
                 <div class="section-header">
                     <h3>Entretiens</h3>
                     <button class="btn-icon-edit" (click)="openInterviewsModal()" title="Modifier les entretiens">
                         <i class="fa-solid fa-pen"></i>
                     </button>
                 </div>
-                <div class="interview-sections">
+                <div class="interview-sections" *ngIf="o.interviews && o.interviews.length > 0">
                     <!-- Upcoming Interviews -->
                     <div class="interview-section" *ngIf="getUpcomingInterviews(o.interviews).length > 0">
                         <h5 class="interview-subtitle">À venir</h5>
@@ -148,6 +148,13 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                <!-- Empty state when no interviews -->
+                <div *ngIf="!o.interviews || o.interviews.length === 0" style="text-align: center; padding: 1rem;">
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">Aucun entretien programmé</p>
+                    <button class="btn btn-outline" (click)="openInterviewsModal()">
+                        <i class="fa-solid fa-plus"></i> Ajouter un entretien
+                    </button>
                 </div>
             </div>
 
