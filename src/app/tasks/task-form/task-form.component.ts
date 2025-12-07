@@ -64,9 +64,11 @@ export class TaskFormComponent implements OnInit {
     translateStatus(status: string): string {
         const statusMap: Record<string, string> = {
             'To Apply': 'À postuler',
-            'Applied': 'Postulé',
+            'Applied': 'En attente',
+            'To Relaunch': 'À relancer',
+            'No Response': 'Sans réponse',
             'Interview': 'Entretien',
-            'Offer': 'Offre',
+            'Offer': 'Offre reçue',
             'Rejected': 'Refusé'
         };
         return statusMap[status] || status;

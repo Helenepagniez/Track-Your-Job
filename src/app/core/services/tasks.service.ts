@@ -12,7 +12,7 @@ export class TasksService {
             dueDate: new Date('2025-11-30'),
             completed: false,
             status: 'a_faire',
-            relatedOffers: ['Senior Angular Developer - Tech Solutions Inc. - Interview'],
+            relatedOffers: ['Senior Angular Developer - Tech Solutions Inc. - Entretien'],
             priority: 'haute'
         },
         {
@@ -29,7 +29,7 @@ export class TasksService {
             dueDate: new Date('2025-11-28'),
             completed: true,
             status: 'termine',
-            relatedOffers: ['Frontend Engineer - Creative Agency - Applied'],
+            relatedOffers: ['Frontend Engineer - Creative Agency - En attente'],
             priority: 'faible'
         }
     ]);

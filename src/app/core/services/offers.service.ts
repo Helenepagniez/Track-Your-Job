@@ -187,7 +187,7 @@ export class OffersService {
                             completed: false,
                             status: 'a_faire',
                             priority: 'haute',
-                            relatedOffers: [`${offer.title} - ${offer.company} - To Relaunch`]
+                            relatedOffers: [`${offer.title} - ${offer.company} - À relancer`]
                         });
 
                         const newHistory: StatusHistoryEntry[] = [
