@@ -127,6 +127,7 @@
     font: 700 19px Roboto, sans-serif;
     color: var(--primary-color);
     letter-spacing: 0.5px;
+    text-transform: capitalize;
 }
 
 .company-name {

@@ -116,6 +116,7 @@
     font: 700 28px Roboto, sans-serif;
     letter-spacing: 0.5px;
     color: var(--primary-color);
+    text-transform: capitalize;
 }
 
 .subtitle {

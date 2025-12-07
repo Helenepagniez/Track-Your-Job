@@ -121,6 +121,7 @@
     font: 700 28px Roboto, sans-serif;
     letter-spacing: 0.5px;
     color: var(--primary-color);
+    text-transform: capitalize;
 }
 
 .subtitle {
@@ -270,6 +271,7 @@ html.dark-mode h3 {
     color: var(--primary-color);
     font: 600 16px Roboto, sans-serif;
     letter-spacing: 0.5px;
+    text-transform: capitalize;
 }
 
 .offer-date {
