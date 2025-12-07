@@ -64,7 +64,12 @@
 
                 <div class="form-group">
                     <label class="form-label">Présentation entreprise</label>
-                    <textarea matInput formControlName="companyDescription" rows="3" class="form-control"></textarea>
+                    <textarea matInput formControlName="companyDescription" rows="3" class="form-control"
+                        [readonly]="isEditing()"
+                        [placeholder]="isEditing() ? 'Modifiable uniquement depuis la page entreprise' : 'Description de l\'entreprise...'"></textarea>
+                    <small *ngIf="isEditing()" style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">
+                        💡 Pour modifier la présentation de l'entreprise, rendez-vous sur la page de l'entreprise
+                    </small>
                 </div>
 
                 <div class="form-group">

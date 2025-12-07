@@ -101,15 +101,22 @@ export class OffersService {
         // Ensure the offer has a companyInfo.id
         const companyId = this.getOrCreateCompanyId(offer.company);
 
-        // Check if there's an existing company description
+        // Check if there's an existing company with this name
         const existingOffer = this.offers().find(o => o.company === offer.company);
         const existingDescription = existingOffer?.companyDescription;
+        const existingCompanyInfo = existingOffer?.companyInfo;
 
         const offerWithCompanyId: JobOffer = {
             ...offer,
             companyInfo: {
-                ...offer.companyInfo,
-                id: companyId
+                id: companyId,
+                // Inherit existing company info, but allow new values to override
+                employees: existingCompanyInfo?.employees,
+                founded: existingCompanyInfo?.founded,
+                group: existingCompanyInfo?.group,
+                contacts: existingCompanyInfo?.contacts,
+                // Override with any new values provided
+                ...offer.companyInfo
             },
             // Use the new description if provided, otherwise inherit from existing offers
             companyDescription: offer.companyDescription || existingDescription
@@ -134,30 +141,33 @@ export class OffersService {
     updateOffer(updatedOffer: JobOffer) {
         // Ensure the offer has a companyInfo.id
         const companyId = this.getOrCreateCompanyId(updatedOffer.company);
+
+        // Get the current company data to preserve it
+        const existingOffer = this.offers().find(o => o.company === updatedOffer.company);
+        const currentCompanyDescription = existingOffer?.companyDescription;
+        const existingCompanyInfo = existingOffer?.companyInfo;
+
         const offerWithCompanyId: JobOffer = {
             ...updatedOffer,
             companyInfo: {
-                ...updatedOffer.companyInfo,
-                id: companyId
-            }
+                id: companyId,
+                // Preserve existing company info
+                employees: existingCompanyInfo?.employees,
+                founded: existingCompanyInfo?.founded,
+                group: existingCompanyInfo?.group,
+                contacts: existingCompanyInfo?.contacts,
+                // But allow any explicitly provided values to override
+                ...updatedOffer.companyInfo
+            },
+            // Preserve the existing company description - it should only be modified from company page
+            companyDescription: currentCompanyDescription
         };
 
-        this.offers.update(offers => {
-            const updatedOffers = offers.map(o =>
+        this.offers.update(offers =>
+            offers.map(o =>
                 o.id === offerWithCompanyId.id ? offerWithCompanyId : o
-            );
-
-            // If the updated offer has a companyDescription, propagate it to all offers of the same company
-            if (offerWithCompanyId.companyDescription) {
-                return updatedOffers.map(o =>
-                    o.company === offerWithCompanyId.company
-                        ? { ...o, companyDescription: offerWithCompanyId.companyDescription }
-                        : o
-                );
-            }
-
-            return updatedOffers;
-        });
+            )
+        );
     }
 
     deleteOffer(id: number) {

@@ -32,6 +32,14 @@
                 <label>Groupe / Filiale</label>
                 <input type="text" [(ngModel)]="formData.group" name="group" placeholder="Fait partie du groupe...">
             </div>
+
+            <div class="warning-box">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <p>Attention : Les modifications des informations ci-dessus (nombre d'employés, année de création,
+                    groupe/filiale) seront appliquées à toutes les offres liées à
+                    <strong>{{ companyName }}</strong>.
+                </p>
+            </div>
         </div>
 
         <!-- Contacts -->

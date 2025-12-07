@@ -78,6 +78,10 @@ export class OfferFormComponent implements OnInit {
 
         if (this.offer) {
             this.isEditing.set(true);
+
+            // Get the latest company data to ensure we have the most up-to-date information
+            const companyData = this._offersService.getCompany(this.offer.company);
+
             this.firstFormGroup.patchValue({
                 title: this.offer.title,
                 company: this.offer.company,
@@ -86,11 +90,14 @@ export class OfferFormComponent implements OnInit {
                 salary: this.offer.salary,
                 link: this.offer.link
             });
+
+            // Use company data if available, otherwise fall back to offer data
             this.secondFormGroup.patchValue({
-                companyDescription: this.offer.companyDescription,
+                companyDescription: companyData?.info?.description || this.offer.companyDescription,
                 missions: this.offer.missions,
                 profile: this.offer.profile
             });
+
             this.thirdFormGroup.patchValue({
                 benefits: this.offer.benefits,
                 recruitmentProcess: this.offer.recruitmentProcess,

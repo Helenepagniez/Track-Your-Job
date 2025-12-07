@@ -259,6 +259,46 @@
     text-decoration: underline;
 }
 
+/* Company Metrics */
+.company-metrics {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.metric {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(var(--primary-rgb), 0.05);
+    padding: 1rem;
+    border-radius: 12px;
+    flex: 1;
+}
+
+.metric i {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.metric div {
+    display: flex;
+    flex-direction: column;
+}
+
+.metric .label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric .value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
 /* Modals */
 .modal-overlay {
     position: fixed;

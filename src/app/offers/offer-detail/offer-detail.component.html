@@ -67,15 +67,22 @@
                     <h3>À propos de l'entreprise</h3>
                     <button class="btn btn-outline" (click)="viewCompany(o)">Voir l'entreprise</button>
                 </div>
-                <p>{{ o.companyDescription }}</p>
-                <div class="company-stats" *ngIf="o.companyInfo">
-                    <div class="stat" *ngIf="o.companyInfo.employees">
-                        <span class="label">Employés</span>
-                        <span class="value">{{ o.companyInfo.employees }}</span>
+                <p *ngIf="o.companyDescription">{{ o.companyDescription }}</p>
+
+                <div class="company-metrics" *ngIf="o.companyInfo">
+                    <div class="metric" *ngIf="o.companyInfo.employees">
+                        <i class="fa-solid fa-users"></i>
+                        <div>
+                            <span class="label">Employés</span>
+                            <span class="value">{{ o.companyInfo.employees }}</span>
+                        </div>
                     </div>
-                    <div class="stat" *ngIf="o.companyInfo.founded">
-                        <span class="label">Fondée en</span>
-                        <span class="value">{{ o.companyInfo.founded }}</span>
+                    <div class="metric" *ngIf="o.companyInfo.founded">
+                        <i class="fa-solid fa-flag"></i>
+                        <div>
+                            <span class="label">Création</span>
+                            <span class="value">{{ o.companyInfo.founded }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
