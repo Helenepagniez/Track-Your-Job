@@ -1,11 +1,11 @@
 <div class="detail-container" *ngIf="offer() as o">
     <!-- Breadcrumb & Back -->
     <div class="nav-header">
-        <button class="btn-back" routerLink="/offres">
+        <button class="btn-back" routerLink="/offres" title="Retour aux offres">
             <i class="fa-solid fa-circle-left"></i> Retour
         </button>
         <div class="breadcrumb">
-            <span class="crumb-link" routerLink="/offres">Mes Offres</span>
+            <span class="crumb-link" routerLink="/offres" title="Retour aux offres">Mes Offres</span>
             <span class="separator">></span>
             <span class="current">{{ o.title }}</span>
         </div>
@@ -30,10 +30,10 @@
                 {{ getStatusLabel(o.status) }}
             </span>
             <div class="action-buttons">
-                <button class="btn btn-outline" (click)="openEditModal()">
+                <button class="btn btn-outline" (click)="openEditModal()" title="Modifier l'offre">
                     <i class="fa-solid fa-pen"></i> Modifier
                 </button>
-                <button class="btn btn-danger" (click)="confirmDelete()">
+                <button class="btn btn-danger" (click)="confirmDelete()" title="Supprimer l'offre">
                     <i class="fa-solid fa-trash"></i> Supprimer
                 </button>
             </div>
@@ -63,7 +63,8 @@
             <div class="card section">
                 <div class="description">
                     <h3>À propos de l'entreprise</h3>
-                    <button class="btn btn-outline" (click)="viewCompany(o)">Voir l'entreprise</button>
+                    <button class="btn btn-outline" (click)="viewCompany(o)" title="Voir la page de l'entreprise">Voir
+                        l'entreprise</button>
                 </div>
                 <p *ngIf="o.companyDescription">{{ o.companyDescription }}</p>
 
@@ -109,7 +110,8 @@
                         <span class="icon">🔗</span>
                         <div>
                             <span class="label">Lien</span>
-                            <a [href]="o.link" target="_blank" class="link">Voir l'annonce</a>
+                            <a [href]="o.link" target="_blank" class="link" title="Consulter l'annonce">Voir
+                                l'annonce</a>
                         </div>
                     </li>
                 </ul>
@@ -152,7 +154,7 @@
                 <!-- Empty state when no interviews -->
                 <div *ngIf="!o.interviews || o.interviews.length === 0" style="text-align: center; padding: 1rem;">
                     <p style="color: var(--text-secondary); margin-bottom: 1rem;">Aucun entretien programmé</p>
-                    <button class="btn btn-outline" (click)="openInterviewsModal()">
+                    <button class="btn btn-outline" (click)="openInterviewsModal()" title="Ajouter un entretien">
                         <i class="fa-solid fa-plus"></i> Ajouter un entretien
                     </button>
                 </div>
@@ -197,7 +199,7 @@
     <div class="modal-content stepper-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
             <h3>Modifier l'offre</h3>
-            <button class="close-btn" (click)="closeEditModal()">×</button>
+            <button class="close-btn" (click)="closeEditModal()" title="Fermer">×</button>
         </div>
         <div class="modal-body">
             <app-offer-form [offer]="offer() || null" (save)="onUpdateOffer($event)" (cancel)="closeEditModal()">
@@ -211,14 +213,14 @@
     <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
             <h3>Supprimer l'offre ?</h3>
-            <button class="close-btn" (click)="cancelDelete()">×</button>
+            <button class="close-btn" (click)="cancelDelete()" title="Fermer">×</button>
         </div>
         <div class="modal-body-confirm">
             <p>Êtes-vous sûr de vouloir supprimer cette offre ? Cette action est irréversible.</p>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-outline" (click)="cancelDelete()">Annuler</button>
-            <button class="btn btn-danger" (click)="deleteOffer()">Supprimer</button>
+            <button class="btn btn-outline" (click)="cancelDelete()" title="Annuler la suppression">Annuler</button>
+            <button class="btn btn-danger" (click)="deleteOffer()" title="Confirmer la suppression">Supprimer</button>
         </div>
     </div>
 </div>
@@ -228,7 +230,7 @@
     <div class="modal-content edit-list-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
             <h3>Gérer les entretiens</h3>
-            <button class="close-btn" (click)="closeInterviewsModal()">×</button>
+            <button class="close-btn" (click)="closeInterviewsModal()" title="Fermer">×</button>
         </div>
         <div class="modal-body">
             <div class="edit-list-container">
@@ -284,15 +286,17 @@
                         <input type="text" [(ngModel)]="newInterview.details" class="form-control"
                             placeholder="Ex: Avec le CTO">
                     </div>
-                    <button class="btn btn-outline" (click)="addInterview()">
+                    <button class="btn btn-outline" (click)="addInterview()" title="Ajouter cet entretien">
                         <i class="fa-solid fa-plus"></i> Ajouter
                     </button>
                 </div>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-outline" (click)="closeInterviewsModal()">Annuler</button>
-            <button class="btn btn-primary" (click)="saveInterviews()">Enregistrer</button>
+            <button class="btn btn-outline" (click)="closeInterviewsModal()"
+                title="Annuler les modifications">Annuler</button>
+            <button class="btn btn-primary" (click)="saveInterviews()"
+                title="Enregistrer les entretiens">Enregistrer</button>
         </div>
     </div>
 </div>
@@ -302,7 +306,7 @@
     <div class="modal-content edit-list-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
             <h3>Gérer l'historique des statuts</h3>
-            <button class="close-btn" (click)="closeStatusHistoryModal()">×</button>
+            <button class="close-btn" (click)="closeStatusHistoryModal()" title="Fermer">×</button>
         </div>
         <div class="modal-body">
             <div class="edit-list-container">
@@ -361,15 +365,17 @@
                         <input type="text" [(ngModel)]="newStatusEntry.details" class="form-control"
                             placeholder="Ex: Relance par email">
                     </div>
-                    <button class="btn btn-outline" (click)="addStatusHistory()">
+                    <button class="btn btn-outline" (click)="addStatusHistory()" title="Ajouter ce statut">
                         <i class="fa-solid fa-plus"></i> Ajouter
                     </button>
                 </div>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-outline" (click)="closeStatusHistoryModal()">Annuler</button>
-            <button class="btn btn-primary" (click)="saveStatusHistory()">Enregistrer</button>
+            <button class="btn btn-outline" (click)="closeStatusHistoryModal()"
+                title="Annuler les modifications">Annuler</button>
+            <button class="btn btn-primary" (click)="saveStatusHistory()"
+                title="Enregistrer l'historique">Enregistrer</button>
         </div>
     </div>
 </div>

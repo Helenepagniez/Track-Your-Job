@@ -6,35 +6,39 @@
 
     <nav class="sidebar-nav">
         <a routerLink="/resume" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item"
-            (click)="closeSidebar()">
+            (click)="closeSidebar()" title="Consulter le résumé">
             <i class="fa-solid fa-bars-progress"></i>
             <span class="label">Résumé</span>
         </a>
-        <a routerLink="/taches" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+        <a routerLink="/taches" routerLinkActive="active" class="nav-item" (click)="closeSidebar()"
+            title="Gérer les tâches">
             <i class="fa-solid fa-square-check"></i>
             <span class="label">Tâches</span>
         </a>
-        <a routerLink="/offres" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+        <a routerLink="/offres" routerLinkActive="active" class="nav-item" (click)="closeSidebar()"
+            title="Voir les offres">
             <i class="fa-solid fa-briefcase"></i>
             <span class="label">Offres</span>
         </a>
 
-        <a routerLink="/entreprises" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+        <a routerLink="/entreprises" routerLinkActive="active" class="nav-item" (click)="closeSidebar()"
+            title="Découvrir les entreprises">
             <i class="fa-solid fa-building"></i>
             <span class="label">Entreprises</span>
         </a>
-        <a routerLink="/profil" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+        <a routerLink="/profil" routerLinkActive="active" class="nav-item" (click)="closeSidebar()"
+            title="Modifier le profil">
             <i class="fa-solid fa-user"></i>
             <span class="label">Profil</span>
         </a>
     </nav>
 
     <div class="sidebar-footer">
-        <button class="nav-item" (click)="themeService.toggleTheme()">
+        <button class="nav-item" (click)="themeService.toggleTheme()" title="Changer le thème">
             <i class="icon">{{ themeService.darkMode() ? '☀️' : '🌙' }}</i>
             <span class="label">{{ themeService.darkMode() ? 'Light Mode' : 'Dark Mode' }}</span>
         </button>
-        <button class="nav-item logout" (click)="logout()">
+        <button class="nav-item logout" (click)="logout()" title="Se déconnecter">
             <i class="fa-solid fa-door-closed"></i>
             <span class="label">Déconnexion</span>
         </button>

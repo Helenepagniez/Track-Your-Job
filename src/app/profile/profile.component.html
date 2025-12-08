@@ -3,10 +3,10 @@
         <h2>Mon Profil</h2>
         <div class="header-actions">
             <div class="action-buttons">
-                <button class="btn btn-outline" (click)="toggleEdit()">
+                <button class="btn btn-outline" (click)="toggleEdit()" title="Modifier le profil">
                     <i class="fa-solid fa-pen"></i> Modifier
                 </button>
-                <button class="btn btn-danger" (click)="toggleDelete()">
+                <button class="btn btn-danger" (click)="toggleDelete()" title="Supprimer le profil">
                     <i class="fa-solid fa-trash-can"></i> Supprimer
                 </button>
             </div>
@@ -38,7 +38,7 @@
         <div class="modal-content stepper-modal">
             <div class="modal-header">
                 <h3>Modifier votre profil</h3>
-                <button class="close-btn" (click)="closeEditModal()">×</button>
+                <button class="close-btn" (click)="closeEditModal()" title="Fermer">×</button>
             </div>
             <div class="modal-body">
                 <app-profile-form [user]="user" (save)="onUpdateUser($event)" (cancel)="closeEditModal()">
@@ -52,14 +52,15 @@
         <div class="modal-content confirm-modal">
             <div class="modal-header">
                 <h3>Supprimer votre profil ?</h3>
-                <button class="close-btn" (click)="cancelDelete()">×</button>
+                <button class="close-btn" (click)="cancelDelete()" title="Fermer">×</button>
             </div>
             <div class="modal-body">
                 <p>Êtes-vous sûr de vouloir supprimer votre profil ? Cette action est irréversible.</p>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-outline" (click)="cancelDelete()">Annuler</button>
-                <button class="btn btn-danger" (click)="confirmDelete()">Supprimer</button>
+                <button class="btn btn-outline" (click)="cancelDelete()" title="Annuler la suppression">Annuler</button>
+                <button class="btn btn-danger" (click)="confirmDelete()"
+                    title="Confirmer la suppression">Supprimer</button>
             </div>
         </div>
     </div>

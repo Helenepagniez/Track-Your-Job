@@ -1,11 +1,11 @@
 <div class="detail-container" *ngIf="companyData() as data">
     <!-- Breadcrumb & Back -->
     <div class="nav-header">
-        <button class="btn-back" routerLink="/entreprises">
+        <button class="btn-back" routerLink="/entreprises" title="Retour aux entreprises">
             <i class="fa-solid fa-circle-left"></i> Retour
         </button>
         <div class="breadcrumb">
-            <span class="crumb-link" routerLink="/entreprises">Entreprises</span>
+            <span class="crumb-link" routerLink="/entreprises" title="Retour aux entreprises">Entreprises</span>
             <span class="separator">></span>
             <span class="current">{{ data.info.name || companyName() }}</span>
         </div>
@@ -32,7 +32,7 @@
             </div>
         </div>
         <div class="header-actions">
-            <button class="btn btn-outline" (click)="openEditModal()">
+            <button class="btn btn-outline" (click)="openEditModal()" title="Modifier les informations de l'entreprise">
                 <i class="fa-solid fa-pen"></i> Modifier Entreprise
             </button>
         </div>
@@ -128,7 +128,7 @@
     <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
             <h3>Modifier {{ companyName() }}</h3>
-            <button class="close-btn" (click)="closeEditModal()">×</button>
+            <button class="close-btn" (click)="closeEditModal()" title="Fermer">×</button>
         </div>
         <div class="modal-body">
             <app-company-form [companyName]="companyName()" [initialData]="companyData()?.info"

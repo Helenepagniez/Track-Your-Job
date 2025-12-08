@@ -52,7 +52,8 @@
                 </div>
 
                 <div class="stepper-actions">
-                    <button mat-button matStepperNext type="button" class="btn btn-primary">Suivant</button>
+                    <button mat-button matStepperNext type="button" class="btn btn-primary"
+                        title="Passer à l'étape suivante">Suivant</button>
                 </div>
             </form>
         </mat-step>
@@ -84,8 +85,10 @@
                 </div>
 
                 <div class="stepper-actions">
-                    <button mat-button matStepperPrevious type="button" class="btn btn-outline">Retour</button>
-                    <button mat-button matStepperNext type="button" class="btn btn-primary">Suivant</button>
+                    <button mat-button matStepperPrevious type="button" class="btn btn-outline"
+                        title="Revenir à l'étape précédente">Retour</button>
+                    <button mat-button matStepperNext type="button" class="btn btn-primary"
+                        title="Passer à l'étape suivante">Suivant</button>
                 </div>
             </form>
         </mat-step>
@@ -142,8 +145,10 @@
                 </div>
 
                 <div class="stepper-actions">
-                    <button mat-button matStepperPrevious type="button" class="btn btn-outline">Retour</button>
-                    <button mat-button (click)="submit()" type="button" class="btn btn-primary">
+                    <button mat-button matStepperPrevious type="button" class="btn btn-outline"
+                        title="Revenir à l'étape précédente">Retour</button>
+                    <button mat-button (click)="submit()" type="button" class="btn btn-primary"
+                        title="Enregistrer l'offre">
                         {{ isEditing() ? 'Mettre à jour' : 'Sauvegarder' }}
                     </button>
                 </div>

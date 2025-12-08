@@ -25,7 +25,9 @@
     </div>
 
     <div class="form-actions">
-        <button type="button" class="btn btn-outline" (click)="onCancel()">Annuler</button>
-        <button type="submit" class="btn btn-primary" [disabled]="!profileForm.form.valid">Enregistrer</button>
+        <button type="button" class="btn btn-outline" (click)="onCancel()"
+            title="Annuler les modifications">Annuler</button>
+        <button type="submit" class="btn btn-primary" [disabled]="!profileForm.form.valid"
+            title="Enregistrer le profil">Enregistrer</button>
     </div>
 </form>

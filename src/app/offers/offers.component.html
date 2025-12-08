@@ -1,7 +1,7 @@
 <div class="offers-container">
     <div class="page-header">
         <h2>Mes Offres</h2>
-        <button class="btn btn-primary" (click)="openAddModal()">
+        <button class="btn btn-primary" (click)="openAddModal()" title="Ajouter une nouvelle offre">
             <span>+</span> Ajouter une offre
         </button>
     </div>
@@ -35,15 +35,16 @@
                     <p class="company-name">{{ offer.company }}</p>
                 </div>
                 <div class="offer-actions">
-                    <button mat-icon-button [matMenuTriggerFor]="offerMenu" class="menu-trigger">
+                    <button mat-icon-button [matMenuTriggerFor]="offerMenu" class="menu-trigger" title="Options">
                         <i class="fa-solid fa-ellipsis-vertical"></i>
                     </button>
                     <mat-menu #offerMenu="matMenu">
-                        <button mat-menu-item (click)="openAddModal(offer)" class="modify-btn">
+                        <button mat-menu-item (click)="openAddModal(offer)" class="modify-btn" title="Modifier l'offre">
                             <i class="fa-solid fa-pen"></i>
                             <span>Modifier</span>
                         </button>
-                        <button mat-menu-item (click)="confirmDelete(offer.id)" class="delete-btn">
+                        <button mat-menu-item (click)="confirmDelete(offer.id)" class="delete-btn"
+                            title="Supprimer l'offre">
                             <i class="fa-solid fa-trash-can"></i>
                             <span>Supprimer</span>
                         </button>
@@ -65,8 +66,8 @@
                     [style.color]="statusColors[offer.status].color" [style.border]="statusColors[offer.status].border">
                     {{ getStatusLabel(offer.status) }}
                 </span>
-                <button class="btn btn-outline btn-sm" (click)="viewDetails(offer.id)">Voir détails <i
-                        class="fa-solid fa-arrow-right"></i></button>
+                <button class="btn btn-outline btn-sm" (click)="viewDetails(offer.id)"
+                    title="Voir les détails de l'offre">Voir détails <i class="fa-solid fa-arrow-right"></i></button>
             </div>
         </div>
     </div>
@@ -77,7 +78,7 @@
     <div class="modal-content stepper-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
             <h3>{{ editingOffer() ? 'Modifier l\'offre' : 'Ajouter une offre' }}</h3>
-            <button class="close-btn" (click)="closeAddModal()">×</button>
+            <button class="close-btn" (click)="closeAddModal()" title="Fermer">×</button>
         </div>
         <div class="modal-body">
             <app-offer-form [offer]="editingOffer()" (save)="onSaveOffer($event)" (cancel)="closeAddModal()">
@@ -91,14 +92,14 @@
     <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
             <h3>Supprimer l'offre ?</h3>
-            <button class="close-btn" (click)="cancelDelete()">×</button>
+            <button class="close-btn" (click)="cancelDelete()" title="Fermer">×</button>
         </div>
         <div class="modal-body-confirm">
             <p>Êtes-vous sûr de vouloir supprimer cette offre ? Cette action est irréversible.</p>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-outline" (click)="cancelDelete()">Annuler</button>
-            <button class="btn btn-danger" (click)="deleteOffer()">Supprimer</button>
+            <button class="btn btn-outline" (click)="cancelDelete()" title="Annuler la suppression">Annuler</button>
+            <button class="btn btn-danger" (click)="deleteOffer()" title="Confirmer la suppression">Supprimer</button>
         </div>
     </div>
 </div>

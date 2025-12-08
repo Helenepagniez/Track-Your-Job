@@ -13,7 +13,7 @@
                 </button>
             </div>
         </div>
-        <button class="btn btn-primary" (click)="openAddModal()">
+        <button class="btn btn-primary" (click)="openAddModal()" title="Ajouter une nouvelle tâche">
             <span>+</span> Nouvelle Tâche
         </button>
     </div>
@@ -33,9 +33,10 @@
                         <span class="priority-badge" [class]="task.priority">{{ task.priority.charAt(0).toUpperCase() +
                             task.priority.slice(1)}}</span>
                         <div class="round">
-                            <button class="btn-pen" (click)="updateTask(task.id)"><i
+                            <button class="btn-pen" (click)="updateTask(task.id)" title="Modifier la tâche"><i
                                     class="fa-solid fa-pen"></i></button>
-                            <button class="btn-icon-sm" (click)="deleteTask(task.id)">×</button>
+                            <button class="btn-icon-sm" (click)="deleteTask(task.id)"
+                                title="Supprimer la tâche">×</button>
                         </div>
                     </div>
                     <h4>{{ task.title }}</h4>
@@ -60,7 +61,8 @@
                                 </span>
                             </ng-container>
                         </span>
-                        <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'en_cours')">
+                        <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'en_cours')"
+                            title="Démarrer la tâche">
                             Démarer <i class="fa-solid fa-arrow-right"></i>
                         </button>
                     </div>
@@ -81,9 +83,10 @@
                         <span class="priority-badge" [class]="task.priority">{{ task.priority.charAt(0).toUpperCase() +
                             task.priority.slice(1)}}</span>
                         <div class="round">
-                            <button class="btn-pen" (click)="updateTask(task.id)"><i
+                            <button class="btn-pen" (click)="updateTask(task.id)" title="Modifier la tâche"><i
                                     class="fa-solid fa-pen"></i></button>
-                            <button class="btn-icon-sm" (click)="deleteTask(task.id)">×</button>
+                            <button class="btn-icon-sm" (click)="deleteTask(task.id)"
+                                title="Supprimer la tâche">×</button>
                         </div>
                     </div>
                     <h4>{{ task.title }}</h4>
@@ -94,7 +97,8 @@
                         </span>
                     </div>
                     <div class="card-footer">
-                        <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'a_faire')">
+                        <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'a_faire')"
+                            title="Recommencer la tâche">
                             <i class="fa-solid fa-arrow-left"></i> Refaire
                         </button>
                         <span class="due-date" [class.overdue]="!task.completed && getDaysLeft(task.dueDate) < 0">
@@ -111,7 +115,8 @@
                                 </span>
                             </ng-container>
                         </span>
-                        <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'termine')">
+                        <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'termine')"
+                            title="Terminer la tâche">
                             Terminer <i class="fa-solid fa-arrow-right"></i>
                         </button>
                     </div>
@@ -132,9 +137,10 @@
                         <span class="priority-badge" [class]="task.priority">{{ task.priority.charAt(0).toUpperCase() +
                             task.priority.slice(1)}}</span>
                         <div class="round">
-                            <button class="btn-pen" (click)="updateTask(task.id)"><i
+                            <button class="btn-pen" (click)="updateTask(task.id)" title="Modifier la tâche"><i
                                     class="fa-solid fa-pen"></i></button>
-                            <button class="btn-icon-sm" (click)="deleteTask(task.id)">×</button>
+                            <button class="btn-icon-sm" (click)="deleteTask(task.id)"
+                                title="Supprimer la tâche">×</button>
                         </div>
                     </div>
                     <h4>{{ task.title }}</h4>
@@ -146,7 +152,8 @@
                     </div>
                     <div class="card-footer">
                         <span class="due-date">📅 {{ task.dueDate | date:'dd MMM' }}</span>
-                        <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'en_cours')">
+                        <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'en_cours')"
+                            title="Rouvrir la tâche">
                             <i class="fa-solid fa-arrow-left"></i> Rouvrir
                         </button>
                     </div>
@@ -196,9 +203,10 @@
                 </div>
             </div>
             <div class="task-actions">
-                <button class="btn btn-outline" (click)="updateTask(task.id)"><i
+                <button class="btn btn-outline" (click)="updateTask(task.id)" title="Modifier la tâche"><i
                         class="fa-solid fa-pen"></i>Modifier</button>
-                <button class="btn-icon" (click)="deleteTask(task.id)"><i class="fa-solid fa-trash-can"></i></button>
+                <button class="btn-icon" (click)="deleteTask(task.id)" title="Supprimer la tâche"><i
+                        class="fa-solid fa-trash-can"></i></button>
             </div>
         </div>
     </div>
