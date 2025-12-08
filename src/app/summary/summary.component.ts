@@ -15,9 +15,9 @@ export class SummaryComponent {
         { title: 'En attente', value: 5, icon: '⏳' },
         { title: 'Entretiens', value: 3, icon: '🤝' },
         { title: 'Refus', value: 2, icon: '❌' },
-        { title: 'Taux de réponses', value: '15%', icon: '📝' },
-        { title: 'A postuler', value: 5, icon: '⏳' },
-        { title: 'Entreprises', value: 5, icon: '🤝' }
+        { title: 'Taux de réponses', value: '15%', icon: '📊' },
+        { title: 'A postuler', value: 5, icon: '🎯' },
+        { title: 'Entreprises', value: 5, icon: '🏢' }
     ];
 
     recentActivities = [
