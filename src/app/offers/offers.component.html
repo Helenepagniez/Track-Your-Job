@@ -13,15 +13,22 @@
                 (ngModelChange)="searchTerm.set($event)">
         </div>
         <div class="filter-options">
-            <select class="form-select" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
-                <option value="">Tous les statuts</option>
-                <option value="To Apply">À postuler</option>
-                <option value="Applied">En attente</option>
-                <option value="To Relaunch">À relancer</option>
-                <option value="No Response">Sans réponse</option>
-                <option value="Interview">Entretien</option>
-                <option value="Offer">Offre reçue</option>
-                <option value="Rejected">Refusé</option>
+            <select class="form-select" [class.select-to-apply]="statusFilter() === 'To Apply'"
+                [class.select-applied]="statusFilter() === 'Applied'"
+                [class.select-to-relaunch]="statusFilter() === 'To Relaunch'"
+                [class.select-no-response]="statusFilter() === 'No Response'"
+                [class.select-interview]="statusFilter() === 'Interview'"
+                [class.select-offer]="statusFilter() === 'Offer'"
+                [class.select-rejected]="statusFilter() === 'Rejected'" [ngModel]="statusFilter()"
+                (ngModelChange)="statusFilter.set($event)">
+                <option value="" class="status-option-default">Tous les statuts</option>
+                <option value="To Apply" class="status-option status-to-apply">À postuler</option>
+                <option value="Applied" class="status-option status-applied">En attente</option>
+                <option value="To Relaunch" class="status-option status-to-relaunch">À relancer</option>
+                <option value="No Response" class="status-option status-no-response">Sans réponse</option>
+                <option value="Interview" class="status-option status-interview">Entretien</option>
+                <option value="Offer" class="status-option status-offer">Offre reçue</option>
+                <option value="Rejected" class="status-option status-rejected">Refusé</option>
             </select>
         </div>
     </div>

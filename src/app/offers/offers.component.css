@@ -80,7 +80,86 @@
     font: 14px Roboto, sans-serif;
     letter-spacing: 0.5px;
     outline: none;
+    font-weight: 500;
+    transition: color 0.2s ease, border-color 0.2s ease;
 }
+
+/* Select colors when a status is selected */
+.form-select.select-to-apply {
+    color: #4d5457ff;
+    border-color: #4d5457ff;
+}
+
+.form-select.select-applied {
+    color: #0056b3;
+    border-color: #0056b3;
+}
+
+.form-select.select-to-relaunch {
+    color: #e67e22;
+    border-color: #e67e22;
+}
+
+.form-select.select-no-response {
+    color: #754600ff;
+    border-color: #754600ff;
+}
+
+.form-select.select-interview {
+    color: #ffbb00ff;
+    border-color: #ffbb00ff;
+}
+
+.form-select.select-offer {
+    color: #00997aff;
+    border-color: #00997aff;
+}
+
+.form-select.select-rejected {
+    color: #d63031;
+    border-color: #d63031;
+}
+
+
+/* Status option styles */
+.status-option-default {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.status-option {
+    font-weight: 500;
+}
+
+.status-to-apply {
+    color: #4d5457ff;
+}
+
+.status-applied {
+    color: #0056b3;
+}
+
+.status-to-relaunch {
+    color: #e67e22;
+}
+
+.status-no-response {
+    color: #754600ff;
+}
+
+.status-interview {
+    color: #ffbb00ff;
+}
+
+.status-offer {
+    color: #00997aff;
+}
+
+.status-rejected {
+    color: #d63031;
+}
+
 
 .offers-grid {
     display: grid;
