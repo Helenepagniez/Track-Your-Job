@@ -41,9 +41,8 @@
                     </div>
                     <h4>{{ task.title }}</h4>
                     <div class="card-meta" *ngIf="task.relatedOffers && task.relatedOffers.length">
-                        <i class="icon">💼</i>
                         <span *ngFor="let offer of task.relatedOffers; let last = last">
-                            {{ offer }}{{ !last ? ', ' : '' }}
+                            <i class="icon">💼</i> {{ offer }}{{ !last ? ', ' : '' }}
                         </span>
                     </div>
                     <div class="card-footer">
@@ -91,9 +90,8 @@
                     </div>
                     <h4>{{ task.title }}</h4>
                     <div class="card-meta" *ngIf="task.relatedOffers && task.relatedOffers.length">
-                        <i class="icon">💼</i>
                         <span *ngFor="let offer of task.relatedOffers; let last = last">
-                            {{ offer }}{{ !last ? ', ' : '' }}
+                            <i class="icon">💼</i> {{ offer }}{{ !last ? ', ' : '' }}
                         </span>
                     </div>
                     <div class="card-footer">
@@ -145,9 +143,8 @@
                     </div>
                     <h4>{{ task.title }}</h4>
                     <div class="card-meta" *ngIf="task.relatedOffers && task.relatedOffers.length">
-                        <i class="icon">💼</i>
                         <span *ngFor="let offer of task.relatedOffers; let last = last">
-                            {{ offer }}{{ !last ? ', ' : '' }}
+                            <i class="icon">💼</i> {{ offer }}{{ !last ? ', ' : '' }}
                         </span>
                     </div>
                     <div class="card-footer">
@@ -181,9 +178,8 @@
                 </div>
                 <div class="task-meta">
                     <span *ngIf="task.relatedOffers && task.relatedOffers.length" class="related-offer">
-                        <i class="icon">💼</i>
                         <span *ngFor="let offer of task.relatedOffers; let last = last">
-                            {{ offer }}{{ !last ? ', ' : '' }}
+                            <i class="icon">💼</i> {{ offer }}{{ !last ? ', ' : '' }}
                         </span>
                     </span>
                     <span class="due-date" [class.overdue]="!task.completed && getDaysLeft(task.dueDate) < 0">
