@@ -139,9 +139,9 @@
     gap: 8px;
 }
 
-html.dark-mode .offer-count {
+[data-theme='dark'] .offer-count {
     background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
+    color: var(--text-color);
 }
 
 .status-badges {
@@ -196,18 +196,14 @@ html.dark-mode .offer-count {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: #f1f5f9;
+    background: var(--background-color);
     color: var(--text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.875rem;
     font-weight: 600;
-}
-
-html.dark-mode .contact-avatar-small {
-    background: #334155;
-    color: var(--text-primary);
+    border: 1px solid var(--border-color);
 }
 
 .contact-details {
@@ -239,14 +235,10 @@ html.dark-mode .contact-avatar-small {
 
 /* Footer */
 .card-footer {
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    border-top: 1px solid var(--border-color);
     padding-top: 1rem;
     display: flex;
     justify-content: flex-end;
-}
-
-html.dark-mode .card-footer {
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .btn-details {

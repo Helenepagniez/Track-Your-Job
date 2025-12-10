@@ -191,10 +191,6 @@
     letter-spacing: 0.5px;
 }
 
-html.dark-mode h3 {
-    border-bottom-color: rgba(255, 255, 255, 0.05);
-}
-
 .placeholder-text {
     margin: 0 0 12px;
     font: 400 14px Roboto, sans-serif;

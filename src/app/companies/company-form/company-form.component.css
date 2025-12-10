@@ -3,11 +3,9 @@
 }
 
 .warning-box {
-    background-color: rgba(var(--warning-rgb), 0.1);
-    /* Fallback or existing var */
-    background-color: #fffbeb;
-    border: 1px solid #fcd34d;
-    color: #92400e;
+    background-color: rgba(253, 211, 77, 0.1);
+    border: 1px solid var(--warning-color);
+    color: var(--text-color);
     padding: 1rem;
     border-radius: 8px;
     display: flex;
@@ -17,10 +15,9 @@
     font-size: 0.9rem;
 }
 
-html.dark-mode .warning-box {
+[data-theme='dark'] .warning-box {
     background-color: rgba(245, 158, 11, 0.1);
     border-color: rgba(245, 158, 11, 0.3);
-    color: #fbbf24;
 }
 
 .form-section:last-child {
@@ -99,9 +96,7 @@ textarea:focus {
 }
 
 .btn-small:hover {
-    background: rgba(var(--primary-rgb), 0.05);
-    /* Fallback */
-    background: #eef2ff;
+    background: var(--background-color);
 }
 
 .contact-card {
