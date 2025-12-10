@@ -121,6 +121,19 @@ export class OffersService {
         return this.offers().find(o => o.id === id);
     }
 
+    getStatusLabel(status: string): string {
+        const labels: Record<string, string> = {
+            'To Apply': 'À postuler',
+            'Applied': 'En attente',
+            'To Relaunch': 'À relancer',
+            'No Response': 'Sans réponse',
+            'Interview': 'Entretien',
+            'Offer': 'Offre reçue',
+            'Rejected': 'Refusé'
+        };
+        return labels[status] || status;
+    }
+
     /**
      * Get the company ID for a given company name.
      * If the company already exists, return its ID.
@@ -287,14 +300,33 @@ export class OffersService {
             );
 
             if (!interviewExists) {
+                const newInterview = {
+                    date: new Date(offer.interviewDate),
+                    type: offer.interviewType,
+                    details: undefined
+                };
                 interviews = [
                     ...interviews,
-                    {
-                        date: new Date(offer.interviewDate),
-                        type: offer.interviewType,
-                        details: undefined
-                    }
+                    newInterview
                 ];
+
+                // Create a task for this new interview
+                let taskTitle: string = newInterview.type;
+                if (newInterview.type === 'Préqual') {
+                    taskTitle = 'Préqualification';
+                }
+                const statusLabel = this.getStatusLabel(offer.status);
+                const offerInfo = `${offer.title} - ${offer.company} - ${statusLabel}`;
+
+                this.tasksService.addTask({
+                    id: Date.now() + Math.random(),
+                    title: taskTitle,
+                    dueDate: new Date(newInterview.date),
+                    completed: false,
+                    status: 'a_faire',
+                    priority: 'haute',
+                    relatedOffers: [offerInfo]
+                });
             }
         }
 
@@ -390,14 +422,33 @@ export class OffersService {
             );
 
             if (!interviewExists) {
+                const newInterview = {
+                    date: new Date(updatedOffer.interviewDate),
+                    type: updatedOffer.interviewType,
+                    details: undefined
+                };
                 interviews = [
                     ...interviews,
-                    {
-                        date: new Date(updatedOffer.interviewDate),
-                        type: updatedOffer.interviewType,
-                        details: undefined
-                    }
+                    newInterview
                 ];
+
+                // Create a task for this new interview
+                let taskTitle: string = newInterview.type;
+                if (newInterview.type === 'Préqual') {
+                    taskTitle = 'Préqualification';
+                }
+                const statusLabel = this.getStatusLabel(updatedOffer.status);
+                const offerInfo = `${updatedOffer.title} - ${updatedOffer.company} - ${statusLabel}`;
+
+                this.tasksService.addTask({
+                    id: Date.now() + Math.random(),
+                    title: taskTitle,
+                    dueDate: new Date(newInterview.date),
+                    completed: false,
+                    status: 'a_faire',
+                    priority: 'haute',
+                    relatedOffers: [offerInfo]
+                });
             }
         }
 

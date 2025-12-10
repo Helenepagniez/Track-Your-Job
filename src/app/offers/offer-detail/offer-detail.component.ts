@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { OffersService, JobOffer, StatusHistoryEntry, Interview } from '../../core/services/offers.service';
+import { TasksService } from '../../core/services/tasks.service';
 import { OfferFormComponent } from '../offer-form/offer-form.component';
 
 @Component({
@@ -16,6 +17,7 @@ export class OfferDetailComponent implements OnInit {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private offersService = inject(OffersService);
+    private tasksService = inject(TasksService);
 
     offerId = signal<number | null>(null);
 
@@ -220,11 +222,44 @@ export class OfferDetailComponent implements OnInit {
 
     saveInterviews() {
         if (this.offer()) {
+            // Get the original interviews to detect new ones
+            const originalInterviews = this.offer()!.interviews || [];
+
             // Convert string dates back to Date objects
             const interviewsWithDates = this.editingInterviews.map(i => ({
                 ...i,
                 date: this.inputStringToDate(i.date as any)
             }));
+
+            // Detect new interviews by comparing with original
+            const newInterviews = interviewsWithDates.filter(newInterview => {
+                return !originalInterviews.some(originalInterview =>
+                    new Date(originalInterview.date).getTime() === new Date(newInterview.date).getTime() &&
+                    originalInterview.type === newInterview.type
+                );
+            });
+
+            // Create a task for each new interview
+            newInterviews.forEach(interview => {
+                // Format interview type for task title
+                let taskTitle: string = interview.type;
+                if (interview.type === 'Préqual') {
+                    taskTitle = 'Préqualification';
+                }
+                // For other types, keep as is (already formatted nicely)
+
+                const offerInfo = `${this.offer()!.title} - ${this.offer()!.company} - ${this.getStatusLabel(this.offer()!.status)}`;
+
+                this.tasksService.addTask({
+                    id: Date.now() + Math.random(), // Ensure unique ID
+                    title: taskTitle,
+                    dueDate: new Date(interview.date),
+                    completed: false,
+                    status: 'a_faire',
+                    priority: 'haute',
+                    relatedOffers: [offerInfo]
+                });
+            });
 
             // Sort by date descending
             interviewsWithDates.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
