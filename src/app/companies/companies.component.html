@@ -31,7 +31,7 @@
                         <span *ngFor="let badge of getStatusBadges(company)" class="status-badge"
                             [style.background-color]="badge.background" [style.color]="badge.color"
                             [style.border]="badge.border">
-                            {{ badge.count }} offre {{ badge.label }}
+                            {{ badge.count }} offre{{ badge.count > 1 ? 's' : '' }} {{ badge.label }}
                         </span>
                     </div>
                 </div>
