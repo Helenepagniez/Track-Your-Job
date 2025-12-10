@@ -29,6 +29,10 @@ export class TasksComponent {
     showAddModal = signal(false);
     selectedTask = signal<Task | null>(null);
 
+    // Delete Confirmation State
+    showDeleteConfirm = signal(false);
+    taskToDelete = signal<number | null>(null);
+
     dropList(event: CdkDragDrop<Task[]>) {
         const currentTasks = [...this.tasks()];
         moveItemInArray(currentTasks, event.previousIndex, event.currentIndex);
@@ -97,8 +101,22 @@ export class TasksComponent {
         this.tasksService.updateTaskStatus(id, newStatus);
     }
 
-    deleteTask(id: number) {
-        this.tasksService.deleteTask(id);
+    confirmDelete(id: number) {
+        this.taskToDelete.set(id);
+        this.showDeleteConfirm.set(true);
+    }
+
+    cancelDelete() {
+        this.showDeleteConfirm.set(false);
+        this.taskToDelete.set(null);
+    }
+
+    deleteTask() {
+        if (this.taskToDelete()) {
+            this.tasksService.deleteTask(this.taskToDelete()!);
+            this.showDeleteConfirm.set(false);
+            this.taskToDelete.set(null);
+        }
     }
 
     openAddModal() {

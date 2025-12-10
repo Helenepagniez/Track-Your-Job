@@ -35,7 +35,7 @@
                         <div class="round">
                             <button class="btn-pen" (click)="updateTask(task.id)" title="Modifier la tâche"><i
                                     class="fa-solid fa-pen"></i></button>
-                            <button class="btn-icon-sm" (click)="deleteTask(task.id)"
+                            <button class="btn-icon-sm" (click)="confirmDelete(task.id)"
                                 title="Supprimer la tâche">×</button>
                         </div>
                     </div>
@@ -84,7 +84,7 @@
                         <div class="round">
                             <button class="btn-pen" (click)="updateTask(task.id)" title="Modifier la tâche"><i
                                     class="fa-solid fa-pen"></i></button>
-                            <button class="btn-icon-sm" (click)="deleteTask(task.id)"
+                            <button class="btn-icon-sm" (click)="confirmDelete(task.id)"
                                 title="Supprimer la tâche">×</button>
                         </div>
                     </div>
@@ -137,7 +137,7 @@
                         <div class="round">
                             <button class="btn-pen" (click)="updateTask(task.id)" title="Modifier la tâche"><i
                                     class="fa-solid fa-pen"></i></button>
-                            <button class="btn-icon-sm" (click)="deleteTask(task.id)"
+                            <button class="btn-icon-sm" (click)="confirmDelete(task.id)"
                                 title="Supprimer la tâche">×</button>
                         </div>
                     </div>
@@ -201,7 +201,7 @@
             <div class="task-actions">
                 <button class="btn btn-outline" (click)="updateTask(task.id)" title="Modifier la tâche"><i
                         class="fa-solid fa-pen"></i>Modifier</button>
-                <button class="btn-icon" (click)="deleteTask(task.id)" title="Supprimer la tâche"><i
+                <button class="btn-icon" (click)="confirmDelete(task.id)" title="Supprimer la tâche"><i
                         class="fa-solid fa-trash-can"></i></button>
             </div>
         </div>
@@ -215,5 +215,22 @@
     <div class="modal-content" (click)="$event.stopPropagation()">
         <app-task-form [task]="selectedTask()" (save)="handleSaveTask($event)" (cancel)="closeAddModal()">
         </app-task-form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showDeleteConfirm()">
+    <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Supprimer la tâche ?</h3>
+            <button class="close-btn" (click)="cancelDelete()" title="Fermer">×</button>
+        </div>
+        <div class="modal-body-confirm">
+            <p>Êtes-vous sûr de vouloir supprimer cette tâche ? Cette action est irréversible.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" (click)="cancelDelete()" title="Annuler la suppression">Annuler</button>
+            <button class="btn btn-danger" (click)="deleteTask()" title="Confirmer la suppression">Supprimer</button>
+        </div>
     </div>
 </div>

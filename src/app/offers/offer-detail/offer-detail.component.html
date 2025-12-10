@@ -259,7 +259,7 @@
                                         placeholder="Ex: Avec le CTO">
                                 </div>
                             </div>
-                            <button class="btn-remove" (click)="removeInterview(i)" title="Supprimer">
+                            <button class="btn-remove" (click)="confirmDeleteInterview(i)" title="Supprimer">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -336,7 +336,7 @@
                                         placeholder="Ex: Relance par email">
                                 </div>
                             </div>
-                            <button class="btn-remove" (click)="removeStatusHistory(i)" title="Supprimer">
+                            <button class="btn-remove" (click)="confirmDeleteStatus(i)" title="Supprimer">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -376,6 +376,44 @@
                 title="Annuler les modifications">Annuler</button>
             <button class="btn btn-primary" (click)="saveStatusHistory()"
                 title="Enregistrer l'historique">Enregistrer</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Interview Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showDeleteInterviewConfirm()">
+    <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Supprimer l'entretien ?</h3>
+            <button class="close-btn" (click)="cancelDeleteInterview()" title="Fermer">×</button>
+        </div>
+        <div class="modal-body-confirm">
+            <p>Êtes-vous sûr de vouloir supprimer cet entretien ? Cette action est irréversible.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" (click)="cancelDeleteInterview()"
+                title="Annuler la suppression">Annuler</button>
+            <button class="btn btn-danger" (click)="removeInterview()"
+                title="Confirmer la suppression">Supprimer</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Status History Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showDeleteStatusConfirm()">
+    <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Supprimer le statut ?</h3>
+            <button class="close-btn" (click)="cancelDeleteStatus()" title="Fermer">×</button>
+        </div>
+        <div class="modal-body-confirm">
+            <p>Êtes-vous sûr de vouloir supprimer cette entrée de l'historique ? Cette action est irréversible.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" (click)="cancelDeleteStatus()"
+                title="Annuler la suppression">Annuler</button>
+            <button class="btn btn-danger" (click)="removeStatusHistory()"
+                title="Confirmer la suppression">Supprimer</button>
         </div>
     </div>
 </div>

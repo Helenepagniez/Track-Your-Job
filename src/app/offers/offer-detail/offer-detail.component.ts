@@ -30,6 +30,12 @@ export class OfferDetailComponent implements OnInit {
     showInterviewsModal = signal(false);
     showStatusHistoryModal = signal(false);
 
+    // Delete confirmation states
+    showDeleteInterviewConfirm = signal(false);
+    interviewToDelete = signal<number | null>(null);
+    showDeleteStatusConfirm = signal(false);
+    statusToDelete = signal<number | null>(null);
+
     // Temp storage for editing
     editingInterviews: Interview[] = [];
     editingStatusHistory: StatusHistoryEntry[] = [];
@@ -194,8 +200,22 @@ export class OfferDetailComponent implements OnInit {
         this.newInterview = { date: this.dateToInputString(new Date()) as any, type: 'Entretien Visio' }; // Reset
     }
 
-    removeInterview(index: number) {
-        this.editingInterviews.splice(index, 1);
+    confirmDeleteInterview(index: number) {
+        this.interviewToDelete.set(index);
+        this.showDeleteInterviewConfirm.set(true);
+    }
+
+    cancelDeleteInterview() {
+        this.showDeleteInterviewConfirm.set(false);
+        this.interviewToDelete.set(null);
+    }
+
+    removeInterview() {
+        if (this.interviewToDelete() !== null) {
+            this.editingInterviews.splice(this.interviewToDelete()!, 1);
+            this.showDeleteInterviewConfirm.set(false);
+            this.interviewToDelete.set(null);
+        }
     }
 
     saveInterviews() {
@@ -264,8 +284,22 @@ export class OfferDetailComponent implements OnInit {
         this.newStatusEntry = { status: 'Applied', date: this.dateToInputString(new Date()) as any };
     }
 
-    removeStatusHistory(index: number) {
-        this.editingStatusHistory.splice(index, 1);
+    confirmDeleteStatus(index: number) {
+        this.statusToDelete.set(index);
+        this.showDeleteStatusConfirm.set(true);
+    }
+
+    cancelDeleteStatus() {
+        this.showDeleteStatusConfirm.set(false);
+        this.statusToDelete.set(null);
+    }
+
+    removeStatusHistory() {
+        if (this.statusToDelete() !== null) {
+            this.editingStatusHistory.splice(this.statusToDelete()!, 1);
+            this.showDeleteStatusConfirm.set(false);
+            this.statusToDelete.set(null);
+        }
     }
 
     saveStatusHistory() {
