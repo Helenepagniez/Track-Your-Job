@@ -555,9 +555,6 @@
 }
 
 /* Edit List Modal */
-.edit-list-modal {
-    max-width: 700px;
-}
 
 .edit-list-container {
     padding: 20px;
@@ -665,25 +662,8 @@
     border-radius: var(--radius-md);
 }
 
-.btn-primary {
-    background-color: var(--primary-color);
-    color: white;
-    border: 2px solid var(--primary-color);
-    padding: 8px 16px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    font: 500 14px Roboto, sans-serif;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: all 0.2s ease;
-}
-
-.btn-primary:hover {
-    background-color: var(--primary-hover);
-    border-color: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.add-new-section button {
+    margin-top: 15px;
 }
 
 @media (max-width: 768px) {
