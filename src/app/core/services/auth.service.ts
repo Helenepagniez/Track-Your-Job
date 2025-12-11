@@ -25,10 +25,9 @@ export class AuthService {
     }
 
     register(fullName: string, email: string, password: string): boolean {
-        // Check if a user already exists
-        const existingUser = this.localStorageService.getCurrentUser();
-        if (existingUser) {
-            alert('Un utilisateur est déjà enregistré. Veuillez vous déconnecter d\'abord.');
+        // Check if email already exists
+        if (this.localStorageService.emailExists(email)) {
+            alert('Un compte avec cet email existe déjà');
             return false;
         }
 
@@ -41,62 +40,40 @@ export class AuthService {
             createdAt: new Date()
         };
 
-        // Save user and log in
-        this.setCurrentUser(user);
+        // Register user in localStorage
+        this.localStorageService.registerUser(user);
+
+        // Reload the page to load the new user's data
+        window.location.href = '/resume';
         return true;
     }
 
     login(email: string, password: string): boolean {
-        const user = this.localStorageService.getCurrentUser();
+        const user = this.localStorageService.findUserByEmail(email);
 
         if (!user) {
-            alert('Aucun utilisateur enregistré');
-            return false;
-        }
-
-        if (user.email !== email || user.password !== password) {
             alert('Email ou mot de passe incorrect');
             return false;
         }
 
-        this.currentUser.set(user);
-        this.isAuthenticated.set(true);
-        return true;
-    }
-
-    loginWithGoogle(): boolean {
-        // Check if a user already exists
-        const existingUser = this.localStorageService.getCurrentUser();
-        if (existingUser) {
-            alert('Un utilisateur est déjà enregistré. Veuillez vous déconnecter d\'abord.');
+        if (user.password !== password) {
+            alert('Email ou mot de passe incorrect');
             return false;
         }
 
-        // Mock Google login - create a user
-        const user: User = {
-            id: this.generateId(),
-            fullName: 'Utilisateur Google',
-            email: 'user@gmail.com',
-            password: '',
-            authMethod: 'google',
-            createdAt: new Date()
-        };
+        // Set as current user in localStorage
+        this.localStorageService.setCurrentUser(user);
 
-        this.setCurrentUser(user);
+        // Reload the page to load this user's data
+        window.location.href = '/resume';
         return true;
     }
 
     logout() {
+        this.localStorageService.logout();
         this.currentUser.set(null);
         this.isAuthenticated.set(false);
-        this.localStorageService.updateCurrentUser(null);
         this.router.navigate(['/']);
-    }
-
-    private setCurrentUser(user: User) {
-        this.currentUser.set(user);
-        this.isAuthenticated.set(true);
-        this.localStorageService.updateCurrentUser(user);
     }
 
     private generateId(): string {
@@ -108,15 +85,15 @@ export class AuthService {
         if (user) {
             const updatedUser = { ...user, ...updates };
             this.currentUser.set(updatedUser);
-            this.localStorageService.updateCurrentUser(updatedUser);
+            this.localStorageService.updateCurrentUser(updates);
         }
     }
 
     deleteUser() {
         const user = this.currentUser();
         if (user) {
-            // Clear all application data from localStorage
-            this.localStorageService.clearAllData();
+            // Delete current user data
+            this.localStorageService.deleteCurrentUser();
 
             // Reload the page to reset all services
             window.location.href = '/';

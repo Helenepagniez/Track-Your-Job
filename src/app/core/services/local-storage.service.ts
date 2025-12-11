@@ -7,7 +7,7 @@ export interface User {
     fullName: string;
     email: string;
     password: string;
-    authMethod: 'email' | 'google';
+    authMethod: 'email';
     createdAt: Date;
     title?: string;
     location?: string;
@@ -15,11 +15,16 @@ export interface User {
     skills?: string[];
 }
 
-export interface AppData {
-    currentUser: User | null;
+export interface UserData {
+    user: User;
     theme: 'light' | 'dark';
     offers: JobOffer[];
     tasks: Task[];
+}
+
+export interface AppData {
+    currentUserId: string | null;
+    users: { [userId: string]: UserData };
 }
 
 @Injectable({
@@ -33,7 +38,7 @@ export class LocalStorageService {
     /**
      * Load all application data from localStorage
      */
-    loadAppData(): AppData {
+    private loadAppData(): AppData {
         const dataJson = localStorage.getItem(this.STORAGE_KEY);
 
         if (!dataJson) {
@@ -43,32 +48,41 @@ export class LocalStorageService {
         try {
             const data = JSON.parse(dataJson);
 
-            // Convert date strings back to Date objects
-            if (data.currentUser?.createdAt) {
-                data.currentUser.createdAt = new Date(data.currentUser.createdAt);
-            }
+            // Convert date strings back to Date objects for all users
+            if (data.users) {
+                Object.keys(data.users).forEach(userId => {
+                    const userData = data.users[userId];
 
-            if (data.offers) {
-                data.offers = data.offers.map((offer: any) => ({
-                    ...offer,
-                    dateAdded: new Date(offer.dateAdded),
-                    interviewDate: offer.interviewDate ? new Date(offer.interviewDate) : undefined,
-                    statusHistory: offer.statusHistory?.map((h: any) => ({
-                        ...h,
-                        date: new Date(h.date)
-                    })),
-                    interviews: offer.interviews?.map((i: any) => ({
-                        ...i,
-                        date: new Date(i.date)
-                    }))
-                }));
-            }
+                    // Convert user dates
+                    if (userData.user?.createdAt) {
+                        userData.user.createdAt = new Date(userData.user.createdAt);
+                    }
 
-            if (data.tasks) {
-                data.tasks = data.tasks.map((task: any) => ({
-                    ...task,
-                    dueDate: new Date(task.dueDate)
-                }));
+                    // Convert offer dates
+                    if (userData.offers) {
+                        userData.offers = userData.offers.map((offer: any) => ({
+                            ...offer,
+                            dateAdded: new Date(offer.dateAdded),
+                            interviewDate: offer.interviewDate ? new Date(offer.interviewDate) : undefined,
+                            statusHistory: offer.statusHistory?.map((h: any) => ({
+                                ...h,
+                                date: new Date(h.date)
+                            })),
+                            interviews: offer.interviews?.map((i: any) => ({
+                                ...i,
+                                date: new Date(i.date)
+                            }))
+                        }));
+                    }
+
+                    // Convert task dates
+                    if (userData.tasks) {
+                        userData.tasks = userData.tasks.map((task: any) => ({
+                            ...task,
+                            dueDate: new Date(task.dueDate)
+                        }));
+                    }
+                });
             }
 
             return data;
@@ -81,7 +95,7 @@ export class LocalStorageService {
     /**
      * Save all application data to localStorage
      */
-    saveAppData(data: AppData): void {
+    private saveAppData(data: AppData): void {
         try {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
         } catch (error) {
@@ -94,46 +108,182 @@ export class LocalStorageService {
      */
     private getDefaultAppData(): AppData {
         return {
-            currentUser: null,
+            currentUserId: null,
+            users: {}
+        };
+    }
+
+    /**
+     * Get current user
+     */
+    getCurrentUser(): User | null {
+        const data = this.loadAppData();
+        if (!data.currentUserId || !data.users[data.currentUserId]) {
+            return null;
+        }
+        return data.users[data.currentUserId].user;
+    }
+
+    /**
+     * Set current user (login)
+     */
+    setCurrentUser(user: User): void {
+        const data = this.loadAppData();
+
+        // If user doesn't exist in users, create their data
+        if (!data.users[user.id]) {
+            data.users[user.id] = {
+                user: user,
+                theme: 'light',
+                offers: [],
+                tasks: []
+            };
+        } else {
+            // Update user info
+            data.users[user.id].user = user;
+        }
+
+        data.currentUserId = user.id;
+        this.saveAppData(data);
+    }
+
+    /**
+     * Register a new user
+     */
+    registerUser(user: User): void {
+        const data = this.loadAppData();
+
+        data.users[user.id] = {
+            user: user,
             theme: 'light',
             offers: [],
             tasks: []
         };
+
+        data.currentUserId = user.id;
+        this.saveAppData(data);
+    }
+
+    /**
+     * Check if email exists
+     */
+    emailExists(email: string): boolean {
+        const data = this.loadAppData();
+        return Object.values(data.users).some(userData => userData.user.email === email);
+    }
+
+    /**
+     * Find user by email
+     */
+    findUserByEmail(email: string): User | null {
+        const data = this.loadAppData();
+        const userData = Object.values(data.users).find(userData => userData.user.email === email);
+        return userData ? userData.user : null;
     }
 
     /**
      * Update current user
      */
-    updateCurrentUser(user: User | null): void {
+    updateCurrentUser(updates: Partial<User>): void {
         const data = this.loadAppData();
-        data.currentUser = user;
+        if (!data.currentUserId || !data.users[data.currentUserId]) {
+            return;
+        }
+
+        const currentUserData = data.users[data.currentUserId];
+        currentUserData.user = { ...currentUserData.user, ...updates };
         this.saveAppData(data);
     }
 
     /**
-     * Update theme
+     * Logout current user
+     */
+    logout(): void {
+        const data = this.loadAppData();
+        data.currentUserId = null;
+        this.saveAppData(data);
+    }
+
+    /**
+     * Get theme for current user
+     */
+    getTheme(): 'light' | 'dark' {
+        const data = this.loadAppData();
+        if (!data.currentUserId || !data.users[data.currentUserId]) {
+            return 'light';
+        }
+        return data.users[data.currentUserId].theme;
+    }
+
+    /**
+     * Update theme for current user
      */
     updateTheme(theme: 'light' | 'dark'): void {
         const data = this.loadAppData();
-        data.theme = theme;
+        if (!data.currentUserId || !data.users[data.currentUserId]) {
+            return;
+        }
+        data.users[data.currentUserId].theme = theme;
         this.saveAppData(data);
     }
 
     /**
-     * Update offers
+     * Get offers for current user
+     */
+    getOffers(): JobOffer[] {
+        const data = this.loadAppData();
+        if (!data.currentUserId || !data.users[data.currentUserId]) {
+            return [];
+        }
+        return data.users[data.currentUserId].offers;
+    }
+
+    /**
+     * Update offers for current user
      */
     updateOffers(offers: JobOffer[]): void {
         const data = this.loadAppData();
-        data.offers = offers;
+        if (!data.currentUserId || !data.users[data.currentUserId]) {
+            return;
+        }
+        data.users[data.currentUserId].offers = offers;
         this.saveAppData(data);
     }
 
     /**
-     * Update tasks
+     * Get tasks for current user
+     */
+    getTasks(): Task[] {
+        const data = this.loadAppData();
+        if (!data.currentUserId || !data.users[data.currentUserId]) {
+            return [];
+        }
+        return data.users[data.currentUserId].tasks;
+    }
+
+    /**
+     * Update tasks for current user
      */
     updateTasks(tasks: Task[]): void {
         const data = this.loadAppData();
-        data.tasks = tasks;
+        if (!data.currentUserId || !data.users[data.currentUserId]) {
+            return;
+        }
+        data.users[data.currentUserId].tasks = tasks;
+        this.saveAppData(data);
+    }
+
+    /**
+     * Delete current user account
+     */
+    deleteCurrentUser(): void {
+        const data = this.loadAppData();
+        if (!data.currentUserId) {
+            return;
+        }
+
+        delete data.users[data.currentUserId];
+        data.currentUserId = null;
         this.saveAppData(data);
     }
 
@@ -142,37 +292,5 @@ export class LocalStorageService {
      */
     clearAllData(): void {
         localStorage.removeItem(this.STORAGE_KEY);
-    }
-
-    /**
-     * Get current user
-     */
-    getCurrentUser(): User | null {
-        const data = this.loadAppData();
-        return data.currentUser;
-    }
-
-    /**
-     * Get theme
-     */
-    getTheme(): 'light' | 'dark' {
-        const data = this.loadAppData();
-        return data.theme;
-    }
-
-    /**
-     * Get offers
-     */
-    getOffers(): JobOffer[] {
-        const data = this.loadAppData();
-        return data.offers;
-    }
-
-    /**
-     * Get tasks
-     */
-    getTasks(): Task[] {
-        const data = this.loadAppData();
-        return data.tasks;
     }
 }

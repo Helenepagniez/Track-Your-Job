@@ -28,14 +28,7 @@ export class RegisterComponent {
             return;
         }
 
-        if (this.authService.register(this.fullName, this.email, this.password)) {
-            this.router.navigate(['/resume']);
-        }
-    }
-
-    registerWithGoogle() {
-        if (this.authService.loginWithGoogle()) {
-            this.router.navigate(['/resume']);
-        }
+        // AuthService.register() will reload the page on success
+        this.authService.register(this.fullName, this.email, this.password);
     }
 }

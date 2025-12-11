@@ -21,14 +21,7 @@ export class LoginComponent {
     ) { }
 
     onSubmit() {
-        if (this.authService.login(this.email, this.password)) {
-            this.router.navigate(['/resume']);
-        }
-    }
-
-    loginWithGoogle() {
-        if (this.authService.loginWithGoogle()) {
-            this.router.navigate(['/resume']);
-        }
+        // AuthService.login() will reload the page on success
+        this.authService.login(this.email, this.password);
     }
 }
