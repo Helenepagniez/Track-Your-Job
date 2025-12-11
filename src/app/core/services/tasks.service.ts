@@ -1,38 +1,37 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, effect } from '@angular/core';
 import { Task } from '../../tasks/task.model';
+import { LocalStorageService } from './local-storage.service';
+import { AuthService } from './auth.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class TasksService {
-    tasks = signal<Task[]>([
-        {
-            id: 1,
-            title: 'Relancer Tech Solutions Inc.',
-            dueDate: new Date('2025-11-30'),
-            completed: false,
-            status: 'a_faire',
-            relatedOffers: ['Senior Angular Developer - Tech Solutions Inc. - Entretien'],
-            priority: 'haute'
-        },
-        {
-            id: 2,
-            title: 'Mettre à jour le CV',
-            dueDate: new Date('2025-12-01'),
-            completed: false,
-            status: 'en_cours',
-            priority: 'moyenne'
-        },
-        {
-            id: 3,
-            title: 'Rechercher des infos sur Creative Agency',
-            dueDate: new Date('2025-11-28'),
-            completed: true,
-            status: 'termine',
-            relatedOffers: ['Frontend Engineer - Creative Agency - En attente'],
-            priority: 'faible'
+    tasks = signal<Task[]>([]);
+
+    constructor(
+        private localStorageService: LocalStorageService,
+        private authService: AuthService
+    ) {
+        // Load tasks from localStorage
+        this.loadTasksFromStorage();
+
+        // Set up auto-save effect
+        effect(() => {
+            const currentTasks = this.tasks();
+            this.localStorageService.updateTasks(currentTasks);
+        });
+    }
+
+    /**
+     * Load tasks from localStorage
+     */
+    private loadTasksFromStorage() {
+        const tasks = this.localStorageService.getTasks();
+        if (tasks && tasks.length > 0) {
+            this.tasks.set(tasks);
         }
-    ]);
+    }
 
     addTask(task: Task) {
         this.tasks.update(tasks => [task, ...tasks]);
@@ -70,5 +69,9 @@ export class TasksService {
         this.tasks.update(tasks =>
             tasks.map(t => t.id === id ? { ...t, status: newStatus, completed: newStatus === 'termine' } : t)
         );
+    }
+
+    clearAll() {
+        this.tasks.set([]);
     }
 }

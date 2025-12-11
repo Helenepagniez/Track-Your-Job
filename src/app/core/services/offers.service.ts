@@ -1,5 +1,7 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, effect } from '@angular/core';
 import { TasksService } from './tasks.service';
+import { LocalStorageService } from './local-storage.service';
+import { AuthService } from './auth.service';
 
 export interface StatusHistoryEntry {
     status: string;
@@ -53,69 +55,7 @@ export interface JobOffer {
     providedIn: 'root'
 })
 export class OffersService {
-    offers = signal<JobOffer[]>([
-        {
-            id: 1,
-            title: 'Senior Angular Developer',
-            company: 'Tech Solutions Inc.',
-            status: 'Interview',
-            location: 'Paris, France',
-            salary: '60k - 75k €',
-            dateAdded: new Date('2023-10-25'),
-            description: 'We are looking for an experienced Angular developer to lead our frontend team.',
-            companyInfo: { id: 1, employees: 500, founded: 2010 },
-            statusHistory: [
-                { status: 'Applied', date: new Date('2023-10-25') },
-                { status: 'Interview', date: new Date('2023-10-28') }
-            ],
-            interviewDate: new Date(Date.now() + 86400000), // Tomorrow
-            interviewType: 'Entretien Visio',
-            interviews: [
-                { date: new Date(Date.now() + 86400000), type: 'Entretien Visio', details: 'Entretien technique avec le CTO' },
-                { date: new Date('2023-11-01'), type: 'Entretien Téléphonique', details: 'Premier contact RH' },
-                { date: new Date('2023-11-05'), type: 'Préqual' }
-            ]
-        },
-        {
-            id: 2,
-            title: 'Frontend Engineer',
-            company: 'Creative Agency',
-            status: 'Applied',
-            location: 'Remote',
-            dateAdded: new Date('2023-11-01'),
-            description: 'Join our creative team to build stunning web experiences.',
-            companyInfo: { id: 2 },
-            statusHistory: [
-                { status: 'Applied', date: new Date('2023-11-01') }
-            ]
-        },
-        {
-            id: 3,
-            title: 'Full Stack Developer',
-            company: 'Startup Nation',
-            status: 'To Apply',
-            location: 'Lyon, France',
-            dateAdded: new Date('2023-11-05'),
-            description: 'Full stack role using Angular and Node.js.',
-            companyInfo: { id: 3 },
-            statusHistory: [
-                { status: 'To Apply', date: new Date('2023-11-05') }
-            ]
-        },
-        {
-            id: 4,
-            title: 'Test Relaunch Automation',
-            company: 'Test Corp',
-            status: 'Applied',
-            location: 'Paris',
-            dateAdded: new Date(Date.now() - 1728000000), // ~20 days ago (20 * 24 * 3600 * 1000)
-            description: 'This offer should automatically switch to To Relaunch',
-            companyInfo: { id: 4 },
-            statusHistory: [
-                { status: 'Applied', date: new Date(Date.now() - 1728000000) }
-            ]
-        }
-    ]);
+    offers = signal<JobOffer[]>([]);
 
     getOffer(id: number): JobOffer | undefined {
         return this.offers().find(o => o.id === id);
@@ -161,11 +101,35 @@ export class OffersService {
     }
 
     // ... inside class OffersService
-    constructor(private tasksService: TasksService) {
+    constructor(
+        private tasksService: TasksService,
+        private localStorageService: LocalStorageService,
+        private authService: AuthService
+    ) {
+        // Load offers from localStorage
+        this.loadOffersFromStorage();
+
         // Normalize company IDs first
         this.normalizeCompanyIds();
+
         // Run automation check on initialization
         this.checkAndAutomateOffers();
+
+        // Set up auto-save effect
+        effect(() => {
+            const currentOffers = this.offers();
+            this.localStorageService.updateOffers(currentOffers);
+        });
+    }
+
+    /**
+     * Load offers from localStorage
+     */
+    private loadOffersFromStorage() {
+        const offers = this.localStorageService.getOffers();
+        if (offers && offers.length > 0) {
+            this.offers.set(offers);
+        }
     }
 
     /**
@@ -497,6 +461,10 @@ export class OffersService {
 
     deleteOffer(id: number) {
         this.offers.update(offers => offers.filter(o => o.id !== id));
+    }
+
+    clearAll() {
+        this.offers.set([]);
     }
 
     // Company Management Helpers

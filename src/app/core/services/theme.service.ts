@@ -1,4 +1,5 @@
 import { Injectable, signal, effect } from '@angular/core';
+import { LocalStorageService } from './local-storage.service';
 
 @Injectable({
   providedIn: 'root'
@@ -6,21 +7,16 @@ import { Injectable, signal, effect } from '@angular/core';
 export class ThemeService {
   darkMode = signal<boolean>(false);
 
-  constructor() {
-    // Check system preference or local storage
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      this.darkMode.set(savedTheme === 'dark');
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      this.darkMode.set(prefersDark);
-    }
+  constructor(private localStorageService: LocalStorageService) {
+    // Load theme from unified localStorage
+    const theme = this.localStorageService.getTheme();
+    this.darkMode.set(theme === 'dark');
 
-    // Effect to update DOM
+    // Effect to update DOM and localStorage
     effect(() => {
       const isDark = this.darkMode();
       document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      this.localStorageService.updateTheme(isDark ? 'dark' : 'light');
     });
   }
 
