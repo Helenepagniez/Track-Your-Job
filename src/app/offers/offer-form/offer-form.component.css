@@ -3,7 +3,7 @@
 }
 
 ::ng-deep .mat-horizontal-stepper-wrapper {
-    background-color: var(--background-color);
+    background-color: var(--background-color-popup);
 }
 
 .form-label {

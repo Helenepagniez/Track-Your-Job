@@ -9,14 +9,6 @@
                 <textarea [(ngModel)]="formData.description" name="description" rows="4"
                     placeholder="Présentation de l'entreprise..."></textarea>
             </div>
-            <div class="warning-box">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <p>Attention : Les modifications de l'encadré ci-dessus seront appliquées à toutes les offres liées à
-                    <strong>{{ companyName
-                        }}</strong>.
-                </p>
-            </div>
-
             <div class="form-row">
                 <div class="form-group">
                     <label>Nombre d'employés</label>
@@ -35,8 +27,9 @@
 
             <div class="warning-box">
                 <i class="fa-solid fa-triangle-exclamation"></i>
-                <p>Attention : Les modifications des informations ci-dessus (nombre d'employés, année de création,
-                    groupe/filiale) seront appliquées à toutes les offres liées à
+                <p>Attention : Les modifications des informations ci-dessus (description de l'entreprise, nombre
+                    d'employés, année de création et
+                    groupe) seront appliquées à toutes les offres liées à
                     <strong>{{ companyName }}</strong>.
                 </p>
             </div>

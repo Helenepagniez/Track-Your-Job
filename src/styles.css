@@ -7,7 +7,8 @@
   /* Light Blue */
   --accent-color: #00d2d3;
   /* Cyan Accent */
-  --background-color: #e0f7fa56;
+  --background-color: #def2ff;
+  --background-color-popup: #e7f4fc;
   /* Very Light Grey/White */
   --surface-color: #ffffff;
   --text-color: #2d3436;
@@ -82,7 +83,7 @@ i {
 
 /* Glassmorphism Utilities */
 .glass {
-  background: rgba(255, 255, 255, 0.7);
+  background-color: var(--surface-color);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
