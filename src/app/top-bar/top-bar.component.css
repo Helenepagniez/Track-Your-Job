@@ -40,7 +40,7 @@
     height: 40px;
     border-radius: var(--radius-sm);
     background: var(--accent-color);
-    color: white;
+    color: var(--surface-color);
     display: flex;
     align-items: center;
     justify-content: center;

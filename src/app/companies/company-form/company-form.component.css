@@ -128,7 +128,7 @@ textarea:focus {
 
 .btn-icon.danger {
     background-color: var(--danger-color);
-    color: white;
+    color: var(--surface-color);
     border-radius: var(--radius-sm);
     cursor: pointer;
     font: 500 16px Roboto, sans-serif;

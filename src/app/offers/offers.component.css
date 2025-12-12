@@ -188,7 +188,7 @@
     width: 50px;
     height: 50px;
     background-color: var(--primary-color);
-    color: white;
+    color: var(--surface-color);
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -296,7 +296,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(135deg, rgba(0, 86, 179, 0.05) 0%, rgba(0, 168, 255, 0.05) 100%);
+    background-color: var(--surface-color);
 }
 
 .modal-header h3 {
@@ -336,8 +336,6 @@
     padding: 30px;
 }
 
-
-
 .modal-footer {
     padding: 20px;
     border-top: 1px solid var(--border-color);
@@ -351,7 +349,7 @@
     background-color: var(--background-color) !important;
     border-radius: var(--radius-sm) !important;
     margin: 0;
-    border: 2px solid var(--border-color);
+    border: 2px solid var(--primary-color);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -386,7 +384,7 @@
 
 .btn-danger {
     background-color: var(--danger-color);
-    color: white;
+    color: var(--surface-color);
     border: none;
     padding: 8px 16px;
     border-radius: var(--radius-sm);

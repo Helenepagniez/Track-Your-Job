@@ -1,6 +1,6 @@
 .landing-container {
     min-height: 100vh;
-    background: linear-gradient(135deg, var(--background-color) 0%, #e0f7fa 100%);
+    background-color: var(--background-color);
 }
 
 [data-theme='dark'] .landing-container {
@@ -198,6 +198,7 @@
     text-align: center;
     padding: 3rem 2rem;
     letter-spacing: 0.9px;
+    background-color: var(--background-color);
 }
 
 .feature-card p {
