@@ -78,6 +78,15 @@
             </div>
         </div>
     </div>
+
+    <!-- Empty State -->
+    <div *ngIf="offers().length === 0" class="empty-state">
+        <div class="empty-icon">
+            <i class="fa-solid fa-briefcase"></i>
+        </div>
+        <h3>Aucune offre trouvée</h3>
+        <p>Essayez de modifier votre recherche ou ajoutez de nouvelles offres.</p>
+    </div>
 </div>
 
 <!-- Add/Edit Offer Modal -->

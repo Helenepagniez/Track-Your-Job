@@ -33,6 +33,11 @@
                     </div>
                     <div class="activity-status badge">{{ activity.status }}</div>
                 </div>
+                <div *ngIf="recentActivities().length === 0" class="empty-state">
+                    <div class="empty-icon"><i class="fa-solid fa-tasks"></i></div>
+                    <h3>Aucune activité récente</h3>
+                    <p>Ajoutez une offre d'emploi ou une tâche.</p>
+                </div>
             </div>
         </div>
 

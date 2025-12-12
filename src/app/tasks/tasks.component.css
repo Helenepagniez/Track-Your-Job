@@ -627,3 +627,32 @@
 .cdk-drag-placeholder * {
     opacity: 0;
 }
+
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--text-secondary);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 30px;
+    color: var(--primary-color);
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    margin: 5px 0;
+    font: 600 15px Roboto, sans-serif;
+    color: var(--primary-color);
+    letter-spacing: 0.5px;
+}
+
+.empty-state p {
+    margin: 0;
+    font: 500 14px Roboto, sans-serif;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+}

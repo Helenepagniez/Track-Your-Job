@@ -18,8 +18,15 @@
         </button>
     </div>
 
+    <!-- Empty State -->
+    <div *ngIf="tasks().length === 0" class="empty-state">
+        <div class="empty-icon"><i class="fa-solid fa-tasks"></i></div>
+        <h3>Aucune tâche trouvée</h3>
+        <p>Ajoutez de nouvelles tâches.</p>
+    </div>
+
     <!-- Kanban View -->
-    <div class="kanban-board" *ngIf="viewMode() === 'kanban'" cdkDropListGroup>
+    <div class="kanban-board" *ngIf="viewMode() === 'kanban' && tasks().length > 0" cdkDropListGroup>
         <!-- Todo Column -->
         <div class="kanban-column todo">
             <div class="column-header">
@@ -160,8 +167,8 @@
     </div>
 
     <!-- List View -->
-    <div class="tasks-list glass" *ngIf="viewMode() === 'list'" cdkDropList [cdkDropListData]="tasks()"
-        (cdkDropListDropped)="dropList($event)">
+    <div class="tasks-list glass" *ngIf="viewMode() === 'list' && tasks().length > 0" cdkDropList
+        [cdkDropListData]="tasks()" (cdkDropListDropped)="dropList($event)">
         <div class="task-item" *ngFor="let task of tasks()" [class.completed]="task.completed" cdkDrag
             [cdkDragData]="task">
             <div class="task-checkbox">
