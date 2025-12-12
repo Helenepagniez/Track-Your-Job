@@ -50,6 +50,7 @@ h1 {
     margin: 0;
     font: 600 16px Roboto, sans-serif;
     letter-spacing: 0.5px;
+    text-transform: capitalize;
 }
 
 .stat-info .stat-change {
@@ -127,6 +128,10 @@ h1 {
     font: 600 16px Roboto, sans-serif;
     color: var(--text-color);
     letter-spacing: 0.3px;
+}
+
+.activity-details h4::first-letter {
+    text-transform: uppercase;
 }
 
 .activity-details p {

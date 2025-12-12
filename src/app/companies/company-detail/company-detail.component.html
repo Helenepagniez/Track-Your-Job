@@ -69,7 +69,7 @@
 
             <!-- Offers List -->
             <div class="card section">
-                <h3>Offres chez {{ companyName() }}</h3>
+                <h3>Offres chez {{ companyName() | titlecase }}</h3>
                 <div class="offers-list">
                     <div *ngFor="let offer of data.offers" class="offer-item" (click)="viewOffer(offer.id)">
                         <div class="offer-info">
