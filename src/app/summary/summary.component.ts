@@ -47,7 +47,7 @@ export class SummaryComponent {
             { title: 'Entretiens', value: interviewCount, icon: '🤝' },
             { title: 'Refus', value: rejectedCount, icon: '❌' },
             { title: 'Taux de réponses', value: `${responseRate}%`, icon: '📊' },
-            { title: 'A postuler', value: toApplyCount, icon: '🎯' },
+            { title: 'À postuler', value: toApplyCount, icon: '🎯' },
             { title: 'Entreprises', value: uniqueCompanies, icon: '🏢' },
             { title: 'Tâches restantes', value: remainingTasks, icon: '📋' }
         ];
@@ -151,25 +151,74 @@ export class SummaryComponent {
     // Chart data based on real offer counts
     chartData = computed(() => {
         const offers = this.offersService.offers();
+        const now = new Date();
 
-        // Current month counts
+        // Get the start of current month and previous month
+        const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+        /**
+         * Get the status count for a specific month based on status history
+         * @param status - The status to count
+         * @param monthStart - Start date of the month
+         * @param monthEnd - End date of the month
+         */
+        const getStatusCountForMonth = (status: string, monthStart: Date, monthEnd: Date): number => {
+            return offers.filter(offer => {
+                // If no status history, use the current status and dateAdded
+                if (!offer.statusHistory || offer.statusHistory.length === 0) {
+                    const offerDate = new Date(offer.dateAdded);
+                    return offer.status === status && offerDate >= monthStart && offerDate <= monthEnd;
+                }
+
+                // Sort history by date (oldest first)
+                const sortedHistory = [...offer.statusHistory].sort((a, b) =>
+                    new Date(a.date).getTime() - new Date(b.date).getTime()
+                );
+
+                // Find what status the offer had during this month
+                // We need to check if at any point during the month, the offer had this status
+                let hadStatusDuringMonth = false;
+
+                for (let i = 0; i < sortedHistory.length; i++) {
+                    const entry = sortedHistory[i];
+                    const entryDate = new Date(entry.date);
+                    const nextEntry = sortedHistory[i + 1];
+                    const nextDate = nextEntry ? new Date(nextEntry.date) : now;
+
+                    // If this status entry is the one we're looking for
+                    if (entry.status === status) {
+                        // Check if this status was active during the target month
+                        // The status is active from entryDate to nextDate (or now if it's the last entry)
+                        if (entryDate <= monthEnd && nextDate >= monthStart) {
+                            hadStatusDuringMonth = true;
+                            break;
+                        }
+                    }
+                }
+
+                return hadStatusDuringMonth;
+            }).length;
+        };
+
+        // Current month counts (offers that currently have this status)
         const appliedCount = offers.filter(o => o.status === 'Applied').length;
         const interviewCount = offers.filter(o => o.status === 'Interview').length;
         const rejectedCount = offers.filter(o => o.status === 'Rejected').length;
         const toRelaunchCount = offers.filter(o => o.status === 'To Relaunch').length;
 
-        // Simulate previous month data (in a real app, this would come from historical data)
-        // For now, we'll use a simple calculation: current - random variation
-        const getPreviousMonthValue = (current: number) => {
-            const variation = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
-            return Math.max(0, current + variation);
-        };
+        // Previous month counts (offers that had this status during the previous month)
+        const previousAppliedCount = getStatusCountForMonth('Applied', previousMonthStart, previousMonthEnd);
+        const previousInterviewCount = getStatusCountForMonth('Interview', previousMonthStart, previousMonthEnd);
+        const previousRejectedCount = getStatusCountForMonth('Rejected', previousMonthStart, previousMonthEnd);
+        const previousToRelaunchCount = getStatusCountForMonth('To Relaunch', previousMonthStart, previousMonthEnd);
 
         return [
-            { label: 'En attente', value: appliedCount, adjustment: getPreviousMonthValue(appliedCount) },
-            { label: 'À relancer', value: toRelaunchCount, adjustment: getPreviousMonthValue(toRelaunchCount) },
-            { label: 'Entretien', value: interviewCount, adjustment: getPreviousMonthValue(interviewCount) },
-            { label: 'Refus', value: rejectedCount, adjustment: getPreviousMonthValue(rejectedCount) }
+            { label: 'En attente', value: appliedCount, adjustment: previousAppliedCount },
+            { label: 'À relancer', value: toRelaunchCount, adjustment: previousToRelaunchCount },
+            { label: 'Entretien', value: interviewCount, adjustment: previousInterviewCount },
+            { label: 'Refus', value: rejectedCount, adjustment: previousRejectedCount }
         ];
     });
 
