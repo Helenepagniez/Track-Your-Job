@@ -112,13 +112,16 @@
     display: flex;
     gap: 15px;
     font: 13px Roboto, sans-serif;
+    text-transform: capitalize;
+    display: flex;
+    flex-direction: column;
 }
 
-.task-meta span {
-    display: flex;
-    align-items: center;
+.task-meta .related-offer {
     gap: 5px;
     letter-spacing: 0.5px;
+    display: flex;
+    flex-direction: column;
 }
 
 .due-date.overdue {
@@ -553,8 +556,13 @@
     font-size: 0.8rem;
     color: var(--text-secondary);
     display: flex;
-    align-items: center;
+    justify-content: center;
+    flex-direction: column;
     gap: 5px;
+}
+
+.card-meta span {
+    text-transform: capitalize;
 }
 
 .card-footer {

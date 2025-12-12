@@ -560,7 +560,7 @@
 }
 
 .interview-details {
-    font-style: italic;
+    font-style: normal;
     opacity: 0.8;
     color: var(--text-secondary);
 }

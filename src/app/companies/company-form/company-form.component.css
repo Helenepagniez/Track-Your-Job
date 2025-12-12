@@ -152,7 +152,7 @@ textarea:focus {
 .empty-contacts {
     text-align: center;
     color: var(--text-secondary);
-    font-style: italic;
+    font-style: normal;
     font-size: 0.9rem;
     padding: 1rem;
 }

@@ -76,6 +76,10 @@ button {
   font-family: inherit;
 }
 
+i {
+  font-style: normal;
+}
+
 /* Glassmorphism Utilities */
 .glass {
   background: rgba(255, 255, 255, 0.7);

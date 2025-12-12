@@ -188,7 +188,7 @@
 
 .no-results {
     color: var(--text-secondary);
-    font-style: italic;
+    font-style: normal;
     cursor: default !important;
 }
 

@@ -231,7 +231,7 @@
 
 .no-contacts {
     color: var(--text-secondary);
-    font-style: italic;
+    font-style: normal;
     font-size: 0.9rem;
 }
 
