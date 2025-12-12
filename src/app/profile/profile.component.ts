@@ -16,9 +16,8 @@ export class ProfileComponent implements OnInit {
         firstName: '',
         lastName: '',
         email: '',
-        title: 'Développeur Full Stack',
-        location: 'Paris, France',
-        bio: 'Passionné par Angular et le développement web moderne.'
+        title: '',
+        location: ''
     };
 
     isEditing = false;
@@ -36,7 +35,6 @@ export class ProfileComponent implements OnInit {
 
             if (currentUser.title) this.user.title = currentUser.title;
             if (currentUser.location) this.user.location = currentUser.location;
-            if (currentUser.bio) this.user.bio = currentUser.bio;
         }
     }
 
@@ -59,8 +57,7 @@ export class ProfileComponent implements OnInit {
         this.authService.updateUserProfile({
             fullName,
             title: updatedData.title,
-            location: updatedData.location,
-            bio: updatedData.bio
+            location: updatedData.location
         });
     }
 

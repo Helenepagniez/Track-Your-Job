@@ -33,9 +33,6 @@
     display: flex;
     align-items: center;
     gap: 20px;
-    padding-bottom: 30px;
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: 30px;
 }
 
 .avatar-large {
@@ -197,7 +194,6 @@
 
 .modal-footer {
     padding: 20px;
-    border-top: 1px solid var(--border-color);
     display: flex;
     justify-content: flex-end;
     gap: 10px;

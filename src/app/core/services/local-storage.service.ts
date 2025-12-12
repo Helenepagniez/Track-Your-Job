@@ -11,7 +11,6 @@ export interface User {
     createdAt: Date;
     title?: string;
     location?: string;
-    bio?: string;
     skills?: string[];
 }
 
