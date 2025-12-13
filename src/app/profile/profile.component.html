@@ -26,6 +26,13 @@
         </div>
     </div>
 
+    <!-- Empty State -->
+    <div *ngIf="user.title === '' || user.location === ''" class="empty-state">
+        <div class="empty-icon"><i class="fa-solid fa-user"></i></div>
+        <h3>Aucune information renseignée</h3>
+        <p>Pensez à compléter votre profil.</p>
+    </div>
+
     <!-- Edit Modal -->
     <div class="modal-overlay" *ngIf="isEditing">
         <div class="modal-content stepper-modal">

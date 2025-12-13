@@ -59,8 +59,7 @@
     padding: 8px 15px;
     background-color: var(--surface-color);
     border-radius: var(--radius-sm);
-    border: 1px solid var(--border-color);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-sm);
     text-transform: capitalize;
 }
 
@@ -95,7 +94,7 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
 }
 
 .header-main {
@@ -181,7 +180,6 @@
     background-color: var(--surface-color);
     border-radius: var(--radius-md);
     padding: 25px;
-    border: 1px solid var(--border-color);
     margin-bottom: 20px;
 }
 
@@ -256,17 +254,16 @@
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
-    border: 2px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
     background-color: var(--background-color);
     border-radius: 12px;
     cursor: pointer;
-    transition: all 0.2s;
 }
 
 .offer-item:hover {
     background: var(--background-color);
-    border-color: var(--primary-color);
-    transform: translateX(5px);
+    border: 2px solid var(--primary-color);
+    box-shadow: var(--shadow-md);
 }
 
 .offer-info h4 {

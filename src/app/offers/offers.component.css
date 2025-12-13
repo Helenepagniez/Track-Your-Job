@@ -11,10 +11,7 @@
 }
 
 .page-header h1 {
-    background: linear-gradient(to right, var(--primary-color), var(--accent-color));
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--primary-color);
     margin: 0;
     font: 700 40px Roboto, sans-serif;
     width: fit-content;
@@ -38,7 +35,7 @@
     background-color: var(--background-color);
     padding: 8px 15px;
     border-radius: var(--radius-sm);
-    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
 }
 
 .search-box i {
@@ -53,6 +50,12 @@
 
 .search-box input {
     font: 14px Roboto, sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.search-box input::placeholder {
+    color: var(--text-color);
+    font: 500 14px Roboto, sans-serif;
     letter-spacing: 0.5px;
 }
 
@@ -72,16 +75,16 @@
 }
 
 .form-select {
-    padding: 8px 15px;
+    padding: 8px 12px;
     border-radius: var(--radius-sm);
-    border: 1px solid var(--border-color);
+    border: none;
     background-color: var(--background-color);
     color: var(--text-color);
-    font: 14px Roboto, sans-serif;
+    font: 500 14px Roboto, sans-serif;
     letter-spacing: 0.5px;
     outline: none;
-    font-weight: 500;
     transition: color 0.2s ease, border-color 0.2s ease;
+    box-shadow: var(--shadow-sm);
 }
 
 /* Select colors when a status is selected */
