@@ -372,11 +372,17 @@
 
 /* Kanban Board */
 .kanban-board {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 20px;
     padding-bottom: 20px;
     overflow-x: auto;
+}
+
+.kanban-board .kanban-column {
+    flex: 1 1 320px;
+    min-width: 320px;
+    max-width: 450px;
 }
 
 .kanban-column {
@@ -653,4 +659,23 @@
     font: 500 14px Roboto, sans-serif;
     letter-spacing: 0.5px;
     color: var(--text-secondary);
+}
+
+@media (max-width: 600px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .header-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+        width: 100%;
+    }
+
+    .kanban-board .kanban-column {
+        min-width: 100%;
+    }
 }

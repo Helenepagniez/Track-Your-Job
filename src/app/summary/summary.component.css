@@ -13,15 +13,20 @@ h1 {
 }
 
 .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 20px;
+}
+
+.stats-grid .stat-card {
+    flex: 1 1 220px;
+    min-width: 220px;
+    max-width: 300px;
 }
 
 .stat-card {
     display: flex;
     align-items: center;
-    gap: 20px;
     text-align: center;
     padding: 20px;
 }
@@ -57,14 +62,26 @@ h1 {
 }
 
 .content-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
+    display: flex;
+    flex-wrap: wrap;
     gap: 20px;
 }
 
+.content-grid> :first-child {
+    flex: 2 1 600px;
+    min-width: 320px;
+}
+
+.content-grid> :last-child {
+    flex: 1 1 300px;
+    min-width: 280px;
+}
+
 @media (max-width: 900px) {
-    .content-grid {
-        grid-template-columns: 1fr;
+
+    .content-grid> :first-child,
+    .content-grid> :last-child {
+        flex: 1 1 100%;
     }
 }
 
@@ -253,4 +270,19 @@ h1 {
     font: 500 14px Roboto, sans-serif;
     letter-spacing: 0.5px;
     color: var(--text-secondary);
+}
+
+@media (max-width: 600px) {
+    h1 {
+        font-size: 32px;
+    }
+
+    .stats-grid .stat-card {
+        min-width: 100%;
+    }
+
+    .stat-card {
+        flex-direction: column;
+        text-align: center;
+    }
 }

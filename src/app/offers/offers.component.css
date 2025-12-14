@@ -165,9 +165,15 @@
 
 
 .offers-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 20px;
+}
+
+.offers-grid .offer-card {
+    flex: 1 1 320px;
+    min-width: 320px;
+    max-width: 400px;
 }
 
 .offer-card {
@@ -492,4 +498,20 @@
     opacity: 0.9;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 600px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .filters-bar {
+        flex-direction: column;
+    }
+
+    .offers-grid .offer-card {
+        min-width: 100%;
+    }
 }

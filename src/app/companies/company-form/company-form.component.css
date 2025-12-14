@@ -37,9 +37,14 @@ h3 {
 }
 
 .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-wrap: wrap;
     gap: 1rem;
+}
+
+.form-row .form-group {
+    flex: 1 1 calc(50% - 0.5rem);
+    min-width: 250px;
 }
 
 label {

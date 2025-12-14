@@ -162,9 +162,19 @@
 
 /* Content Grid */
 .content-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
+    display: flex;
+    flex-wrap: wrap;
     gap: 20px;
+}
+
+.content-grid> :first-child {
+    flex: 2 1 600px;
+    min-width: 320px;
+}
+
+.content-grid> :last-child {
+    flex: 1 1 300px;
+    min-width: 280px;
 }
 
 .card {
@@ -412,9 +422,11 @@
     font-size: 14px;
 }
 
-@media (max-width: 768px) {
-    .content-grid {
-        grid-template-columns: 1fr;
+@media (max-width: 900px) {
+
+    .content-grid> :first-child,
+    .content-grid> :last-child {
+        flex: 1 1 100%;
     }
 
     .offer-header-card {
@@ -427,6 +439,17 @@
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
+    }
+}
+
+@media (max-width: 600px) {
+    .nav-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .breadcrumb {
+        width: 100%;
     }
 }
 
@@ -610,10 +633,15 @@
 }
 
 .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-wrap: wrap;
     gap: 15px;
     margin-bottom: 15px;
+}
+
+.form-row .form-group {
+    flex: 1 1 calc(50% - 7.5px);
+    min-width: 250px;
 }
 
 .form-group {
@@ -676,9 +704,9 @@
     margin-top: 15px;
 }
 
-@media (max-width: 768px) {
-    .form-row {
-        grid-template-columns: 1fr;
+@media (max-width: 600px) {
+    .form-row .form-group {
+        flex: 1 1 100%;
     }
 
     .edit-item {

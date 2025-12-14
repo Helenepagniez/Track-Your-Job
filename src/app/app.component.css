@@ -48,3 +48,9 @@
         z-index: 999;
     }
 }
+
+@media (max-width: 600px) {
+    .content-area {
+        padding: 15px;
+    }
+}

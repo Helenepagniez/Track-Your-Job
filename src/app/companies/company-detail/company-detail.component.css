@@ -165,14 +165,26 @@
 
 /* Layout Grid */
 .content-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
+    display: flex;
+    flex-wrap: wrap;
     gap: 2rem;
 }
 
+.content-grid> :first-child {
+    flex: 2 1 600px;
+    min-width: 320px;
+}
+
+.content-grid> :last-child {
+    flex: 1 1 300px;
+    min-width: 280px;
+}
+
 @media (max-width: 1024px) {
-    .content-grid {
-        grid-template-columns: 1fr;
+
+    .content-grid> :first-child,
+    .content-grid> :last-child {
+        flex: 1 1 100%;
     }
 }
 
