@@ -89,10 +89,12 @@
     padding: 1.5rem;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     width: 320px;
+    box-shadow: var(--shadow-sm);
 }
 
 .company-card:hover {
     transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
 }
 
 .card-header {
