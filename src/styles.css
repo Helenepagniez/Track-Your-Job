@@ -26,21 +26,7 @@
   --font-family: 'Roboto', sans-serif;
 }
 
-[data-theme='dark'] {
-  /* Dark Mode Palette */
-  --primary-color: #3498db;
-  --secondary-color: #2980b9;
-  --accent-color: #00cec9;
-  --background-color: #1e272e;
-  /* Dark Blue/Grey */
-  --surface-color: #2d3436;
-  --text-color: #dfe6e9;
-  --text-secondary: #b2bec3;
-  --border-color: #636e72;
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
-}
+
 
 * {
   box-sizing: border-box;
@@ -89,10 +75,7 @@ i {
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-[data-theme='dark'] .glass {
-  background: rgba(45, 52, 54, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
+
 
 /* Utility Classes */
 .container {
@@ -336,14 +319,4 @@ html::-webkit-scrollbar {
 
 .mdc-line-ripple::after {
   border-bottom-color: var(--primary-color) !important;
-}
-
-/* Dark mode specific adjustments */
-[data-theme='dark'] .mat-datepicker-content,
-[data-theme='dark'] .mat-calendar {
-  background-color: var(--surface-color) !important;
-}
-
-[data-theme='dark'] .mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover>.mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
-  background-color: rgba(52, 152, 219, 0.2) !important;
 }

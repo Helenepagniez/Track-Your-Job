@@ -34,10 +34,6 @@
     </nav>
 
     <div class="sidebar-footer">
-        <button class="nav-item" (click)="themeService.toggleTheme()" title="Changer le thème">
-            <i class="icon">{{ themeService.darkMode() ? '☀️' : '🌙' }}</i>
-            <span class="label">{{ themeService.darkMode() ? 'Light Mode' : 'Dark Mode' }}</span>
-        </button>
         <button class="nav-item logout" (click)="logout()" title="Se déconnecter">
             <i class="fa-solid fa-door-closed"></i>
             <span class="label">Déconnexion</span>

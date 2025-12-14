@@ -145,10 +145,6 @@
     gap: 8px;
 }
 
-[data-theme='dark'] .offer-count {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-color);
-}
 
 .status-badges {
     display: flex;

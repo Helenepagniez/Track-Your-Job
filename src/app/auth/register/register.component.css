@@ -9,9 +9,6 @@
     padding: 20px;
 }
 
-[data-theme='dark'] .auth-container {
-    background: linear-gradient(135deg, var(--background-color) 0%, #0f2027 100%);
-}
 
 .auth-card {
     width: 100%;

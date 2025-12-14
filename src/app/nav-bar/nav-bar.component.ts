@@ -3,7 +3,6 @@ import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
 import { LayoutService } from '../core/services/layout.service';
-import { ThemeService } from '../core/services/theme.service';
 
 @Component({
     selector: 'app-nav-bar',
@@ -14,7 +13,6 @@ import { ThemeService } from '../core/services/theme.service';
 })
 export class NavBarComponent {
     authService = inject(AuthService);
-    themeService = inject(ThemeService);
     layoutService = inject(LayoutService);
 
     logout() {

@@ -19,10 +19,6 @@
     text-transform: capitalize;
 }
 
-[data-theme='dark'] .warning-box {
-    background-color: var(--warning-color);
-    border-color: var(--warning-color);
-}
 
 .form-section:last-child {
     border-bottom: none;

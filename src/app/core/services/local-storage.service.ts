@@ -16,7 +16,6 @@ export interface User {
 
 export interface UserData {
     user: User;
-    theme: 'light' | 'dark';
     offers: JobOffer[];
     tasks: Task[];
 }
@@ -51,6 +50,11 @@ export class LocalStorageService {
             if (data.users) {
                 Object.keys(data.users).forEach(userId => {
                     const userData = data.users[userId];
+
+                    // Migration: Remove obsolete theme property
+                    if ('theme' in userData) {
+                        delete (userData as any).theme;
+                    }
 
                     // Convert user dates
                     if (userData.user?.createdAt) {
@@ -133,7 +137,6 @@ export class LocalStorageService {
         if (!data.users[user.id]) {
             data.users[user.id] = {
                 user: user,
-                theme: 'light',
                 offers: [],
                 tasks: []
             };
@@ -154,7 +157,6 @@ export class LocalStorageService {
 
         data.users[user.id] = {
             user: user,
-            theme: 'light',
             offers: [],
             tasks: []
         };
@@ -203,28 +205,7 @@ export class LocalStorageService {
         this.saveAppData(data);
     }
 
-    /**
-     * Get theme for current user
-     */
-    getTheme(): 'light' | 'dark' {
-        const data = this.loadAppData();
-        if (!data.currentUserId || !data.users[data.currentUserId]) {
-            return 'light';
-        }
-        return data.users[data.currentUserId].theme;
-    }
 
-    /**
-     * Update theme for current user
-     */
-    updateTheme(theme: 'light' | 'dark'): void {
-        const data = this.loadAppData();
-        if (!data.currentUserId || !data.users[data.currentUserId]) {
-            return;
-        }
-        data.users[data.currentUserId].theme = theme;
-        this.saveAppData(data);
-    }
 
     /**
      * Get offers for current user
