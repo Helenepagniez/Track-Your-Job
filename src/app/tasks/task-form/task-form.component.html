@@ -9,8 +9,12 @@
     </div>
     <div class="form-group">
         <label class="form-label">Date d'échéance</label>
-        <input type="date" class="form-control" [ngModel]="formData.dueDate | date:'yyyy-MM-dd'"
-            (ngModelChange)="formData.dueDate = $event">
+        <mat-form-field>
+            <input matInput [matDatepicker]="pickerDueDate" [ngModel]="formData.dueDate"
+                (ngModelChange)="formData.dueDate = $event" />
+            <mat-datepicker-toggle matIconSuffix [for]="pickerDueDate"></mat-datepicker-toggle>
+            <mat-datepicker #pickerDueDate></mat-datepicker>
+        </mat-form-field>
     </div>
     <div class="form-group">
         <label class="form-label">Priorité</label>

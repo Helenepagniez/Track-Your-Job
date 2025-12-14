@@ -225,3 +225,125 @@ html::-webkit-scrollbar {
   width: 0;
   height: 0;
 }
+
+/* Material Design Form Field Customization */
+.mat-mdc-form-field {
+  width: 100%;
+  font-family: var(--font-family) !important;
+  height: 43px !important;
+}
+
+.mat-mdc-form-field input {
+  padding: 10px 0px !important;
+}
+
+.mat-mdc-form-field-infix {
+  padding: 0 !important;
+}
+
+.mat-mdc-form-field-flex {
+  padding: 0 !important;
+  height: 43px !important;
+}
+
+.mat-mdc-text-field-wrapper {
+  background-color: var(--surface-color) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+.mat-mdc-form-field-focus-overlay {
+  background-color: transparent !important;
+}
+
+.mdc-text-field--filled {
+  background-color: var(--surface-color) !important;
+}
+
+.mdc-text-field--filled:not(.mdc-text-field--disabled) {
+  background-color: var(--surface-color) !important;
+}
+
+.mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
+
+/* Material Datepicker Customization */
+.mat-datepicker-content {
+  background-color: var(--surface-color) !important;
+  color: var(--text-color) !important;
+}
+
+.mat-calendar {
+  background-color: var(--surface-color) !important;
+  color: var(--text-color) !important;
+}
+
+.mat-calendar-arrow {
+  fill: var(--primary-color) !important;
+}
+
+.mat-calendar-body-label,
+.mat-calendar-period-button {
+  /*Titre du calendrier*/
+  color: var(--primary-color) !important;
+}
+
+.mat-calendar-table-header th {
+  /*Type de jour (Lundi, Mardi, etc.)*/
+  color: var(--text-secondary) !important;
+}
+
+.mat-calendar-body-selected {
+  /*Jour sélectionné*/
+  background-color: var(--primary-color) !important;
+  color: var(--surface-color) !important;
+}
+
+.mat-calendar-body-today:not(.mat-calendar-body-selected) {
+  /*Jour actuel*/
+  border-color: var(--primary-color) !important;
+}
+
+.mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover>.mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
+  background-color: var(--background-color) !important;
+}
+
+.mat-mdc-icon-button.mat-mdc-button-base {
+  /*Flèches (précédent, suivant, etc.)*/
+  color: var(--primary-color) !important;
+}
+
+/* Input text color */
+.mat-mdc-input-element {
+  /*Texte dans les champs de saisie*/
+  color: var(--text-color) !important;
+  caret-color: var(--primary-color) !important;
+}
+
+/* Label color */
+.mdc-floating-label {
+  color: var(--text-secondary) !important;
+}
+
+.mdc-floating-label--float-above {
+  color: var(--primary-color) !important;
+}
+
+/* Border colors */
+.mdc-line-ripple::before {
+  border-bottom-color: var(--border-color) !important;
+}
+
+.mdc-line-ripple::after {
+  border-bottom-color: var(--primary-color) !important;
+}
+
+/* Dark mode specific adjustments */
+[data-theme='dark'] .mat-datepicker-content,
+[data-theme='dark'] .mat-calendar {
+  background-color: var(--surface-color) !important;
+}
+
+[data-theme='dark'] .mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover>.mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
+  background-color: rgba(52, 152, 219, 0.2) !important;
+}

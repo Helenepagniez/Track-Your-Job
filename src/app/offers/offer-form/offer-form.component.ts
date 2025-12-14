@@ -6,8 +6,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
-import { MatOptionModule } from '@angular/material/core';
+import { MatOptionModule, MatNativeDateModule } from '@angular/material/core';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { JobOffer, OffersService } from '../../core/services/offers.service';
 
 @Component({
@@ -22,7 +23,9 @@ import { JobOffer, OffersService } from '../../core/services/offers.service';
         MatButtonModule,
         MatSelectModule,
         MatOptionModule,
-        MatAutocompleteModule
+        MatAutocompleteModule,
+        MatDatepickerModule,
+        MatNativeDateModule
     ],
     templateUrl: './offer-form.component.html',
     styleUrl: './offer-form.component.css'

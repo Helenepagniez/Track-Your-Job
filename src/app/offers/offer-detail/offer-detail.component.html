@@ -249,8 +249,14 @@
                                         </select>
                                     </div>
                                     <div class="form-group">
-                                        <label>Date</label>
-                                        <input type="date" [(ngModel)]="interview.date" class="form-control">
+                                        <label>Date *</label>
+                                        <mat-form-field>
+                                            <input matInput [matDatepicker]="pickerInterview"
+                                                [(ngModel)]="interview.date" />
+                                            <mat-datepicker-toggle matIconSuffix
+                                                [for]="pickerInterview"></mat-datepicker-toggle>
+                                            <mat-datepicker #pickerInterview></mat-datepicker>
+                                        </mat-form-field>
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -277,8 +283,12 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Date</label>
-                            <input type="date" [(ngModel)]="newInterview.date" class="form-control">
+                            <label>Date *</label>
+                            <mat-form-field>
+                                <input matInput [matDatepicker]="pickerNewInterview" [(ngModel)]="newInterview.date" />
+                                <mat-datepicker-toggle matIconSuffix [for]="pickerNewInterview"></mat-datepicker-toggle>
+                                <mat-datepicker #pickerNewInterview></mat-datepicker>
+                            </mat-form-field>
                         </div>
                     </div>
                     <div class="form-group">
@@ -326,8 +336,14 @@
                                         </select>
                                     </div>
                                     <div class="form-group">
-                                        <label>Date</label>
-                                        <input type="date" [(ngModel)]="entry.date" class="form-control">
+                                        <label>Date *</label>
+                                        <mat-form-field>
+                                            <input matInput [matDatepicker]="pickerStatusHistory"
+                                                [(ngModel)]="entry.date" [max]="maxDate" />
+                                            <mat-datepicker-toggle matIconSuffix
+                                                [for]="pickerStatusHistory"></mat-datepicker-toggle>
+                                            <mat-datepicker #pickerStatusHistory></mat-datepicker>
+                                        </mat-form-field>
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -356,8 +372,13 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Date</label>
-                            <input type="date" [(ngModel)]="newStatusEntry.date" class="form-control">
+                            <label>Date *</label>
+                            <mat-form-field>
+                                <input matInput [matDatepicker]="pickerNewStatus" [(ngModel)]="newStatusEntry.date"
+                                    [max]="maxDate" />
+                                <mat-datepicker-toggle matIconSuffix [for]="pickerNewStatus"></mat-datepicker-toggle>
+                                <mat-datepicker #pickerNewStatus></mat-datepicker>
+                            </mat-form-field>
                         </div>
                     </div>
                     <div class="form-group">

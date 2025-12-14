@@ -2,6 +2,10 @@ import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { OffersService, JobOffer, StatusHistoryEntry, Interview } from '../../core/services/offers.service';
 import { TasksService } from '../../core/services/tasks.service';
 import { OfferFormComponent } from '../offer-form/offer-form.component';
@@ -9,7 +13,7 @@ import { OfferFormComponent } from '../offer-form/offer-form.component';
 @Component({
     selector: 'app-offer-detail',
     standalone: true,
-    imports: [CommonModule, RouterModule, OfferFormComponent, FormsModule],
+    imports: [CommonModule, RouterModule, OfferFormComponent, FormsModule, MatFormFieldModule, MatInputModule, MatDatepickerModule, MatNativeDateModule],
     templateUrl: './offer-detail.component.html',
     styleUrl: './offer-detail.component.css'
 })
@@ -45,6 +49,9 @@ export class OfferDetailComponent implements OnInit {
     // For adding new items in modals
     newInterview: Interview = { date: new Date(), type: 'Entretien Visio' };
     newStatusEntry: StatusHistoryEntry = { status: 'Applied', date: new Date() };
+
+    // Max date for status history (today)
+    maxDate = new Date();
 
     statusColors: Record<string, { color: string, background: string, border: string }> = {
         'To Apply': {
