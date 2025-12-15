@@ -1,6 +1,17 @@
+:host {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
+}
+
 .summary-container {
     display: flex;
+    justify-content: center;
+    align-items: center;
     flex-direction: column;
+    max-width: 1000px;
     gap: 30px;
 }
 
@@ -10,25 +21,26 @@ h1 {
     font: 700 40px Roboto, sans-serif;
     width: fit-content;
     letter-spacing: 0.5px;
+    width: 100%;
 }
 
-.stats-grid {
+.stats {
     display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.stats-grid .stat-card {
-    flex: 1 1 220px;
-    min-width: 220px;
-    max-width: 300px;
-}
-
-.stat-card {
-    display: flex;
+    justify-content: space-between;
     align-items: center;
-    text-align: center;
-    padding: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.stats .stat-card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 220px;
+    gap: 5px;
+    padding: 10px;
 }
 
 .stat-icon {
@@ -38,7 +50,15 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 30px;
+}
+
+.stat-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 5px;
 }
 
 .stat-info h3 {
@@ -46,6 +66,7 @@ h1 {
     margin: 0;
     color: var(--primary-color);
     letter-spacing: 0.5px;
+    text-align: center;
 }
 
 .stat-info p {
@@ -63,26 +84,10 @@ h1 {
 
 .content-grid {
     display: flex;
-    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
     gap: 20px;
-}
-
-.content-grid> :first-child {
-    flex: 2 1 600px;
-    min-width: 320px;
-}
-
-.content-grid> :last-child {
-    flex: 1 1 300px;
-    min-width: 280px;
-}
-
-@media (max-width: 900px) {
-
-    .content-grid> :first-child,
-    .content-grid> :last-child {
-        flex: 1 1 100%;
-    }
+    width: 100%;
 }
 
 .card-header {
@@ -163,6 +168,12 @@ h1 {
     color: var(--primary-color);
 }
 
+.chart-card,
+.activity-card {
+    width: 49%;
+    height: 400px;
+}
+
 /* Chart Styles */
 .chart-container {
     width: 100%;
@@ -186,7 +197,7 @@ h1 {
 }
 
 .chart-label {
-    font: 600 14px Roboto, sans-serif;
+    font: 500 13px Roboto, sans-serif;
     fill: var(--text-color);
     letter-spacing: 0.5px;
 }
@@ -222,7 +233,7 @@ h1 {
     display: flex;
     align-items: center;
     gap: 8px;
-    font: 600 12px Roboto, sans-serif;
+    font: 600 14px Roboto, sans-serif;
     color: var(--text-color);
 }
 
@@ -272,17 +283,26 @@ h1 {
     color: var(--text-secondary);
 }
 
-@media (max-width: 600px) {
-    h1 {
-        font-size: 32px;
+@media screen and (max-width: 1250px) {
+    .stats {
+        justify-content: center;
     }
+}
 
-    .stats-grid .stat-card {
-        min-width: 100%;
-    }
-
-    .stat-card {
+@media screen and (max-width: 1190px) {
+    .content-grid {
         flex-direction: column;
-        text-align: center;
+    }
+
+    .chart-card,
+    .activity-card {
+        width: 100%;
+        height: unset;
+    }
+}
+
+@media screen and (max-width: 426px) {
+    .stats .stat-card {
+        width: 100%;
     }
 }
