@@ -1,4 +1,4 @@
-<div class="detail-container" *ngIf="companyData() as data">
+<section *ngIf="companyData() as data">
     <!-- Breadcrumb & Back -->
     <div class="nav-header">
         <button class="btn-back" routerLink="/entreprises" title="Retour aux entreprises">
@@ -121,7 +121,7 @@
             </div>
         </div>
     </div>
-</div>
+</section>
 
 <!-- Edit Modal -->
 <div class="modal-overlay" *ngIf="showEditModal()">

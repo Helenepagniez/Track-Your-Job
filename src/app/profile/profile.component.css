@@ -1,5 +1,19 @@
-.profile-container {
-    margin: 0 auto;
+:host {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
+}
+
+section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    max-width: 1000px;
+    gap: 30px;
+    width: 100%;
 }
 
 .page-header {
@@ -7,6 +21,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
+    width: 100%;
 }
 
 .page-header h1 {
@@ -20,6 +35,10 @@
 .action-buttons {
     display: flex;
     gap: 10px;
+}
+
+.profile-content {
+    width: 100%;
 }
 
 .profile-card {
@@ -147,6 +166,7 @@
     overflow-y: auto;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     border: 1px solid var(--border-color);
+    max-width: 1000px;
 }
 
 .confirm-modal {
@@ -230,6 +250,7 @@
     text-align: center;
     padding: 4rem 1rem;
     color: var(--text-secondary);
+    width: 100%;
 }
 
 .empty-icon {
