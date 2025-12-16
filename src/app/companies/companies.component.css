@@ -300,3 +300,15 @@ section {
     letter-spacing: 0.5px;
     color: var(--text-secondary);
 }
+
+@media screen and (max-width: 720px) {
+    .companies-grid {
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .company-card {
+        width: 100%;
+    }
+}

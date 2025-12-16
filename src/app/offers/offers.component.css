@@ -515,3 +515,27 @@ section {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
+@media screen and (max-width: 720px) {
+    .offers-grid {
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .offer-card {
+        width: 100%;
+    }
+}
+
+@media screen and (max-width: 520px) {
+    .filters-bar {
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .form-select {
+        width: 100%;
+    }
+}
