@@ -608,7 +608,6 @@ section {
 
 .card-footer .due-date {
     font-size: 0.8rem;
-    color: var(--text-secondary);
 }
 
 .btn-move {
