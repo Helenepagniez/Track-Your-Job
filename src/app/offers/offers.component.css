@@ -389,6 +389,9 @@ section {
     background-color: var(--primary-color) !important;
     border-radius: var(--radius-sm) !important;
     margin: 0;
+}
+
+.menu-trigger:hover i {
     color: var(--surface-color);
 }
 

@@ -67,10 +67,12 @@
                                 </span>
                             </ng-container>
                         </span>
-                        <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'en_cours')"
-                            title="Démarrer la tâche">
-                            Démarer <i class="fa-solid fa-arrow-right"></i>
-                        </button>
+                        <div class="button-container">
+                            <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'en_cours')"
+                                title="Démarrer la tâche">
+                                Démarer <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -102,10 +104,6 @@
                         </span>
                     </div>
                     <div class="card-footer">
-                        <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'a_faire')"
-                            title="Recommencer la tâche">
-                            <i class="fa-solid fa-arrow-left"></i> Refaire
-                        </button>
                         <span class="due-date" [class.overdue]="!task.completed && getDaysLeft(task.dueDate) < 0">
                             <i class="icon">📅</i> {{ task.dueDate | date:'dd MMM' }}
                             <ng-container *ngIf="!task.completed">
@@ -120,10 +118,16 @@
                                 </span>
                             </ng-container>
                         </span>
-                        <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'termine')"
-                            title="Terminer la tâche">
-                            Terminer <i class="fa-solid fa-arrow-right"></i>
-                        </button>
+                        <div class="button-container">
+                            <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'a_faire')"
+                                title="Recommencer la tâche">
+                                <i class="fa-solid fa-arrow-left"></i> Refaire
+                            </button>
+                            <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'termine')"
+                                title="Terminer la tâche">
+                                Terminer <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -156,10 +160,12 @@
                     </div>
                     <div class="card-footer">
                         <span class="due-date">📅 {{ task.dueDate | date:'dd MMM' }}</span>
-                        <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'en_cours')"
-                            title="Rouvrir la tâche">
-                            <i class="fa-solid fa-arrow-left"></i> Rouvrir
-                        </button>
+                        <div class="button-container">
+                            <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'en_cours')"
+                                title="Rouvrir la tâche">
+                                <i class="fa-solid fa-arrow-left"></i> Rouvrir
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
