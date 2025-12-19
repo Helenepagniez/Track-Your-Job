@@ -274,6 +274,14 @@ section {
     color: var(--text-secondary);
 }
 
+.profile-card h3 {
+    margin: 0;
+    font: 700 22px Roboto, sans-serif;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+    margin-bottom: 10px;
+}
+
 @media (max-width: 900px) {
     .profile-form .form-group {
         flex: 1 1 100%;

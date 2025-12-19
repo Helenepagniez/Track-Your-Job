@@ -33,6 +33,28 @@
         <p>Pensez à compléter votre profil.</p>
     </div>
 
+    <!-- Data Management Section -->
+    <div class="profile-content">
+        <div class="card profile-card">
+            <h3>Gestion des données</h3>
+            <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
+                Vous pouvez exporter vos données pour les sauvegarder ou les transférer vers un autre appareil.
+            </p>
+            <div class="action-buttons">
+                <button class="btn btn-primary" (click)="exportData()" title="Télécharger vos données">
+                    <i class="fa-solid fa-download"></i> Exporter les données
+                </button>
+                <div style="position: relative; display: inline-block;">
+                    <button class="btn btn-outline" (click)="fileInput.click()" title="Importer des données">
+                        <i class="fa-solid fa-upload"></i> Importer les données
+                    </button>
+                    <input #fileInput type="file" (change)="onFileSelected($event)" accept=".json"
+                        style="display: none;">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Modal -->
     <div class="modal-overlay" *ngIf="isEditing">
         <div class="modal-content stepper-modal">

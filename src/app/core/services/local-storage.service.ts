@@ -273,4 +273,34 @@ export class LocalStorageService {
     clearAllData(): void {
         localStorage.removeItem(this.STORAGE_KEY);
     }
+
+    /**
+     * Export all application data as JSON string
+     */
+    exportData(): string {
+        const data = this.loadAppData();
+        return JSON.stringify(data, null, 2);
+    }
+
+    /**
+     * Import application data from JSON string
+     * @returns true if import was successful, false otherwise
+     */
+    importData(jsonString: string): boolean {
+        try {
+            const data = JSON.parse(jsonString);
+
+            // Basic validation
+            if (!data || typeof data !== 'object') {
+                return false;
+            }
+
+            // Save to local storage
+            this.saveAppData(data);
+            return true;
+        } catch (error) {
+            console.error('Error importing data:', error);
+            return false;
+        }
+    }
 }

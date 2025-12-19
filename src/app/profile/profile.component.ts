@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../core/services/auth.service';
 import { ProfileFormComponent } from './profile-form/profile-form.component';
+import { LocalStorageService } from '../core/services/local-storage.service';
 
 @Component({
     selector: 'app-profile',
@@ -23,7 +24,10 @@ export class ProfileComponent implements OnInit {
     isEditing = false;
     isDeleting = false;
 
-    constructor(private authService: AuthService) { }
+    constructor(
+        private authService: AuthService,
+        private localStorageService: LocalStorageService
+    ) { }
 
     ngOnInit() {
         const currentUser = this.authService.currentUser();
@@ -72,5 +76,34 @@ export class ProfileComponent implements OnInit {
     confirmDelete() {
         this.authService.deleteUser();
         this.isDeleting = false;
+    }
+
+    exportData() {
+        const data = this.localStorageService.exportData();
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const date = new Date().toISOString().split('T')[0];
+        a.download = `track-your-job-data-${date}.json`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+
+    onFileSelected(event: any) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e: any) => {
+                const content = e.target.result;
+                if (this.localStorageService.importData(content)) {
+                    alert('Données importées avec succès ! La page va se recharger.');
+                    window.location.reload();
+                } else {
+                    alert('Erreur lors de l\'importation des données. Vérifiez le format du fichier.');
+                }
+            };
+            reader.readAsText(file);
+        }
     }
 }
