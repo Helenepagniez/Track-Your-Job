@@ -28,7 +28,8 @@ export class RegisterComponent {
             return;
         }
 
-        // AuthService.register() will reload the page on success
-        this.authService.register(this.fullName, this.email, this.password);
+        if (this.authService.register(this.fullName, this.email, this.password)) {
+            this.router.navigate(['/resume']);
+        }
     }
 }

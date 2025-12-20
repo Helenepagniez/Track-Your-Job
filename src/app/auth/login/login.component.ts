@@ -21,7 +21,8 @@ export class LoginComponent {
     ) { }
 
     onSubmit() {
-        // AuthService.login() will reload the page on success
-        this.authService.login(this.email, this.password);
+        if (this.authService.login(this.email, this.password)) {
+            this.router.navigate(['/resume']);
+        }
     }
 }

@@ -42,9 +42,8 @@ export class AuthService {
 
         // Register user in localStorage
         this.localStorageService.registerUser(user);
-
-        // Reload the page to load the new user's data
-        window.location.href = '/resume';
+        this.currentUser.set(user);
+        this.isAuthenticated.set(true);
         return true;
     }
 
@@ -63,9 +62,8 @@ export class AuthService {
 
         // Set as current user in localStorage
         this.localStorageService.setCurrentUser(user);
-
-        // Reload the page to load this user's data
-        window.location.href = '/resume';
+        this.currentUser.set(user);
+        this.isAuthenticated.set(true);
         return true;
     }
 
