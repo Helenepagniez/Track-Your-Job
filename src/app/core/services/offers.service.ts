@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { Injectable, signal, computed, effect, untracked } from '@angular/core';
 import { TasksService } from './tasks.service';
 import { LocalStorageService } from './local-storage.service';
 import { AuthService } from './auth.service';
@@ -106,19 +106,32 @@ export class OffersService {
         private localStorageService: LocalStorageService,
         private authService: AuthService
     ) {
-        // Load offers from localStorage
-        this.loadOffersFromStorage();
+        // React to user changes to load correct data
+        effect(() => {
+            const user = this.authService.currentUser();
+            if (user) {
+                this.loadOffersFromStorage();
 
-        // Normalize company IDs first
-        this.normalizeCompanyIds();
+                // Normalize company IDs first
+                this.normalizeCompanyIds();
 
-        // Run automation check on initialization
-        this.checkAndAutomateOffers();
+                // Run automation check on initialization
+                this.checkAndAutomateOffers();
+            } else {
+                this.offers.set([]);
+            }
+        }, { allowSignalWrites: true });
 
         // Set up auto-save effect
         effect(() => {
             const currentOffers = this.offers();
-            this.localStorageService.updateOffers(currentOffers);
+            // Use untracked to prevent this effect from running when user changes
+            // It should only run when offers change
+            const user = untracked(() => this.authService.currentUser());
+
+            if (user) {
+                this.localStorageService.updateOffers(currentOffers);
+            }
         });
     }
 

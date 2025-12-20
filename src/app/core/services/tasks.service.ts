@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { Injectable, signal, computed, effect, untracked } from '@angular/core';
 import { Task } from '../../tasks/task.model';
 import { LocalStorageService } from './local-storage.service';
 import { AuthService } from './auth.service';
@@ -13,13 +13,24 @@ export class TasksService {
         private localStorageService: LocalStorageService,
         private authService: AuthService
     ) {
-        // Load tasks from localStorage
-        this.loadTasksFromStorage();
+        // React to user changes to load correct data
+        effect(() => {
+            const user = this.authService.currentUser();
+            if (user) {
+                this.loadTasksFromStorage();
+            } else {
+                this.tasks.set([]);
+            }
+        }, { allowSignalWrites: true });
 
         // Set up auto-save effect
         effect(() => {
             const currentTasks = this.tasks();
-            this.localStorageService.updateTasks(currentTasks);
+            const user = untracked(() => this.authService.currentUser());
+
+            if (user) {
+                this.localStorageService.updateTasks(currentTasks);
+            }
         });
     }
 
