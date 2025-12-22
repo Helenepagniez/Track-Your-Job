@@ -322,15 +322,16 @@ html::-webkit-scrollbar {
 }
 
 /* Responsive Utilities */
-@media (min-width: 1400px) {
-  .container {
-    max-width: 1400px;
-  }
-}
 
 @media (min-width: 1600px) {
   .container {
     max-width: 1600px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1400px;
   }
 }
 

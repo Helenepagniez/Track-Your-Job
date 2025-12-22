@@ -188,14 +188,6 @@ section {
     min-width: 280px;
 }
 
-@media (max-width: 1024px) {
-
-    .content-grid> :first-child,
-    .content-grid> :last-child {
-        flex: 1 1 100%;
-    }
-}
-
 .card.section {
     background-color: var(--surface-color);
     border-radius: var(--radius-md);
@@ -543,5 +535,13 @@ section {
     to {
         transform: translateY(0);
         opacity: 1;
+    }
+}
+
+@media (max-width: 1024px) {
+
+    .content-grid> :first-child,
+    .content-grid> :last-child {
+        flex: 1 1 100%;
     }
 }

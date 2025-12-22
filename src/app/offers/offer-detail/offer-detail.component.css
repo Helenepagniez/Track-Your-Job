@@ -446,37 +446,6 @@ section {
     font-size: 14px;
 }
 
-@media (max-width: 900px) {
-
-    .content-grid> :first-child,
-    .content-grid> :last-child {
-        flex: 1 1 100%;
-    }
-
-    .offer-header-card {
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .header-actions {
-        width: 100%;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-    }
-}
-
-@media (max-width: 600px) {
-    .nav-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .breadcrumb {
-        width: 100%;
-    }
-}
-
 /* Status History Styles */
 .status-history {
     list-style: none;
@@ -728,7 +697,36 @@ section {
     margin-top: 15px;
 }
 
+@media (max-width: 900px) {
+
+    .content-grid> :first-child,
+    .content-grid> :last-child {
+        flex: 1 1 100%;
+    }
+
+    .offer-header-card {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .header-actions {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
 @media (max-width: 600px) {
+    .nav-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .breadcrumb {
+        width: 100%;
+    }
+
     .form-row .form-group {
         flex: 1 1 100%;
     }
@@ -740,4 +738,5 @@ section {
     .btn-remove {
         align-self: flex-end;
     }
+
 }
