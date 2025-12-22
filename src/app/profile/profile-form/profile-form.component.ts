@@ -16,17 +16,64 @@ export class ProfileFormComponent implements OnChanges {
 
     formData: any = {};
 
+    // Password change specific fields
+    showPasswordChange = false;
+    newPassword = '';
+    confirmNewPassword = '';
+    showNewPassword = false;
+    showConfirmNewPassword = false;
+
     ngOnChanges(changes: SimpleChanges) {
         if (changes['user'] && this.user) {
             this.formData = { ...this.user };
+            // Reset password fields when user changes or form opens
+            this.resetPasswordFields();
         }
     }
 
+    resetPasswordFields() {
+        this.showPasswordChange = false;
+        this.newPassword = '';
+        this.confirmNewPassword = '';
+        this.showNewPassword = false;
+        this.showConfirmNewPassword = false;
+    }
+
+    togglePasswordChange() {
+        this.showPasswordChange = !this.showPasswordChange;
+        if (!this.showPasswordChange) {
+            this.newPassword = '';
+            this.confirmNewPassword = '';
+        }
+    }
+
+    toggleNewPasswordVisibility() {
+        this.showNewPassword = !this.showNewPassword;
+    }
+
+    toggleConfirmNewPasswordVisibility() {
+        this.showConfirmNewPassword = !this.showConfirmNewPassword;
+    }
+
     onSubmit() {
+        // If password change is requested, validate passwords
+        if (this.showPasswordChange) {
+            if (this.newPassword && this.newPassword !== this.confirmNewPassword) {
+                alert('Les mots de passe ne correspondent pas');
+                return;
+            }
+
+            // Only add password if it's been filled
+            if (this.newPassword) {
+                this.formData.password = this.newPassword;
+            }
+        }
+
         this.save.emit(this.formData);
     }
 
     onCancel() {
+        this.resetPasswordFields();
         this.cancel.emit();
     }
 }

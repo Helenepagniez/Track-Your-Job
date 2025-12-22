@@ -58,11 +58,17 @@ export class ProfileComponent implements OnInit {
 
         const fullName = `${updatedData.firstName} ${updatedData.lastName}`.trim();
 
-        this.authService.updateUserProfile({
+        const updates: any = {
             fullName,
             title: updatedData.title,
             location: updatedData.location
-        });
+        };
+
+        if (updatedData.password) {
+            updates.password = updatedData.password;
+        }
+
+        this.authService.updateUserProfile(updates);
     }
 
     toggleDelete() {
