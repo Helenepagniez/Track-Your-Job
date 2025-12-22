@@ -48,8 +48,11 @@
                     </div>
                     <h4>{{ task.title }}</h4>
                     <div class="card-meta" *ngIf="task.relatedOffers && task.relatedOffers.length">
-                        <span *ngFor="let offer of task.relatedOffers; let last = last">
+                        <span *ngFor="let offer of task.relatedOffers | slice:0:2; let last = last">
                             <i class="icon">💼</i> {{ offer }}{{ !last ? ', ' : '' }}
+                        </span>
+                        <span *ngIf="task.relatedOffers.length > 2">
+                            (+{{ task.relatedOffers.length - 2 }} offres)
                         </span>
                     </div>
                     <div class="card-footer">
@@ -99,8 +102,11 @@
                     </div>
                     <h4>{{ task.title }}</h4>
                     <div class="card-meta" *ngIf="task.relatedOffers && task.relatedOffers.length">
-                        <span *ngFor="let offer of task.relatedOffers; let last = last">
+                        <span *ngFor="let offer of task.relatedOffers | slice:0:2; let last = last">
                             <i class="icon">💼</i> {{ offer }}{{ !last ? ', ' : '' }}
+                        </span>
+                        <span *ngIf="task.relatedOffers.length > 2">
+                            (+{{ task.relatedOffers.length - 2 }} offres)
                         </span>
                     </div>
                     <div class="card-footer">
@@ -154,8 +160,11 @@
                     </div>
                     <h4>{{ task.title }}</h4>
                     <div class="card-meta" *ngIf="task.relatedOffers && task.relatedOffers.length">
-                        <span *ngFor="let offer of task.relatedOffers; let last = last">
+                        <span *ngFor="let offer of task.relatedOffers | slice:0:2; let last = last">
                             <i class="icon">💼</i> {{ offer }}{{ !last ? ', ' : '' }}
+                        </span>
+                        <span *ngIf="task.relatedOffers.length > 2">
+                            (+{{ task.relatedOffers.length - 2 }} offres)
                         </span>
                     </div>
                     <div class="card-footer">
