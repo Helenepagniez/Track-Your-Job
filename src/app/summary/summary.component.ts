@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { OffersService } from '../core/services/offers.service';
@@ -222,20 +222,62 @@ export class SummaryComponent {
         ];
     });
 
+    // Responsive chart configuration
+    chartViewBoxWidth = signal(400);
+
+    constructor() {
+        const destroyRef = inject(DestroyRef);
+        this.updateChartWidth();
+        if (typeof window !== 'undefined') {
+            const listener = () => this.updateChartWidth();
+            window.addEventListener('resize', listener);
+            destroyRef.onDestroy(() => window.removeEventListener('resize', listener));
+        }
+    }
+
+    private updateChartWidth() {
+        if (typeof window === 'undefined') return;
+
+        const width = window.innerWidth;
+        if (width > 1190) {
+            // Desktop: Card is ~490px wide
+            this.chartViewBoxWidth.set(500);
+        } else if (width > 600) {
+            // Tablet/Small Desktop: Card is full width (up to 1000px)
+            this.chartViewBoxWidth.set(800);
+        } else {
+            // Mobile: Card is screen width
+            this.chartViewBoxWidth.set(400);
+        }
+    }
+
+    // Chart layout calculations
+    chartLayout = computed(() => {
+        const width = this.chartViewBoxWidth();
+        const dataLength = this.chartData().length;
+        const step = dataLength > 0 ? width / dataLength : 0;
+
+        return {
+            width,
+            height: 200, // height for bars area
+            fullHeight: 240, // total svg height
+            step,
+            barWidth: 40
+        };
+    });
+
     get maxChartValue(): number {
         const vals = this.chartData().map(d => Math.max(d.value, d.adjustment));
         return vals.length ? Math.max(...vals) + 2 : 10;
     }
 
     get polylinePoints(): string {
-        const width = 400; // viewBox width
-        const height = 200; // viewBox height
+        const layout = this.chartLayout();
         const data = this.chartData();
-        const step = width / data.length;
 
         return data.map((d, i) => {
-            const x = i * step + step / 2;
-            const y = height - (d.adjustment / this.maxChartValue) * height;
+            const x = i * layout.step + layout.step / 2;
+            const y = layout.height - (d.adjustment / this.maxChartValue) * layout.height;
             return `${x},${y}`;
         }).join(' ');
     }
