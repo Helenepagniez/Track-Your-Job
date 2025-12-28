@@ -179,6 +179,7 @@ section {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
+    width: 100%;
 }
 
 .content-grid> :first-child {
