@@ -90,20 +90,15 @@ export class OfferFormComponent implements OnInit {
         // Watch for contract type changes to show/hide duration fields
         this.firstFormGroup.get('contractType')?.valueChanges.subscribe(value => {
             const durationControl = this.firstFormGroup.get('contractDuration');
-            const hoursControl = this.firstFormGroup.get('weeklyHours');
             const showDurationFields = ['CDD', 'Stage', 'Freelance', 'Intérim'].includes(value);
 
             if (showDurationFields) {
                 durationControl?.setValidators([Validators.required]);
-                hoursControl?.setValidators([Validators.required]);
             } else {
                 durationControl?.clearValidators();
-                hoursControl?.clearValidators();
                 durationControl?.setValue('');
-                hoursControl?.setValue('');
             }
             durationControl?.updateValueAndValidity();
-            hoursControl?.updateValueAndValidity();
         });
 
         // Watch for status changes to clear/set validators for interview fields
