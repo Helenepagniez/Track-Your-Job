@@ -24,6 +24,8 @@ export interface JobOffer {
     salary?: string;
     dateAdded: Date;
     description?: string;
+    contractDuration?: string;
+    weeklyHours?: string;
     // New fields
     contractType?: string;
     link?: string;

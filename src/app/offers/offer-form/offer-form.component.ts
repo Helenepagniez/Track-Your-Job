@@ -46,6 +46,8 @@ export class OfferFormComponent implements OnInit {
         title: ['', Validators.required],
         company: ['', Validators.required],
         contractType: [''],
+        contractDuration: [''],
+        weeklyHours: [''],
         location: [''],
         salary: [''],
         link: ['']
@@ -85,6 +87,25 @@ export class OfferFormComponent implements OnInit {
             }
         });
 
+        // Watch for contract type changes to show/hide duration fields
+        this.firstFormGroup.get('contractType')?.valueChanges.subscribe(value => {
+            const durationControl = this.firstFormGroup.get('contractDuration');
+            const hoursControl = this.firstFormGroup.get('weeklyHours');
+            const showDurationFields = ['CDD', 'Stage', 'Freelance', 'Intérim'].includes(value);
+
+            if (showDurationFields) {
+                durationControl?.setValidators([Validators.required]);
+                hoursControl?.setValidators([Validators.required]);
+            } else {
+                durationControl?.clearValidators();
+                hoursControl?.clearValidators();
+                durationControl?.setValue('');
+                hoursControl?.setValue('');
+            }
+            durationControl?.updateValueAndValidity();
+            hoursControl?.updateValueAndValidity();
+        });
+
         // Watch for status changes to clear/set validators for interview fields
         this.thirdFormGroup.get('status')?.valueChanges.subscribe(status => {
             const dateControl = this.thirdFormGroup.get('interviewDate');
@@ -117,10 +138,17 @@ export class OfferFormComponent implements OnInit {
                 title: this.offer.title,
                 company: this.offer.company,
                 contractType: this.offer.contractType,
+                contractDuration: this.offer.contractDuration,
+                weeklyHours: this.offer.weeklyHours,
                 location: this.offer.location,
                 salary: this.offer.salary,
                 link: this.offer.link
             });
+
+            // Trigger value change to set validation for contract duration
+            if (this.offer.contractType) {
+                this.firstFormGroup.get('contractType')?.setValue(this.offer.contractType);
+            }
 
             // Use company data if available, otherwise fall back to offer data
             this.secondFormGroup.patchValue({
@@ -150,6 +178,8 @@ export class OfferFormComponent implements OnInit {
                 title: step1.title,
                 company: step1.company,
                 contractType: step1.contractType,
+                contractDuration: step1.contractDuration,
+                weeklyHours: step1.weeklyHours,
                 location: step1.location || 'Remote',
                 salary: step1.salary,
                 link: step1.link,

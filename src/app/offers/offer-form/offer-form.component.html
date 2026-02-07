@@ -31,8 +31,23 @@
                             <option value="Freelance">Freelance</option>
                             <option value="Stage">Stage</option>
                             <option value="Alternance">Alternance</option>
+                            <option value="Intérim">Intérim</option>
                         </select>
                     </div>
+
+                    <ng-container
+                        *ngIf="['CDD', 'Stage', 'Freelance', 'Intérim'].includes(firstFormGroup.get('contractType')?.value)">
+                        <div class="form-group">
+                            <label class="form-label">Durée du contrat *</label>
+                            <input matInput formControlName="contractDuration" placeholder="Ex: 6 mois"
+                                class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Durée hebdomadaire *</label>
+                            <input matInput formControlName="weeklyHours" placeholder="Ex: 35h" class="form-control">
+                        </div>
+                    </ng-container>
 
                     <div class="form-group">
                         <label class="form-label">Lieu</label>

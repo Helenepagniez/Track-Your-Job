@@ -99,6 +99,20 @@
                             <span class="value">{{ o.contractType }}</span>
                         </div>
                     </li>
+                    <li *ngIf="o.contractDuration">
+                        <span class="icon">⏱️</span>
+                        <div>
+                            <span class="label">Durée</span>
+                            <span class="value">{{ o.contractDuration }}</span>
+                        </div>
+                    </li>
+                    <li *ngIf="o.weeklyHours">
+                        <span class="icon">⌚</span>
+                        <div>
+                            <span class="label">Hebdo</span>
+                            <span class="value">{{ o.weeklyHours }}</span>
+                        </div>
+                    </li>
                     <li *ngIf="o.salary">
                         <span class="icon">💰</span>
                         <div>
