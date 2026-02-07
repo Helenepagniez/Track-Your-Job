@@ -148,6 +148,7 @@ export class TasksComponent {
                 completed: false,
                 status: 'a_faire',
                 priority: processedData.priority || 'moyenne',
+                link: processedData.link,
                 relatedOffers: processedData.relatedOffers
             };
             this.tasksService.addTask(newTask);

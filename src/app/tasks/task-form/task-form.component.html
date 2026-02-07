@@ -25,6 +25,10 @@
         </select>
     </div>
     <div class="form-group">
+        <label class="form-label">Lien (optionnel)</label>
+        <input type="url" class="form-control" [(ngModel)]="formData.link" placeholder="https://example.com">
+    </div>
+    <div class="form-group">
         <label class="form-label">Offres liées (optionnel)</label>
 
         <div class="chips-container" *ngIf="formData.relatedOffers && formData.relatedOffers.length > 0">

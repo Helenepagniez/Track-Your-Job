@@ -605,6 +605,21 @@ section {
     border-top: 1px solid var(--border-color);
 }
 
+.task-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: fit-content;
+    font-weight: 500;
+}
+
+.task-link:hover {
+    text-decoration: underline;
+}
+
+
 .card-footer .due-date {
     font-size: 0.8rem;
 }

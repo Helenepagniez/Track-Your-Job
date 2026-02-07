@@ -47,6 +47,11 @@
                         </div>
                     </div>
                     <h4>{{ task.title }}</h4>
+                    <div class="card-meta" *ngIf="task.link">
+                        <a [href]="task.link" target="_blank" (click)="$event.stopPropagation()" class="task-link">
+                            <i class="fa-solid fa-link"></i> Lien
+                        </a>
+                    </div>
                     <div class="card-meta" *ngIf="task.relatedOffers && task.relatedOffers.length">
                         <span *ngFor="let offer of task.relatedOffers | slice:0:2; let last = last">
                             <i class="icon">💼</i> {{ offer }}{{ !last ? ', ' : '' }}
@@ -199,6 +204,10 @@
                     </span>
                 </div>
                 <div class="task-meta">
+                    <a *ngIf="task.link" [href]="task.link" target="_blank" (click)="$event.stopPropagation()"
+                        class="task-link">
+                        <i class="fa-solid fa-link"></i> Lien
+                    </a>
                     <span *ngIf="task.relatedOffers && task.relatedOffers.length" class="related-offer">
                         <span *ngFor="let offer of task.relatedOffers; let last = last">
                             <i class="icon">💼</i> {{ offer }}{{ !last ? ', ' : '' }}
