@@ -9,6 +9,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { OffersService, JobOffer, StatusHistoryEntry, Interview } from '../../core/services/offers.service';
 import { TasksService } from '../../core/services/tasks.service';
 import { OfferFormComponent } from '../offer-form/offer-form.component';
+import { statusClass } from '../../core/models/status-style';
 
 @Component({
     selector: 'app-offer-detail',
@@ -22,6 +23,8 @@ export class OfferDetailComponent implements OnInit {
     private router = inject(Router);
     private offersService = inject(OffersService);
     private tasksService = inject(TasksService);
+
+    statusClass = statusClass;
 
     offerId = signal<number | null>(null);
 
@@ -53,43 +56,6 @@ export class OfferDetailComponent implements OnInit {
     // Max date for status history (today)
     maxDate = new Date();
 
-    statusColors: Record<string, { color: string, background: string, border: string }> = {
-        'To Apply': {
-            color: '#4d5457ff',
-            background: 'rgba(99, 110, 114, 0.2)',
-            border: '2px solid #4d5457ff'
-        },
-        'Applied': {
-            color: '#0056b3',
-            background: 'rgba(0, 87, 179, 0.2)',
-            border: '2px solid #0056b3'
-        },
-        'To Relaunch': {
-            color: '#e67e22',
-            background: 'rgba(230, 126, 34, 0.2)',
-            border: '2px solid #e67e22'
-        },
-        'No Response': {
-            color: '#754600ff',
-            background: 'rgba(117, 70, 0, 0.2)',
-            border: '2px solid #754600ff'
-        },
-        'Interview': {
-            color: '#ffbb00ff',
-            background: 'rgba(255, 196, 0, 0.18)',
-            border: '2px solid #ffbb00ff'
-        },
-        'Offer': {
-            color: '#00997aff',
-            background: 'rgba(0, 153, 122, 0.2)',
-            border: '2px solid #00997aff'
-        },
-        'Rejected': {
-            color: '#d63031',
-            background: 'rgba(214, 48, 49, 0.2)',
-            border: '2px solid #d63031'
-        }
-    };
 
     possibleStatuses = ['To Apply', 'Applied', 'To Relaunch', 'No Response', 'Interview', 'Offer', 'Rejected'];
     interviewTypes: Interview['type'][] = ['Préqual', 'Entretien Physique', 'Entretien Téléphonique', 'Entretien Visio'];

@@ -1,55 +1,125 @@
-<section>
-    <!-- Header -->
-    <header class="page-header">
-        <div class="header-content">
-            <h1>Mon Répertoire des Entreprises</h1>
+<section class="companies">
+
+    <header class="page-head">
+        <div>
+            <h1 class="display-title">Entreprises</h1>
+            <p class="subtitle">
+                {{ total() }} fiche{{ total() > 1 ? 's' : '' }} ·
+                {{ contactTotal() }} contact{{ contactTotal() > 1 ? 's' : '' }} au répertoire
+            </p>
+        </div>
+        <div class="head-actions">
+            <a class="btn-ghost" routerLink="/repertoire">
+                <i class="fa-solid fa-address-book"></i> Voir le répertoire
+            </a>
+            <button type="button" class="btn-solid" (click)="openForm()">
+                <i class="fa-solid fa-plus"></i> Ajouter une entreprise
+            </button>
         </div>
     </header>
 
-    <!-- Search Bar -->
-    <div class="filters-bar glass">
-        <div class="search-box">
+    <div class="filters" *ngIf="total() > 0">
+        <div class="search">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Rechercher une entreprise..." class="search-input" [ngModel]="searchTerm()"
-                (ngModelChange)="searchTerm.set($event)">
+            <input type="search" placeholder="Nom ou secteur…" aria-label="Rechercher une entreprise"
+                [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
         </div>
+
+        <select aria-label="Filtrer par secteur" [ngModel]="sectorFilter()" (ngModelChange)="sectorFilter.set($event)"
+            *ngIf="sectors().length > 0">
+            <option value="">Tous les secteurs</option>
+            <option *ngFor="let sector of sectors()" [value]="sector">{{ sector }}</option>
+        </select>
+
+        <button type="button" class="link-btn" *ngIf="hasFilters()" (click)="resetFilters()">Tout afficher</button>
     </div>
 
-    <!-- Content -->
-    <div class="companies-grid">
-        <div *ngFor="let company of companies()" class="company-card glass hover-effect">
-            <div class="card-header">
-                <div class="company-avatar">{{ company.name.charAt(0) }}</div>
-                <div class="company-info">
-                    <h3>{{ company.name }}</h3>
+    <div class="grid-cards" *ngIf="filtered().length > 0">
+        <article class="company-card" *ngFor="let card of filtered()" (click)="open(card)">
+            <div class="card-head">
+                <span class="logo" aria-hidden="true">{{ card.initials }}</span>
+                <div class="card-id">
+                    <h2>{{ card.name }}</h2>
+                    <p class="sector">{{ card.sector || 'Secteur non renseigné' }}</p>
                 </div>
-            </div>
-
-            <div class="card-body">
-                <div class="offer-status-container">
-                    <div class="status-badges">
-                        <span *ngFor="let badge of getStatusBadges(company)" class="status-badge"
-                            [style.background-color]="badge.background" [style.color]="badge.color"
-                            [style.border]="badge.border">
-                            {{ badge.count }} offre{{ badge.count > 1 ? 's' : '' }} {{ badge.label }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card-footer">
-                <button class="btn btn-outline btn-sm" (click)="viewDetails(company)"
-                    title="Voir les détails de l'entreprise">
-                    Voir détails <i class="fa-solid fa-arrow-right"></i>
+                <button type="button" class="icon-btn" [attr.aria-label]="'Supprimer la fiche ' + card.name"
+                    (click)="askDelete(card, $event)">
+                    <i class="fa-solid fa-trash-can"></i>
                 </button>
             </div>
-        </div>
+
+            <div class="badges" *ngIf="card.badges.length > 0">
+                <span class="status-chip" *ngFor="let badge of card.badges" [ngClass]="badge.className">
+                    {{ badge.count }} {{ badge.label | lowercase }}
+                </span>
+            </div>
+            <p class="no-app" *ngIf="card.badges.length === 0">Aucune candidature en cours</p>
+
+            <footer class="card-foot">
+                <span *ngIf="card.contactCount > 0">
+                    <i class="fa-solid fa-user"></i>
+                    {{ card.contactCount }} contact{{ card.contactCount > 1 ? 's' : '' }}
+                </span>
+                <span *ngIf="card.historyCount > 0">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    {{ card.historyCount }} archivée{{ card.historyCount > 1 ? 's' : '' }}
+                </span>
+                <span class="spacer"></span>
+                <span class="open-hint">Voir la fiche <i class="fa-solid fa-arrow-right"></i></span>
+            </footer>
+        </article>
     </div>
 
-    <!-- Empty State -->
-    <div *ngIf="companies().length === 0" class="empty-state">
+    <div class="empty" *ngIf="total() > 0 && filtered().length === 0">
+        <h3>Aucun résultat</h3>
+        <p>Aucune entreprise ne correspond à cette recherche.</p>
+        <button type="button" class="link-btn" (click)="resetFilters()">Tout afficher</button>
+    </div>
+
+    <div class="empty" *ngIf="total() === 0">
         <div class="empty-icon"><i class="fa-solid fa-building"></i></div>
-        <h3>Aucune entreprise trouvée</h3>
-        <p>Modifiez votre recherche ou ajoutez de nouvelles offres.</p>
+        <h3>Aucune entreprise enregistrée</h3>
+        <p>Les fiches se créent d'elles-mêmes quand vous ajoutez une candidature, ou à la main ici.</p>
+        <button type="button" class="btn-solid" (click)="openForm()">
+            <i class="fa-solid fa-plus"></i> Créer une fiche
+        </button>
     </div>
 </section>
+
+<!-- Création ------------------------------------------------------------- -->
+<div class="modal-overlay" *ngIf="showFormModal()">
+    <div class="modal-panel">
+        <header class="modal-head">
+            <h2 class="display-title">Nouvelle entreprise</h2>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="closeForm()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+        <div class="modal-body">
+            <app-company-form (save)="onSave($event)" (cancel)="closeForm()"></app-company-form>
+        </div>
+    </div>
+</div>
+
+<!-- Suppression ---------------------------------------------------------- -->
+<div class="modal-overlay" *ngIf="showDeleteConfirm()">
+    <div class="modal-panel narrow">
+        <header class="modal-head">
+            <h2 class="display-title">Supprimer cette fiche ?</h2>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="cancelDelete()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+        <div class="modal-body">
+            <p>
+                La fiche {{ toDelete()?.name }} sera supprimée. Ses
+                {{ toDelete()?.applicationCount }} candidature(s) sont conservées, mais elles n'auront plus
+                d'employeur nommé, et ses contacts en seront détachés.
+            </p>
+        </div>
+        <footer class="modal-foot">
+            <button type="button" class="btn-ghost" (click)="cancelDelete()">Annuler</button>
+            <button type="button" class="btn-danger" (click)="confirmDelete()">Supprimer</button>
+        </footer>
+    </div>
+</div>

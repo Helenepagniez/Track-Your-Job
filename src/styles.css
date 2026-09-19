@@ -1,29 +1,108 @@
-/* Global Styles */
+/* ==========================================================================
+   Palette « Ardoise & Menthe ».
+   Tout le thème de l'application tient dans ce bloc : pour en changer, il
+   suffit de remplacer ces valeurs. Aucun composant ne doit écrire une couleur
+   en dur.
+   ========================================================================== */
 :root {
-  /* Light Mode Palette */
-  --primary-color: #0056b3;
-  /* Deep Blue */
-  --secondary-color: #00a8ff;
-  /* Light Blue */
-  --accent-color: #00d2d3;
-  /* Cyan Accent */
-  --background-color: #def2ff;
-  --background-color-popup: #e7f4fc;
-  /* Very Light Grey/White */
-  --surface-color: #ffffff;
-  --text-color: #2d3436;
-  --text-secondary: #636e72;
-  --border-color: #dfe6e9;
-  --success-color: #00b894;
-  --warning-color: #fdcb6e;
-  --danger-color: #d63031;
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  /* fonds et traits */
+  --bg: #F6F7F6;
+  --surface: #FFFFFF;
+  --surface-2: #FAFBFA;
+  --surface-3: #EFF2F1;
+  --line-soft: #E9EDEC;
+  --line: #DFE4E3;
+  --line-strong: #CDD4D3;
+
+  /* texte */
+  --ink: #15181A;
+  --ink-2: #39403F;
+  --ink-3: #5A6362;
+  --ink-4: #6B7574;
+  --dot-neutral: #A3ACAB;
+
+  /* marque : barre latérale, boutons principaux */
+  --brand: #2B3138;
+  --brand-hover: #171C21;
+  --brand-soft: #E6EEEB;
+  --on-brand: #FFFFFF;
+  --brand-fg: #EEF1F1;
+  --brand-fg-dim: #A9B2B5;
+  --brand-fg-dimmer: #868F92;
+  --nav-active: rgba(79, 193, 166, .18);
+  --nav-panel: rgba(255, 255, 255, .08);
+
+  /* accent : données, mises en avant */
+  --accent: #4FC1A6;
+  --on-accent: #06302A;
+  --accent-soft: #E8F6F2;
+  --accent-line: #BFE3D9;
+  --accent-line-strong: #7FC9B6;
+  --accent-ink: #0E4B3E;
+
+  /* liens */
+  --link: #1F7A66;
+  --link-hover: #135A4B;
+
+  /* statuts de candidature : un fond, un texte, une pastille par statut */
+  --st-todo-bg: #EFF2F1;
+  --st-todo-fg: #39403F;
+  --st-todo-dot: #A3ACAB;
+  --st-sent-bg: #E2EAF6;
+  --st-sent-fg: #1F4B86;
+  --st-sent-dot: #4A7DC4;
+  --st-wait-bg: #FBEBDC;
+  --st-wait-fg: #8A4C10;
+  --st-wait-dot: #D08B3C;
+  --st-none-bg: #EDEEEC;
+  --st-none-fg: #5A6362;
+  --st-none-dot: #8C9491;
+  --st-itw-bg: #FFF3D1;
+  --st-itw-fg: #7A5300;
+  --st-itw-dot: #C79A18;
+  --st-ok-bg: #DDF0E4;
+  --st-ok-fg: #16653A;
+  --st-ok-dot: #2E9963;
+  --st-ko-bg: #F9E3E3;
+  --st-ko-fg: #9B2226;
+  --st-ko-dot: #C9585A;
+
+  /* messages */
+  --ok-soft: #EDF6F0;
+  --ok-line: #C9E4D4;
+  --warn-soft: #FDF6EE;
+  --warn-line: #E9D2B5;
+  --ko-soft: #FDF6F6;
+  --ko-line: #F0DDDD;
+
+  /* typographie */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Instrument Sans', system-ui, sans-serif;
+
+  --shadow-sm: 0 1px 2px rgba(21, 24, 26, 0.05);
+  --shadow-md: 0 4px 10px rgba(21, 24, 26, 0.07);
+  --shadow-lg: 0 12px 28px rgba(21, 24, 26, 0.12);
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
-  --font-family: 'Roboto', sans-serif;
+
+  /* --------------------------------------------------------------------
+     Alias de l'ancien nommage. Les écrans pas encore refaits les utilisent
+     encore ; ils pointent sur la palette ci-dessus et disparaîtront avec eux.
+     -------------------------------------------------------------------- */
+  --primary-color: var(--brand);
+  --secondary-color: var(--brand-hover);
+  --accent-color: var(--accent);
+  --background-color: var(--bg);
+  --background-color-popup: var(--surface-2);
+  --surface-color: var(--surface);
+  --text-color: var(--ink);
+  --text-secondary: var(--ink-3);
+  --border-color: var(--line);
+  --success-color: var(--st-ok-dot);
+  --warning-color: var(--st-itw-dot);
+  --danger-color: var(--st-ko-fg);
+  --font-family: var(--font-body);
 }
 
 
@@ -99,7 +178,7 @@ i {
 .btn-primary {
   background-color: var(--primary-color);
   color: var(--surface-color);
-  font: 500 14px Roboto, sans-serif;
+  font: 500 14px var(--font-body);
 }
 
 .btn-primary:hover {
@@ -112,7 +191,7 @@ i {
   background-color: var(--surface-color);
   border: 2px solid var(--primary-color);
   color: var(--primary-color);
-  font: 500 14px Roboto, sans-serif;
+  font: 500 14px var(--font-body);
 }
 
 .btn-outline:hover {
@@ -140,7 +219,7 @@ i {
   display: block;
   margin-bottom: 8px;
   color: var(--text-color);
-  font: 600 16px Roboto, sans-serif;
+  font: 600 15px var(--font-body);
   letter-spacing: 0.5px;
 }
 
@@ -151,14 +230,14 @@ i {
   border: 1px solid var(--border-color);
   color: var(--text-color);
   transition: border-color 0.2s ease;
-  font: 16px Roboto, sans-serif;
+  font: 15px var(--font-body);
   letter-spacing: 0.5px;
 }
 
 .form-control:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
+  box-shadow: 0 0 0 3px rgba(79, 193, 166, 0.18);
   border: 2px solid var(--primary-color);
 }
 
@@ -169,7 +248,7 @@ body {
 
 body {
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-family: var(--font-body);
   color: var(--text-color);
 }
 
@@ -353,5 +432,515 @@ html::-webkit-scrollbar {
 
   .card {
     padding: 16px;
+  }
+}
+/* ==========================================================================
+   Pastilles de statut, partagées par tous les écrans.
+   Une seule définition : les couleurs vivaient auparavant en dur dans quatre
+   composants différents.
+   ========================================================================== */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  font: 500 12.5px/1 var(--font-body);
+  white-space: nowrap;
+}
+
+button.status-chip {
+  cursor: pointer;
+}
+
+.status-chip .chip-caret {
+  opacity: .55;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.st-to_apply {
+  background: var(--st-todo-bg);
+  color: var(--st-todo-fg);
+}
+
+.st-to_apply .status-dot,
+.dot-to_apply {
+  background: var(--st-todo-dot);
+}
+
+.st-sent {
+  background: var(--st-sent-bg);
+  color: var(--st-sent-fg);
+}
+
+.st-sent .status-dot,
+.dot-sent {
+  background: var(--st-sent-dot);
+}
+
+.st-to_relaunch {
+  background: var(--st-wait-bg);
+  color: var(--st-wait-fg);
+}
+
+.st-to_relaunch .status-dot,
+.dot-to_relaunch {
+  background: var(--st-wait-dot);
+}
+
+.st-no_response {
+  background: var(--st-none-bg);
+  color: var(--st-none-fg);
+}
+
+.st-no_response .status-dot,
+.dot-no_response {
+  background: var(--st-none-dot);
+}
+
+.st-interview {
+  background: var(--st-itw-bg);
+  color: var(--st-itw-fg);
+}
+
+.st-interview .status-dot,
+.dot-interview {
+  background: var(--st-itw-dot);
+}
+
+.st-offer {
+  background: var(--st-ok-bg);
+  color: var(--st-ok-fg);
+}
+
+.st-offer .status-dot,
+.dot-offer {
+  background: var(--st-ok-dot);
+}
+
+.st-rejected {
+  background: var(--st-ko-bg);
+  color: var(--st-ko-fg);
+}
+
+.st-rejected .status-dot,
+.dot-rejected {
+  background: var(--st-ko-dot);
+}
+
+.st-withdrawn {
+  background: var(--st-none-bg);
+  color: var(--st-none-fg);
+}
+
+.st-withdrawn .status-dot,
+.dot-withdrawn {
+  background: var(--st-none-dot);
+}
+
+/* Titres éditoriaux : la police d'affichage n'est utilisée que là. */
+.display-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Primitives de formulaire, partagées par les écrans refaits.
+   ========================================================================== */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.form-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field label {
+  font: 600 12px var(--font-body);
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+}
+
+.req,
+.opt {
+  font-weight: 500;
+  font-size: 10.5px;
+  padding: 2px 6px;
+  border-radius: 5px;
+}
+
+.req {
+  color: var(--st-wait-fg);
+  background: var(--st-wait-bg);
+}
+
+.opt {
+  color: var(--ink-4);
+  background: var(--surface-3);
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  font: 13.5px var(--font-body);
+  color: var(--ink);
+}
+
+.field textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--accent-line-strong);
+  box-shadow: 0 0 0 3px rgba(79, 193, 166, 0.18);
+}
+
+.field input.invalid,
+.field textarea.invalid {
+  border-color: var(--st-ko-dot);
+  background: var(--ko-soft);
+}
+
+.hint {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--ink-4);
+  line-height: 1.5;
+}
+
+.error {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--st-ko-fg);
+}
+
+.form-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+  flex-wrap: wrap;
+}
+
+.foot-hint {
+  flex-grow: 1;
+  font-size: 12.5px;
+  color: var(--ink-4);
+}
+
+.btn-ghost {
+  height: 38px;
+  padding: 0 15px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  font: 500 13.5px var(--font-body);
+  color: var(--ink-2);
+}
+
+.btn-ghost:hover {
+  border-color: var(--line-strong);
+}
+
+.btn-solid {
+  height: 38px;
+  padding: 0 17px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--brand);
+  color: var(--on-brand);
+  font: 500 13.5px var(--font-body);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-solid:hover {
+  background: var(--brand-hover);
+}
+
+@media (max-width: 700px) {
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Ossature d'écran, partagée par les écrans refaits : en-tête, filtres,
+   états vides et fenêtres modales.
+   ========================================================================== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--ink-4);
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-head h1 {
+  font-size: 26px;
+  margin: 0;
+}
+
+.page-head .subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filters .search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  min-width: 250px;
+}
+
+.filters .search i {
+  color: var(--ink-4);
+  font-size: 13px;
+}
+
+.filters .search input {
+  border: 0;
+  background: transparent;
+  outline: none;
+  font: 13.5px var(--font-body);
+  color: var(--ink);
+  width: 100%;
+}
+
+.filters select {
+  height: 36px;
+  padding: 0 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: 13px var(--font-body);
+  color: var(--ink-2);
+}
+
+.chip-filter {
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  font: 500 12.5px var(--font-body);
+  color: var(--ink-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.chip-filter.on {
+  border-color: var(--st-wait-dot);
+  background: var(--st-wait-bg);
+  color: var(--st-wait-fg);
+}
+
+.link-btn {
+  border: 0;
+  background: transparent;
+  font: 500 13px var(--font-body);
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.icon-btn {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-4);
+  font-size: 12.5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  border-color: var(--line);
+  background: var(--surface-3);
+  color: var(--ink-2);
+}
+
+/* États vides ------------------------------------------------------------ */
+.empty {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 40px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.empty h3 {
+  margin: 0;
+  font: 600 17px var(--font-body);
+}
+
+.empty p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ink-3);
+}
+
+.empty .empty-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--surface-3);
+  color: var(--ink-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.empty .btn-solid {
+  margin-top: 8px;
+}
+
+/* Fenêtres modales ------------------------------------------------------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  /* Au-dessus de la barre latérale, qui monte à 1000. */
+  z-index: 1100;
+  background: rgba(21, 24, 26, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal-panel {
+  width: 100%;
+  max-width: 880px;
+  max-height: 92vh;
+  background: var(--surface);
+  border-radius: 18px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-panel.narrow {
+  max-width: 460px;
+}
+
+.modal-head {
+  flex-shrink: 0;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line-soft);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-head h2 {
+  flex-grow: 1;
+  font-size: 19px;
+  margin: 0;
+}
+
+.modal-body {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 20px 22px;
+}
+
+.modal-body p {
+  font-size: 13.5px;
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+
+.modal-foot {
+  flex-shrink: 0;
+  padding: 14px 22px;
+  border-top: 1px solid var(--line-soft);
+  background: var(--surface-2);
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.btn-danger {
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--st-ko-fg);
+  color: var(--on-brand);
+  font: 500 13.5px var(--font-body);
+}
+
+@media (max-width: 900px) {
+  .filters .search {
+    min-width: 100%;
   }
 }

@@ -1,0 +1,206 @@
+<section class="directory">
+
+    <header class="page-head">
+        <div>
+            <h1 class="display-title">Répertoire</h1>
+            <p class="subtitle">
+                {{ total() }} personne{{ total() > 1 ? 's' : '' }} ·
+                {{ companyCount() }} entreprise{{ companyCount() > 1 ? 's' : '' }}
+                <span *ngIf="followUpCount() > 0"> · {{ followUpCount() }} à recontacter</span>
+            </p>
+        </div>
+        <button type="button" class="btn-solid" (click)="openForm()">
+            <i class="fa-solid fa-plus"></i> Ajouter un contact
+        </button>
+    </header>
+
+    <div class="filters">
+        <div class="search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="search" placeholder="Nom, entreprise ou fonction…"
+                aria-label="Rechercher un contact par nom, entreprise ou fonction" [ngModel]="searchTerm()"
+                (ngModelChange)="searchTerm.set($event)">
+        </div>
+
+        <select aria-label="Filtrer par entreprise" [ngModel]="companyFilter()"
+            (ngModelChange)="companyFilter.set($event)">
+            <option value="">Toutes les entreprises</option>
+            <option *ngFor="let company of companies()" [ngValue]="company.id">{{ company.name }}</option>
+        </select>
+
+        <button type="button" class="chip-filter" [class.on]="onlyToFollowUp()" *ngIf="followUpCount() > 0"
+            (click)="onlyToFollowUp.set(!onlyToFollowUp())">
+            <i class="fa-solid fa-rotate-right"></i> À recontacter · {{ followUpCount() }}
+        </button>
+
+        <button type="button" class="link-btn" *ngIf="hasFilters()" (click)="resetFilters()">Tout afficher</button>
+    </div>
+
+    <div class="columns" *ngIf="total() > 0">
+
+        <!-- Liste --------------------------------------------------------- -->
+        <div class="list">
+            <div class="letter-group" *ngFor="let group of groups()">
+                <div class="letter">
+                    <span>{{ group.letter }}</span>
+                    <span class="rule"></span>
+                </div>
+
+                <button type="button" class="row" *ngFor="let row of group.contacts"
+                    [class.active]="selected()?.id === row.id" (click)="select(row)">
+                    <span class="avatar" aria-hidden="true">{{ row.initials }}</span>
+                    <span class="row-main">
+                        <span class="row-name">{{ row.fullName }}</span>
+                        <span class="row-sub">
+                            {{ row.role || 'Fonction non renseignée' }}
+                            <span *ngIf="row.companyName"> · {{ row.companyName }}</span>
+                        </span>
+                    </span>
+                    <span class="row-contact">
+                        <span *ngIf="row.email">{{ row.email }}</span>
+                        <span class="muted" *ngIf="!row.email">pas d'email</span>
+                    </span>
+                    <span class="row-phone">{{ row.phone || '—' }}</span>
+                    <span class="row-flag" *ngIf="row.toFollowUp">à recontacter</span>
+                </button>
+            </div>
+
+            <p class="list-foot" *ngIf="filtered().length > 0">
+                {{ filtered().length }} sur {{ total() }} affiché{{ filtered().length > 1 ? 's' : '' }} · tri par nom de
+                famille
+            </p>
+
+            <div class="empty inner" *ngIf="filtered().length === 0">
+                <h3>Aucun résultat</h3>
+                <p>Aucun contact ne correspond à cette recherche.</p>
+                <button type="button" class="link-btn" (click)="resetFilters()">Tout afficher</button>
+            </div>
+        </div>
+
+        <!-- Fiche --------------------------------------------------------- -->
+        <aside class="panel" *ngIf="selected() as row">
+            <div class="panel-head">
+                <span class="avatar big" aria-hidden="true">{{ row.initials }}</span>
+                <div class="panel-title">
+                    <h2>{{ row.fullName }}</h2>
+                    <p>
+                        {{ row.role || 'Fonction non renseignée' }}
+                        <span *ngIf="row.companyName"> · {{ row.companyName }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="panel-actions">
+                <a class="btn-solid grow" *ngIf="row.email" [href]="'mailto:' + row.email">
+                    <i class="fa-solid fa-envelope"></i> Écrire
+                </a>
+                <a class="btn-ghost grow" *ngIf="row.phone" [href]="'tel:' + row.phone">
+                    <i class="fa-solid fa-phone"></i> Appeler
+                </a>
+                <button type="button" class="btn-ghost" [attr.aria-label]="'Modifier ' + row.fullName"
+                    (click)="openForm(row)">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="btn-ghost danger" [attr.aria-label]="'Supprimer ' + row.fullName"
+                    (click)="askDelete()">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+
+            <section class="panel-block">
+                <h3>Coordonnées</h3>
+                <p *ngIf="row.email"><a [href]="'mailto:' + row.email">{{ row.email }}</a></p>
+                <p *ngIf="row.phone"><a [href]="'tel:' + row.phone">{{ row.phone }}</a></p>
+                <p *ngIf="row.linkedin"><a [href]="row.linkedin" target="_blank" rel="noopener">Profil LinkedIn</a></p>
+                <p class="muted" *ngIf="!row.email && !row.phone && !row.linkedin">
+                    Aucune coordonnée enregistrée.
+                </p>
+            </section>
+
+            <section class="panel-block">
+                <h3>Rattachements</h3>
+                <div class="affiliation" *ngFor="let affiliation of row.affiliations"
+                    [class.past]="!affiliation.current">
+                    <button type="button" class="affiliation-link" (click)="openCompany(affiliation.companyId)">
+                        <span class="affiliation-name">{{ affiliation.name }}</span>
+                        <span class="affiliation-sub">
+                            {{ affiliation.current ? 'poste actuel' : 'ancien poste' }}
+                            <span *ngIf="affiliation.applicationCount > 0">
+                                · {{ affiliation.applicationCount }}
+                                candidature{{ affiliation.applicationCount > 1 ? 's' : '' }}
+                            </span>
+                        </span>
+                    </button>
+                    <button type="button" class="icon-btn"
+                        [attr.aria-label]="'Détacher de ' + affiliation.name" (click)="detach(row, affiliation)">
+                        <i class="fa-solid fa-link-slash"></i>
+                    </button>
+                </div>
+                <p class="muted" *ngIf="row.affiliations.length === 0">
+                    Ce contact n'est rattaché à aucune entreprise.
+                </p>
+            </section>
+
+            <section class="panel-block">
+                <h3>Dernière activité</h3>
+                <p>{{ row.activity }}</p>
+            </section>
+
+            <section class="panel-block" *ngIf="row.notes">
+                <h3>Notes</h3>
+                <p class="notes">{{ row.notes }}</p>
+            </section>
+
+            <p class="panel-foot">
+                <i class="fa-solid fa-shield-halved"></i>
+                Conservé même après une remise à zéro de campagne.
+            </p>
+        </aside>
+    </div>
+
+    <div class="empty" *ngIf="total() === 0">
+        <div class="empty-icon"><i class="fa-solid fa-address-book"></i></div>
+        <h3>Votre répertoire est vide</h3>
+        <p>Les recruteurs et personnes rencontrées vivent ici, indépendamment des candidatures.</p>
+        <button type="button" class="btn-solid" (click)="openForm()">
+            <i class="fa-solid fa-plus"></i> Ajouter mon premier contact
+        </button>
+    </div>
+</section>
+
+<!-- Ajout / modification ------------------------------------------------- -->
+<div class="modal-overlay" *ngIf="showFormModal()">
+    <div class="modal-panel">
+        <header class="modal-head">
+            <h2 class="display-title">{{ editing() ? 'Modifier le contact' : 'Nouveau contact' }}</h2>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="closeForm()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+        <div class="modal-body">
+            <app-contact-form [contact]="editing()" (save)="onSave($event)" (cancel)="closeForm()"></app-contact-form>
+        </div>
+    </div>
+</div>
+
+<!-- Suppression ---------------------------------------------------------- -->
+<div class="modal-overlay" *ngIf="showDeleteConfirm()">
+    <div class="modal-panel narrow">
+        <header class="modal-head">
+            <h2 class="display-title">Supprimer ce contact ?</h2>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="cancelDelete()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+        <div class="modal-body">
+            <p>
+                {{ selected()?.fullName }} sera retiré du répertoire. Les entreprises et les candidatures ne sont pas
+                touchées, mais cette action est irréversible.
+            </p>
+        </div>
+        <footer class="modal-foot">
+            <button type="button" class="btn-ghost" (click)="cancelDelete()">Annuler</button>
+            <button type="button" class="btn-danger" (click)="confirmDelete()">Supprimer</button>
+        </footer>
+    </div>
+</div>

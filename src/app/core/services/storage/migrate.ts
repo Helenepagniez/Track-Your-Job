@@ -1,0 +1,325 @@
+import {
+    Application,
+    ApplicationEvent,
+    ApplicationStatus,
+    Campaign,
+    Company,
+    Contact,
+    JobPosting,
+    LEGACY_TO_INTERVIEW,
+    LEGACY_TO_STATUS,
+    Profile,
+    companyKey
+} from '../../models/job-search.models';
+import {
+    AppData,
+    LegacyAppData,
+    LegacyOffer,
+    LegacyUser,
+    LegacyUserData,
+    SCHEMA_VERSION,
+    UserData,
+    emptyAppData
+} from './app-data';
+
+/**
+ * Amène n'importe quel contenu lu du localStorage (ou d'un import JSON) au
+ * schéma courant. La migration est sans perte : rien n'est supprimé, tout est
+ * redistribué dans les bonnes entités.
+ */
+export function migrateAppData(raw: unknown): AppData {
+    if (!raw || typeof raw !== 'object') {
+        return emptyAppData();
+    }
+
+    const data = raw as Partial<AppData> & Partial<LegacyAppData>;
+
+    if (data.schemaVersion === SCHEMA_VERSION) {
+        return normalizeV2(data as AppData);
+    }
+
+    return migrateV1(data as LegacyAppData);
+}
+
+function normalizeV2(data: AppData): AppData {
+    const users: AppData['users'] = {};
+    for (const [userId, userData] of Object.entries(data.users || {})) {
+        users[userId] = {
+            ...userData,
+            campaigns: userData.campaigns || [],
+            companies: userData.companies || [],
+            contacts: userData.contacts || [],
+            applications: (userData.applications || []).map(app => ({
+                ...app,
+                contactIds: app.contactIds || [],
+                events: app.events || []
+            })),
+            tasks: userData.tasks || [],
+            nextId: userData.nextId || nextFreeId(userData)
+        };
+    }
+    return { schemaVersion: SCHEMA_VERSION, currentUserId: data.currentUserId ?? null, users };
+}
+
+function nextFreeId(userData: UserData): number {
+    const ids = [
+        ...(userData.campaigns || []).map(c => c.id),
+        ...(userData.companies || []).map(c => c.id),
+        ...(userData.contacts || []).map(c => c.id),
+        ...(userData.applications || []).map(a => a.id),
+        ...(userData.applications || []).flatMap(a => (a.events || []).map(e => e.id))
+    ];
+    return ids.length > 0 ? Math.max(...ids) + 1 : 1;
+}
+
+// ---------------------------------------------------------------------------
+
+function migrateV1(legacy: LegacyAppData): AppData {
+    const users: AppData['users'] = {};
+
+    for (const [userId, legacyUserData] of Object.entries(legacy.users || {})) {
+        if (!legacyUserData || !legacyUserData.user) continue;
+        users[userId] = migrateV1User(legacyUserData);
+    }
+
+    return {
+        schemaVersion: SCHEMA_VERSION,
+        currentUserId: legacy.currentUserId ?? null,
+        users
+    };
+}
+
+function migrateV1User(legacyUserData: LegacyUserData): UserData {
+    const offers = legacyUserData.offers || [];
+    const profile = migrateProfile(legacyUserData.user);
+
+    let sequence = 1;
+    const nextId = () => sequence++;
+
+    // Une seule campagne reprend tout l'historique existant : on ne peut pas
+    // deviner où l'utilisateur a arrêté puis reprit sa recherche.
+    const earliest = offers
+        .map(o => toIso(o.dateAdded))
+        .sort()[0];
+
+    const campaign: Campaign = {
+        id: nextId(),
+        name: 'Ma recherche',
+        startedAt: earliest || profile.createdAt,
+        status: 'active'
+    };
+
+    const companies: Company[] = [];
+    const companiesByKey = new Map<string, Company>();
+    const contacts: Contact[] = [];
+    const contactKeys = new Set<string>();
+
+    // 1. Les entreprises, dédoublonnées par nom. L'offre la plus récente fait
+    //    foi, comme le faisait getCompany() dans l'ancien service.
+    const orderedOffers = [...offers].sort(
+        (a, b) => new Date(toIso(b.dateAdded)).getTime() - new Date(toIso(a.dateAdded)).getTime()
+    );
+
+    for (const offer of orderedOffers) {
+        const name = (offer.company || '').trim();
+        if (!name) continue;
+
+        const key = companyKey(name);
+        let company = companiesByKey.get(key);
+
+        if (!company) {
+            company = {
+                id: nextId(),
+                name,
+                createdAt: toIso(offer.dateAdded),
+                employees: offer.companyInfo?.employees,
+                founded: offer.companyInfo?.founded,
+                group: offer.companyInfo?.group,
+                description: offer.companyDescription || undefined,
+                history: []
+            };
+            companiesByKey.set(key, company);
+            companies.push(company);
+        } else {
+            // Offres plus anciennes : elles ne comblent que les trous.
+            company.employees = company.employees ?? offer.companyInfo?.employees;
+            company.founded = company.founded ?? offer.companyInfo?.founded;
+            company.group = company.group ?? offer.companyInfo?.group;
+            company.description = company.description ?? (offer.companyDescription || undefined);
+            if (new Date(toIso(offer.dateAdded)) < new Date(company.createdAt)) {
+                company.createdAt = toIso(offer.dateAdded);
+            }
+        }
+
+        // 2. Les contacts sortent de la fiche entreprise et deviennent autonomes.
+        for (const legacyContact of offer.companyInfo?.contacts || []) {
+            const fullName = (legacyContact.name || '').trim();
+            if (!fullName) continue;
+
+            const contactKey = `${key}::${fullName.toLowerCase()}`;
+            if (contactKeys.has(contactKey)) continue;
+            contactKeys.add(contactKey);
+
+            contacts.push({
+                id: nextId(),
+                fullName,
+                role: legacyContact.role || undefined,
+                email: legacyContact.email || undefined,
+                phone: legacyContact.phone || undefined,
+                affiliations: [{ companyId: company.id, current: true, role: legacyContact.role || undefined }],
+                createdAt: toIso(offer.dateAdded)
+            });
+        }
+    }
+
+    // 3. Les candidatures, qui ne font plus que référencer l'entreprise.
+    const applications: Application[] = offers.map(offer => {
+        const name = (offer.company || '').trim();
+        const company = name ? companiesByKey.get(companyKey(name)) : undefined;
+        const createdAt = toIso(offer.dateAdded);
+
+        return {
+            id: offer.id,
+            campaignId: campaign.id,
+            companyId: company ? company.id : null,
+            title: offer.title,
+            location: offer.location || undefined,
+            contractType: offer.contractType || undefined,
+            contractDuration: offer.contractDuration || undefined,
+            weeklyHours: offer.weeklyHours || undefined,
+            salary: offer.salary || undefined,
+            source: sourceFromLink(offer.link),
+            link: offer.link || undefined,
+            createdAt,
+            contactIds: [],
+            posting: migratePosting(offer),
+            events: migrateEvents(offer, createdAt, nextId)
+        };
+    });
+
+    return {
+        profile,
+        nextId: Math.max(sequence, 1),
+        campaigns: [campaign],
+        companies,
+        contacts,
+        applications,
+        tasks: (legacyUserData.tasks || []).map(task => ({
+            ...task,
+            dueDate: task.dueDate
+        }))
+    };
+}
+
+function migrateProfile(user: LegacyUser): Profile {
+    return {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        password: user.password,
+        authMethod: 'email',
+        createdAt: toIso(user.createdAt || new Date()),
+        title: user.title || undefined,
+        location: user.location || undefined,
+        skills: user.skills && user.skills.length > 0 ? user.skills : undefined
+    };
+}
+
+function migratePosting(offer: LegacyOffer): JobPosting | undefined {
+    const posting: JobPosting = {
+        description: offer.description || undefined,
+        missions: offer.missions || undefined,
+        profile: offer.profile || undefined,
+        benefits: offer.benefits || undefined,
+        recruitmentProcess: offer.recruitmentProcess || undefined,
+        others: offer.others || undefined
+    };
+    const hasContent = Object.values(posting).some(value => !!value);
+    return hasContent ? posting : undefined;
+}
+
+/**
+ * Reconstruit la chronologie. L'ancien `statusHistory` devient une suite
+ * d'événements datés ; les entretiens en deviennent aussi.
+ */
+function migrateEvents(offer: LegacyOffer, createdAt: string, nextId: () => number): ApplicationEvent[] {
+    const events: ApplicationEvent[] = [
+        { id: nextId(), type: 'created', at: createdAt }
+    ];
+
+    const history = offer.statusHistory && offer.statusHistory.length > 0
+        ? offer.statusHistory
+        : [{ status: offer.status, date: createdAt }];
+
+    for (const entry of history) {
+        const status = LEGACY_TO_STATUS[entry.status];
+        if (!status) continue;
+        events.push({
+            id: nextId(),
+            type: 'status',
+            at: toIso(entry.date),
+            status,
+            details: entry.details || undefined
+        });
+    }
+
+    // Filet de sécurité : si l'historique ne mène pas au statut affiché
+    // jusqu'ici, on ajoute l'événement manquant à la date de dernière trace.
+    const expected: ApplicationStatus | undefined = LEGACY_TO_STATUS[offer.status];
+    const lastStatus = [...events].reverse().find(e => e.type === 'status')?.status;
+    if (expected && lastStatus !== expected) {
+        const lastAt = events[events.length - 1]?.at || createdAt;
+        events.push({ id: nextId(), type: 'status', at: lastAt, status: expected });
+    }
+
+    const interviews = offer.interviews && offer.interviews.length > 0
+        ? offer.interviews
+        : (offer.interviewDate && offer.interviewType
+            ? [{ date: offer.interviewDate, type: offer.interviewType }]
+            : []);
+
+    for (const interview of interviews) {
+        events.push({
+            id: nextId(),
+            type: 'interview',
+            at: toIso(interview.date),
+            interviewKind: LEGACY_TO_INTERVIEW[interview.type] || 'video',
+            details: (interview as { details?: string }).details || undefined
+        });
+    }
+
+    return events;
+}
+
+const KNOWN_SOURCES: { match: string; label: string }[] = [
+    { match: 'hellowork', label: 'HelloWork' },
+    { match: 'indeed', label: 'Indeed' },
+    { match: 'francetravail', label: 'France Travail' },
+    { match: 'pole-emploi', label: 'France Travail' },
+    { match: 'linkedin', label: 'LinkedIn' },
+    { match: 'welcometothejungle', label: 'Welcome to the Jungle' },
+    { match: 'apec', label: 'Apec' },
+    { match: 'ouestfrance-emploi', label: 'Ouest France Emploi' },
+    { match: 'monster', label: 'Monster' },
+    { match: 'glassdoor', label: 'Glassdoor' }
+];
+
+/** Devine la source d'une candidature à partir du lien de l'annonce. */
+export function sourceFromLink(link?: string): string | undefined {
+    if (!link) return undefined;
+    let host: string;
+    try {
+        host = new URL(link).hostname.toLowerCase();
+    } catch {
+        return undefined;
+    }
+    const known = KNOWN_SOURCES.find(source => host.includes(source.match));
+    if (known) return known.label;
+    return host.replace(/^www\./, '');
+}
+
+function toIso(value: string | Date): string {
+    if (value instanceof Date) return value.toISOString();
+    const date = new Date(value);
+    return isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+}

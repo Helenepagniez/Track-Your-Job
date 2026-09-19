@@ -1,6 +1,6 @@
 /* Les primitives de formulaire sont globales (styles.css). */
 
-.company-form {
+.contact-form {
   display: flex;
   flex-direction: column;
   gap: 18px;

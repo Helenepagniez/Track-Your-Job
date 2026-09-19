@@ -1,7 +1,22 @@
-import { Injectable, signal, computed, effect, untracked } from '@angular/core';
+import { Injectable, computed, inject } from '@angular/core';
+import {
+    Application,
+    ApplicationEvent,
+    ApplicationStatus,
+    Company,
+    INTERVIEW_TO_LEGACY,
+    JobPosting,
+    LEGACY_TO_INTERVIEW,
+    LEGACY_TO_STATUS,
+    LegacyInterviewType,
+    LegacyStatus,
+    STATUS_TO_LEGACY,
+    currentStatus,
+    interviewEvents,
+    statusEvents
+} from '../models/job-search.models';
+import { JobSearchStore } from './job-search-store.service';
 import { TasksService } from './tasks.service';
-import { LocalStorageService } from './local-storage.service';
-import { AuthService } from './auth.service';
 
 export interface StatusHistoryEntry {
     status: string;
@@ -11,24 +26,36 @@ export interface StatusHistoryEntry {
 
 export interface Interview {
     date: Date;
-    type: 'Préqual' | 'Entretien Physique' | 'Entretien Téléphonique' | 'Entretien Visio';
+    type: LegacyInterviewType;
     details?: string;
 }
 
+/**
+ * Vue « offre » du modèle, telle que la consomment les écrans actuels.
+ * Elle disparaîtra avec eux : les nouveaux écrans lisent `JobSearchStore`.
+ */
 export interface JobOffer {
     id: number;
     title: string;
     company: string;
-    status: 'To Apply' | 'Applied' | 'Interview' | 'Offer' | 'Rejected' | 'To Relaunch' | 'No Response';
+    status: LegacyStatus;
     location: string;
     salary?: string;
     dateAdded: Date;
     description?: string;
     contractDuration?: string;
     weeklyHours?: string;
-    // New fields
     contractType?: string;
     link?: string;
+    /** HelloWork, France Travail, candidature spontanée… */
+    source?: string;
+    /** Intermédiaire quand l'employeur final n'est pas nommé. */
+    agencyName?: string;
+    /**
+     * Statut du nouveau modèle, écrit par le formulaire refait. Jamais projeté :
+     * les écrans encore en place continuent de passer par `status`.
+     */
+    statusValue?: ApplicationStatus;
     companyDescription?: string;
     missions?: string;
     profile?: string;
@@ -37,7 +64,7 @@ export interface JobOffer {
     others?: string;
     statusHistory?: StatusHistoryEntry[];
     interviewDate?: Date;
-    interviewType?: 'Préqual' | 'Entretien Physique' | 'Entretien Téléphonique' | 'Entretien Visio';
+    interviewType?: LegacyInterviewType;
     interviews?: Interview[];
     companyInfo?: {
         id?: number;
@@ -53,483 +80,339 @@ export interface JobOffer {
     };
 }
 
+/** Affiché quand l'employeur n'est pas nommé (intérim, cabinet). */
+export const NO_COMPANY_LABEL = 'Entreprise non communiquée';
+
+/** Une entrée d'historique de statut, sans identifiant. */
+type StatusEntry = {
+    type: 'status';
+    at: string;
+    status: ApplicationStatus;
+    details?: string;
+};
+
+/** Libellés historiques : inchangés tant que les écrans ne sont pas refaits. */
+const LEGACY_STATUS_LABELS: Record<string, string> = {
+    'To Apply': 'À postuler',
+    'Applied': 'En attente',
+    'To Relaunch': 'À relancer',
+    'No Response': 'Sans réponse',
+    'Interview': 'Entretien',
+    'Offer': 'Offre reçue',
+    'Rejected': 'Refusé'
+};
+
+/**
+ * Adaptateur entre les écrans existants et le nouveau modèle.
+ *
+ * Il ne détient plus aucune donnée : il projette les candidatures du store en
+ * `JobOffer` et retraduit les écritures. C'est ce qui permet de basculer le
+ * modèle sans réécrire l'interface d'un seul coup.
+ */
 @Injectable({
     providedIn: 'root'
 })
 export class OffersService {
-    offers = signal<JobOffer[]>([]);
+    private store = inject(JobSearchStore);
+    private tasksService = inject(TasksService);
+
+    offers = computed<JobOffer[]>(() => {
+        const companies = this.store.companies();
+        return this.store.applications()
+            .map(application => this.toJobOffer(application, companies))
+            .sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime());
+    });
 
     getOffer(id: number): JobOffer | undefined {
-        return this.offers().find(o => o.id === id);
+        return this.offers().find(offer => offer.id === id);
     }
 
     getStatusLabel(status: string): string {
-        const labels: Record<string, string> = {
-            'To Apply': 'À postuler',
-            'Applied': 'En attente',
-            'To Relaunch': 'À relancer',
-            'No Response': 'Sans réponse',
-            'Interview': 'Entretien',
-            'Offer': 'Offre reçue',
-            'Rejected': 'Refusé'
-        };
-        return labels[status] || status;
+        return LEGACY_STATUS_LABELS[status] || status;
     }
 
-    /**
-     * Get the company ID for a given company name.
-     * If the company already exists, return its ID.
-     * Otherwise, create a new unique ID.
-     */
-    private getOrCreateCompanyId(companyName: string): number {
-        // Find ALL offers with this company name and collect their IDs
-        const offersWithSameCompany = this.offers().filter(o => o.company === companyName);
-        const existingIds = offersWithSameCompany
-            .map(o => o.companyInfo?.id)
-            .filter((id): id is number => id !== undefined);
+    // ---------------------------------------------------------------- lecture
 
-        // If we found at least one ID, use the first one (they should all be the same after normalization)
-        if (existingIds.length > 0) {
-            return existingIds[0];
-        }
+    private toJobOffer(application: Application, companies: Company[]): JobOffer {
+        const company = application.companyId !== null
+            ? companies.find(entry => entry.id === application.companyId)
+            : undefined;
 
-        // Create a new unique company ID
-        const allCompanyIds = this.offers()
-            .map(o => o.companyInfo?.id)
-            .filter((id): id is number => id !== undefined);
+        const interviews: Interview[] = interviewEvents(application).map(event => ({
+            date: new Date(event.at),
+            type: INTERVIEW_TO_LEGACY[event.interviewKind ?? 'video'],
+            details: event.details
+        }));
 
-        const maxId = allCompanyIds.length > 0 ? Math.max(...allCompanyIds) : 0;
-        return maxId + 1;
-    }
-
-    // ... inside class OffersService
-    constructor(
-        private tasksService: TasksService,
-        private localStorageService: LocalStorageService,
-        private authService: AuthService
-    ) {
-        // React to user changes to load correct data
-        effect(() => {
-            const user = this.authService.currentUser();
-            if (user) {
-                this.loadOffersFromStorage();
-
-                // Normalize company IDs first
-                this.normalizeCompanyIds();
-
-                // Run automation check on initialization
-                this.checkAndAutomateOffers();
-            } else {
-                this.offers.set([]);
-            }
-        }, { allowSignalWrites: true });
-
-        // Set up auto-save effect
-        effect(() => {
-            const currentOffers = this.offers();
-            // Use untracked to prevent this effect from running when user changes
-            // It should only run when offers change
-            const user = untracked(() => this.authService.currentUser());
-
-            if (user) {
-                this.localStorageService.updateOffers(currentOffers);
-            }
-        });
-    }
-
-    /**
-     * Load offers from localStorage
-     */
-    private loadOffersFromStorage() {
-        const offers = this.localStorageService.getOffers();
-        if (offers && offers.length > 0) {
-            this.offers.set(offers);
-        }
-    }
-
-    /**
-     * Ensures all offers from the same company share the same companyInfo.id
-     */
-    private normalizeCompanyIds() {
-        this.offers.update(offers => {
-            const companyIdMap = new Map<string, number>();
-
-            // First pass: collect or create company IDs
-            offers.forEach(offer => {
-                if (!companyIdMap.has(offer.company)) {
-                    // Use existing ID if available, otherwise create a new one
-                    const existingId = offer.companyInfo?.id;
-                    if (existingId) {
-                        companyIdMap.set(offer.company, existingId);
-                    } else {
-                        // Create new ID
-                        const maxId = Math.max(0, ...Array.from(companyIdMap.values()));
-                        companyIdMap.set(offer.company, maxId + 1);
-                    }
-                }
-            });
-
-            // Second pass: apply the normalized IDs
-            return offers.map(offer => ({
-                ...offer,
-                companyInfo: {
-                    ...offer.companyInfo,
-                    id: companyIdMap.get(offer.company)!
-                }
-            }));
-        });
-    }
-
-    private checkAndAutomateOffers() {
-        const now = new Date();
-        const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
-        const fiveWeeksMs = 35 * 24 * 60 * 60 * 1000;
-
-        this.offers.update(offers => {
-            const updatedOffers = offers.map(offer => {
-                // We are looking for offers with status 'Applied' (En attente)
-                if (offer.status === 'Applied') {
-                    // Find the date we switched to 'Applied'
-                    // For now, if no history, fallback to dateAdded if status was Applied on add
-                    // But we will implement history tracking now.
-                    // If no history, we assume dateAdded is the start.
-
-                    let applicationDate = offer.dateAdded;
-                    if (offer.statusHistory && offer.statusHistory.length > 0) {
-                        const appliedEntry = [...offer.statusHistory].reverse().find(h => h.status === 'Applied');
-                        if (appliedEntry) {
-                            applicationDate = new Date(appliedEntry.date);
-                        }
-                    }
-
-                    const timeDiff = now.getTime() - new Date(applicationDate).getTime();
-
-                    // Check 5 weeks -> 'No Response'
-                    if (timeDiff >= fiveWeeksMs) {
-                        // Create status change entry
-                        const newHistory: StatusHistoryEntry[] = [
-                            ...(offer.statusHistory || []),
-                            { status: 'No Response', date: new Date() }
-                        ];
-                        // Explicitly cast or typed object
-                        const updatedOffer: JobOffer = {
-                            ...offer,
-                            status: 'No Response',
-                            statusHistory: newHistory
-                        };
-                        return updatedOffer;
-                    }
-                    // Check 2 weeks -> 'To Relaunch'
-                    else if (timeDiff >= twoWeeksMs) {
-                        // Create Task
-                        this.tasksService.addTask({
-                            id: Date.now(),
-                            title: 'À relancer',
-                            dueDate: new Date(),
-                            completed: false,
-                            status: 'a_faire',
-                            priority: 'haute',
-                            relatedOffers: [`${offer.title} - ${offer.company} - À relancer`]
-                        });
-
-                        const newHistory: StatusHistoryEntry[] = [
-                            ...(offer.statusHistory || []),
-                            { status: 'To Relaunch', date: new Date() }
-                        ];
-                        const updatedOffer: JobOffer = {
-                            ...offer,
-                            status: 'To Relaunch',
-                            statusHistory: newHistory
-                        };
-                        return updatedOffer;
-                    }
-                }
-                return offer;
-            });
-            return updatedOffers;
-        });
-    }
-
-    addOffer(offer: JobOffer) {
-        // Ensure the offer has a companyInfo.id
-        const companyId = this.getOrCreateCompanyId(offer.company);
-
-        // Check if there's an existing company with this name
-        const existingOffer = this.offers().find(o => o.company === offer.company);
-        const existingDescription = existingOffer?.companyDescription;
-        const existingCompanyInfo = existingOffer?.companyInfo;
-
-        // Initialize history with 'To Apply' always
-        const initialHistory: StatusHistoryEntry[] = [
-            { status: 'To Apply', date: offer.dateAdded }
-        ];
-
-        // If current status is different, add it to history
-        if (offer.status !== 'To Apply') {
-            initialHistory.push({ status: offer.status, date: new Date() });
-        }
-
-        // Convert legacy interview fields to interviews array if status is Interview
-        let interviews = offer.interviews || [];
-        if (offer.status === 'Interview' && offer.interviewDate && offer.interviewType) {
-            // Check if this interview already exists in the array
-            const interviewExists = interviews.some(i =>
-                new Date(i.date).getTime() === new Date(offer.interviewDate!).getTime() &&
-                i.type === offer.interviewType
-            );
-
-            if (!interviewExists) {
-                const newInterview = {
-                    date: new Date(offer.interviewDate),
-                    type: offer.interviewType,
-                    details: undefined
-                };
-                interviews = [
-                    ...interviews,
-                    newInterview
-                ];
-
-                // Create a task for this new interview
-                let taskTitle: string = newInterview.type;
-                if (newInterview.type === 'Préqual') {
-                    taskTitle = 'Préqualification';
-                }
-                const statusLabel = this.getStatusLabel(offer.status);
-                const offerInfo = `${offer.title} - ${offer.company} - ${statusLabel}`;
-
-                this.tasksService.addTask({
-                    id: Date.now() + Math.random(),
-                    title: taskTitle,
-                    dueDate: new Date(newInterview.date),
-                    completed: false,
-                    status: 'a_faire',
-                    priority: 'haute',
-                    relatedOffers: [offerInfo]
-                });
-            }
-        }
-
-        const offerWithCompanyId: JobOffer = {
-            ...offer,
-            statusHistory: initialHistory,
-            interviews: interviews.length > 0 ? interviews : undefined,
-            companyInfo: {
-                id: companyId,
-                // Inherit existing company info, but allow new values to override
-                employees: existingCompanyInfo?.employees,
-                founded: existingCompanyInfo?.founded,
-                group: existingCompanyInfo?.group,
-                contacts: existingCompanyInfo?.contacts,
-                // Override with any new values provided
-                ...offer.companyInfo
-            },
-            // Use the new description if provided, otherwise inherit from existing offers
-            companyDescription: offer.companyDescription || existingDescription
-        };
-
-        this.offers.update(offers => {
-            const newOffers = [offerWithCompanyId, ...offers];
-
-            // IMPORTANT: Propagate the companyId to ALL offers of the same company
-            // This ensures consistency across all offers
-            return newOffers.map(o => {
-                if (o.company === offerWithCompanyId.company) {
-                    return {
-                        ...o,
-                        companyInfo: {
-                            ...o.companyInfo,
-                            id: companyId
-                        },
-                        // If the new offer has a companyDescription, propagate it
-                        companyDescription: offerWithCompanyId.companyDescription || o.companyDescription
-                    };
-                }
-                return o;
-            });
-        });
-    }
-
-    updateOffer(updatedOffer: JobOffer) {
-        // Ensure the offer has a companyInfo.id
-        const companyId = this.getOrCreateCompanyId(updatedOffer.company);
-
-        // Get the current company data to preserve it
-        const currentOffer = this.offers().find(o => o.id === updatedOffer.id);
-        const existingOffer = this.offers().find(o => o.company === updatedOffer.company);
-
-        const currentCompanyDescription = existingOffer?.companyDescription;
-        const existingCompanyInfo = existingOffer?.companyInfo;
-
-        // Check for status change to update history
-        let newHistory = updatedOffer.statusHistory || [];
-
-        // Detect if statusHistory is being edited from the modal
-        // The modal always provides a new array (cloned), so if the reference is different, it's from the modal
-        const currentHistory = currentOffer?.statusHistory || [];
-        const isHistoryBeingEditedFromModal = updatedOffer.statusHistory &&
-            updatedOffer.statusHistory !== currentHistory;
-
-        // If status changed and history is NOT being edited from modal, add new entry
-        if (!isHistoryBeingEditedFromModal && currentOffer && currentOffer.status !== updatedOffer.status) {
-            newHistory = [
-                ...(currentOffer.statusHistory || []),
-                { status: updatedOffer.status, date: new Date() }
-            ];
-        } else if (!isHistoryBeingEditedFromModal && currentOffer) {
-            // If status didn't change and history is not being edited, preserve current history
-            newHistory = currentOffer.statusHistory || [];
-        }
-        // else: if history is being edited from modal, use the provided history as-is (newHistory already set)
-
-        // Convert legacy interview fields to interviews array if status is Interview
-        // Detect if interviews are being edited from the modal
-        const isInterviewsBeingEditedFromModal = updatedOffer.interviews &&
-            updatedOffer.interviews !== currentOffer?.interviews;
-
-        let interviews = updatedOffer.interviews || currentOffer?.interviews || [];
-
-        // Only auto-convert if interviews are NOT being edited from modal
-        if (!isInterviewsBeingEditedFromModal &&
-            updatedOffer.status === 'Interview' &&
-            updatedOffer.interviewDate &&
-            updatedOffer.interviewType) {
-
-            // Check if this interview already exists in the array
-            const interviewExists = interviews.some(i =>
-                new Date(i.date).getTime() === new Date(updatedOffer.interviewDate!).getTime() &&
-                i.type === updatedOffer.interviewType
-            );
-
-            if (!interviewExists) {
-                const newInterview = {
-                    date: new Date(updatedOffer.interviewDate),
-                    type: updatedOffer.interviewType,
-                    details: undefined
-                };
-                interviews = [
-                    ...interviews,
-                    newInterview
-                ];
-
-                // Create a task for this new interview
-                let taskTitle: string = newInterview.type;
-                if (newInterview.type === 'Préqual') {
-                    taskTitle = 'Préqualification';
-                }
-                const statusLabel = this.getStatusLabel(updatedOffer.status);
-                const offerInfo = `${updatedOffer.title} - ${updatedOffer.company} - ${statusLabel}`;
-
-                this.tasksService.addTask({
-                    id: Date.now() + Math.random(),
-                    title: taskTitle,
-                    dueDate: new Date(newInterview.date),
-                    completed: false,
-                    status: 'a_faire',
-                    priority: 'haute',
-                    relatedOffers: [offerInfo]
-                });
-            }
-        }
-
-        const offerWithCompanyId: JobOffer = {
-            ...updatedOffer,
-            statusHistory: newHistory,
-            interviews: interviews.length > 0 ? interviews : undefined,
-            companyInfo: {
-                // Preserve existing company info
-                employees: existingCompanyInfo?.employees,
-                founded: existingCompanyInfo?.founded,
-                group: existingCompanyInfo?.group,
-                contacts: existingCompanyInfo?.contacts,
-                // But allow any explicitly provided values to override
-                ...updatedOffer.companyInfo,
-                // IMPORTANT: Always use the calculated companyId, never the one from updatedOffer
-                // This ensures the ID is correct even when changing companies
-                id: companyId
-            },
-            // Preserve the existing company description - it should only be modified from company page
-            companyDescription: currentCompanyDescription
-        };
-
-        this.offers.update(offers => {
-            // Update the specific offer
-            const updatedOffers = offers.map(o =>
-                o.id === offerWithCompanyId.id ? offerWithCompanyId : o
-            );
-
-            // IMPORTANT: Propagate the companyId to ALL offers of the same company
-            // This ensures consistency across all offers
-            return updatedOffers.map(o => {
-                if (o.company === offerWithCompanyId.company && o.id !== offerWithCompanyId.id) {
-                    return {
-                        ...o,
-                        companyInfo: {
-                            ...o.companyInfo,
-                            id: companyId
-                        }
-                    };
-                }
-                return o;
-            });
-        });
-    }
-
-    deleteOffer(id: number) {
-        this.offers.update(offers => offers.filter(o => o.id !== id));
-    }
-
-    clearAll() {
-        this.offers.set([]);
-    }
-
-    // Company Management Helpers
-    getCompany(identifier: string | number): { name: string, info: any, offers: JobOffer[] } | null {
-        let companyOffers: JobOffer[] = [];
-
-        // Check if identifier is a number (ID) or looks like one
-        const searchId = Number(identifier);
-        const isIdSearch = !isNaN(searchId) && searchId > 0;
-
-        if (isIdSearch) {
-            companyOffers = this.offers().filter(o => o.companyInfo?.id === searchId);
-        } else {
-            // Search by name
-            companyOffers = this.offers().filter(o => o.company === identifier);
-        }
-
-        if (companyOffers.length === 0) {
-            return null;
-        }
-
-        // Return info from the most recently added offer as the source of truth
-        // IMPORTANT: Create a copy before sorting to avoid mutating the original array
-        const latestOffer = [...companyOffers].sort((a, b) =>
-            new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime()
-        )[0];
+        const last = interviews.length > 0 ? interviews[interviews.length - 1] : undefined;
+        const contacts = company
+            ? this.store.contactsOfCompany(company.id).map(contact => ({
+                name: contact.fullName,
+                role: contact.role,
+                email: contact.email,
+                phone: contact.phone
+            }))
+            : undefined;
 
         return {
-            name: latestOffer.company,
-            info: {
-                ...latestOffer.companyInfo || {},
-                description: latestOffer.companyDescription
-            },
-            offers: companyOffers
+            id: application.id,
+            title: application.title,
+            company: company?.name ?? NO_COMPANY_LABEL,
+            status: STATUS_TO_LEGACY[currentStatus(application)],
+            location: application.location ?? '',
+            salary: application.salary,
+            dateAdded: new Date(application.createdAt),
+            description: application.posting?.description,
+            contractDuration: application.contractDuration,
+            weeklyHours: application.weeklyHours,
+            contractType: application.contractType,
+            link: application.link,
+            source: application.source,
+            agencyName: application.agencyName,
+            companyDescription: company?.description,
+            missions: application.posting?.missions,
+            profile: application.posting?.profile,
+            benefits: application.posting?.benefits,
+            recruitmentProcess: application.posting?.recruitmentProcess,
+            others: application.posting?.others,
+            statusHistory: statusEvents(application).map(event => ({
+                status: STATUS_TO_LEGACY[event.status!],
+                date: new Date(event.at),
+                details: event.details
+            })),
+            interviewDate: last?.date,
+            interviewType: last?.type,
+            interviews: interviews.length > 0 ? interviews : undefined,
+            companyInfo: {
+                id: company?.id,
+                employees: company?.employees,
+                founded: company?.founded,
+                group: company?.group,
+                contacts: contacts && contacts.length > 0 ? contacts : undefined
+            }
         };
     }
 
-    updateCompanyDetails(companyName: string, newInfo: any) {
-        this.offers.update(offers => offers.map(o => {
-            if (o.company === companyName) {
-                return {
-                    ...o,
-                    companyInfo: {
-                        ...o.companyInfo,
-                        ...newInfo
-                    },
-                    companyDescription: newInfo.description !== undefined ? newInfo.description : o.companyDescription
-                };
-            }
-            return o;
-        }));
+    // --------------------------------------------------------------- écriture
+
+    addOffer(offer: JobOffer): void {
+        const companyId = this.resolveCompanyId(offer.company);
+
+        const id = this.store.addApplication({
+            title: offer.title,
+            companyId,
+            location: offer.location,
+            contractType: offer.contractType,
+            contractDuration: offer.contractDuration,
+            weeklyHours: offer.weeklyHours,
+            salary: offer.salary,
+            link: offer.link,
+            source: offer.source,
+            agencyName: companyId === null ? offer.agencyName : undefined,
+            posting: toPosting(offer),
+            status: targetStatus(offer),
+            createdAt: toIso(offer.dateAdded)
+        });
+
+        this.syncInterviews(id, offer);
     }
+
+    updateOffer(updated: JobOffer): void {
+        const application = this.store.application(updated.id);
+        if (!application) return;
+
+        const companyId = this.resolveCompanyId(updated.company);
+
+        this.store.updateApplication(updated.id, {
+            companyId,
+            title: updated.title,
+            location: updated.location,
+            contractType: updated.contractType,
+            contractDuration: updated.contractDuration,
+            weeklyHours: updated.weeklyHours,
+            salary: updated.salary,
+            link: updated.link,
+            source: updated.source,
+            agencyName: companyId === null ? updated.agencyName : undefined,
+            posting: toPosting(updated)
+        });
+
+        this.applyHistory(updated.id, updated);
+        this.syncInterviews(updated.id, updated);
+    }
+
+    deleteOffer(id: number): void {
+        this.store.deleteApplication(id);
+    }
+
+    clearAll(): void {
+        this.store.clearApplications();
+    }
+
+    /**
+     * Rejoue l'historique fourni par l'écran, puis ajoute l'événement manquant
+     * si le statut affiché a changé. L'ancien écran traite `statusHistory`
+     * comme éditable : on l'accepte tel quel.
+     */
+    private applyHistory(id: number, offer: JobOffer): void {
+        const application = this.store.application(id);
+        if (!application) return;
+
+        const target = targetStatus(offer);
+
+        const fromScreen: StatusEntry[] = (offer.statusHistory ?? [])
+            .flatMap(entry => {
+                const status = LEGACY_TO_STATUS[entry.status];
+                if (!status) return [];
+                return [{ type: 'status' as const, at: toIso(entry.date), status, details: entry.details }];
+            })
+            .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+
+        const existing: StatusEntry[] = statusEvents(application).map(event => ({
+            type: 'status' as const,
+            at: event.at,
+            status: event.status!,
+            details: event.details
+        }));
+
+        const history = fromScreen.length > 0 ? fromScreen : existing;
+        const unchanged = sameHistory(history, existing);
+
+        const last = history.length > 0 ? history[history.length - 1].status : 'to_apply';
+        const needsStatusEvent = last !== target;
+
+        if (unchanged && !needsStatusEvent) {
+            return;
+        }
+
+        if (unchanged && needsStatusEvent) {
+            // Cas courant : seul le statut a été changé dans le formulaire.
+            this.store.setStatus(id, target);
+            return;
+        }
+
+        const events: Omit<ApplicationEvent, 'id'>[] = [
+            { type: 'created', at: application.createdAt },
+            ...history
+        ];
+
+        if (needsStatusEvent) {
+            events.push({ type: 'status', at: new Date().toISOString(), status: target });
+        }
+
+        for (const event of application.events.filter(e => e.type === 'interview')) {
+            events.push({
+                type: 'interview',
+                at: event.at,
+                interviewKind: event.interviewKind,
+                details: event.details
+            });
+        }
+
+        this.store.replaceEvents(id, events);
+    }
+
+    /** Ajoute les entretiens nouvellement saisis, et la tâche qui va avec. */
+    private syncInterviews(id: number, offer: JobOffer): void {
+        const application = this.store.application(id);
+        if (!application) return;
+
+        const wanted: Interview[] = offer.interviews
+            ? [...offer.interviews]
+            : (offer.interviewDate && offer.interviewType
+                ? [{ date: offer.interviewDate, type: offer.interviewType }]
+                : []);
+
+        if (offer.interviewDate && offer.interviewType) {
+            const alreadyWanted = wanted.some(interview =>
+                toIso(interview.date) === toIso(offer.interviewDate!) && interview.type === offer.interviewType
+            );
+            if (!alreadyWanted) {
+                wanted.push({ date: offer.interviewDate, type: offer.interviewType });
+            }
+        }
+
+        const existing = interviewEvents(application).map(event => ({
+            at: event.at,
+            kind: event.interviewKind ?? 'video'
+        }));
+
+        for (const interview of wanted) {
+            const kind = LEGACY_TO_INTERVIEW[interview.type] ?? 'video';
+            const at = toIso(interview.date);
+            const known = existing.some(event => event.at === at && event.kind === kind);
+            if (known) continue;
+
+            this.store.addInterview(id, kind, new Date(at), interview.details);
+            existing.push({ at, kind });
+
+            const company = this.store.company(this.store.application(id)?.companyId);
+            this.tasksService.addTask({
+                id: Date.now() + Math.floor(Math.random() * 1000),
+                title: kind === 'prequal' ? 'Préqualification' : interview.type,
+                dueDate: new Date(at),
+                completed: false,
+                status: 'a_faire',
+                priority: 'haute',
+                relatedOffers: [
+                    `${offer.title} - ${company?.name ?? NO_COMPANY_LABEL} - ${this.getStatusLabel(offer.status)}`
+                ]
+            });
+        }
+    }
+
+    private resolveCompanyId(name: string | undefined): number | null {
+        const trimmed = (name || '').trim();
+        if (!trimmed || trimmed === NO_COMPANY_LABEL) {
+            return null;
+        }
+        return this.store.ensureCompany(trimmed);
+    }
+}
+
+// --------------------------------------------------------------------------
+
+/** Le statut visé : celui du nouveau modèle s'il est fourni, sinon l'ancien. */
+function targetStatus(offer: JobOffer): ApplicationStatus {
+    return offer.statusValue ?? LEGACY_TO_STATUS[offer.status] ?? 'to_apply';
+}
+
+function toPosting(offer: JobOffer): JobPosting | undefined {
+    const posting: JobPosting = {
+        description: emptyToUndefined(offer.description),
+        missions: emptyToUndefined(offer.missions),
+        profile: emptyToUndefined(offer.profile),
+        benefits: emptyToUndefined(offer.benefits),
+        recruitmentProcess: emptyToUndefined(offer.recruitmentProcess),
+        others: emptyToUndefined(offer.others)
+    };
+    return Object.values(posting).some(value => !!value) ? posting : undefined;
+}
+
+function sameHistory(
+    a: { at: string; status: ApplicationStatus }[],
+    b: { at: string; status: ApplicationStatus }[]
+): boolean {
+    if (a.length !== b.length) return false;
+    return a.every((entry, index) =>
+        entry.status === b[index].status &&
+        new Date(entry.at).getTime() === new Date(b[index].at).getTime()
+    );
+}
+
+function toIso(value: Date | string): string {
+    const date = value instanceof Date ? value : new Date(value);
+    return isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+}
+
+function emptyToUndefined(value: unknown): string | undefined {
+    if (typeof value !== 'string') return undefined;
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function numberOrUndefined(value: unknown): number | undefined {
+    if (value === null || value === undefined || value === '') return undefined;
+    const parsed = Number(value);
+    return isNaN(parsed) ? undefined : parsed;
 }

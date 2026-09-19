@@ -24,6 +24,11 @@ export const routes: Routes = [
         loadComponent: () => import('./offers/offer-detail/offer-detail.component').then(m => m.OfferDetailComponent)
     },
     {
+        path: 'repertoire',
+        canActivate: [authGuard],
+        loadComponent: () => import('./contacts/contacts.component').then(m => m.ContactsComponent)
+    },
+    {
         path: 'entreprises',
         canActivate: [authGuard],
         loadComponent: () => import('./companies/companies.component').then(m => m.CompaniesComponent)

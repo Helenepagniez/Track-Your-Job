@@ -1,0 +1,314 @@
+/* L'ossature d'écran et les primitives de formulaire sont globales
+   (styles.css). Ce fichier ne garde que la liste alphabétique et la fiche. */
+
+.directory {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.columns {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+/* Liste alphabétique ----------------------------------------------------- */
+.list {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.letter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.letter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px 0;
+}
+
+.letter span:first-child {
+  font: 600 11px var(--font-body);
+  letter-spacing: 0.7px;
+  color: var(--ink-4);
+}
+
+.letter .rule {
+  flex-grow: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.row {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  text-align: left;
+}
+
+.row:hover {
+  border-color: var(--line-strong);
+}
+
+.row.active {
+  border-color: var(--accent-line-strong);
+  box-shadow: 0 0 0 2px var(--accent-line);
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  background: var(--brand-soft);
+  color: var(--accent-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 600 13.5px var(--font-body);
+}
+
+.avatar.big {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 16px;
+}
+
+.row-main {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.row-name {
+  font: 600 14px var(--font-body);
+  color: var(--ink);
+}
+
+.row-sub {
+  font: 12.5px var(--font-body);
+  color: var(--ink-3);
+}
+
+.row-contact {
+  width: 190px;
+  flex-shrink: 0;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-phone {
+  width: 120px;
+  flex-shrink: 0;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+.row-flag {
+  flex-shrink: 0;
+  font: 500 11px var(--font-body);
+  color: var(--st-wait-fg);
+  background: var(--st-wait-bg);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.list-foot {
+  margin: 4px 0 0;
+  padding: 0 4px;
+  font-size: 12px;
+  color: var(--ink-4);
+}
+
+.empty.inner {
+  padding: 28px 20px;
+}
+
+/* Fiche du contact ------------------------------------------------------- */
+.panel {
+  width: 318px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: sticky;
+  top: 16px;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.panel-title {
+  min-width: 0;
+}
+
+.panel-title h2 {
+  margin: 0;
+  font: 600 16px var(--font-body);
+  color: var(--ink);
+}
+
+.panel-title p {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+.panel-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.panel-actions .grow {
+  flex-grow: 1;
+  justify-content: center;
+}
+
+.panel-actions .btn-ghost,
+.panel-actions .btn-solid {
+  height: 34px;
+  padding: 0 12px;
+  font-size: 12.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.panel-actions .btn-ghost.danger {
+  color: var(--st-ko-fg);
+}
+
+.panel-actions .btn-ghost.danger:hover {
+  border-color: var(--st-ko-dot);
+  background: var(--ko-soft);
+}
+
+.panel-block {
+  border-top: 1px solid var(--line-soft);
+  padding-top: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.panel-block h3 {
+  margin: 0;
+  font: 600 12px var(--font-body);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+
+.panel-block p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.panel-block a {
+  color: var(--link);
+}
+
+.panel-block a:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
+.notes {
+  line-height: 1.55;
+}
+
+/* Rattachements ---------------------------------------------------------- */
+.affiliation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 8px 8px 11px;
+}
+
+.affiliation.past {
+  border-style: dashed;
+  background: var(--surface-2);
+}
+
+.affiliation-link {
+  flex-grow: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+
+.affiliation-name {
+  font: 500 13px var(--font-body);
+  color: var(--ink);
+}
+
+.affiliation-link:hover .affiliation-name {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.affiliation-sub {
+  font-size: 11.5px;
+  color: var(--ink-4);
+}
+
+.panel-foot {
+  margin: 0;
+  padding-top: 4px;
+  font-size: 11.5px;
+  color: var(--ink-4);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* Petits écrans ---------------------------------------------------------- */
+@media (max-width: 1100px) {
+  .columns {
+    flex-direction: column;
+  }
+
+  .panel {
+    width: 100%;
+    position: static;
+  }
+
+  .row-contact,
+  .row-phone {
+    display: none;
+  }
+}

@@ -1,177 +1,151 @@
-<div class="stepper-container">
-    <mat-stepper [linear]="true" #stepper>
-        <!-- Step 1: Infos Générales -->
-        <mat-step [stepControl]="firstFormGroup">
-            <form [formGroup]="firstFormGroup">
-                <ng-template matStepLabel>Infos Générales</ng-template>
+<form class="offer-form" [formGroup]="form" (ngSubmit)="submit()">
 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Titre du poste *</label>
-                        <input matInput formControlName="title" placeholder="Ex: Développeur Angular" required
-                            class="form-control">
-                    </div>
+    <!-- L'annonce -------------------------------------------------------- -->
+    <div class="field">
+        <label for="of-link">Lien de l'annonce</label>
+        <input id="of-link" type="url" formControlName="link" placeholder="https://…" autocomplete="off">
+        <p class="hint">Gardez le lien : il permettra bientôt de remplir le reste automatiquement.</p>
+    </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Entreprise *</label>
-                        <input matInput formControlName="company" placeholder="Ex: Google" required class="form-control"
-                            [matAutocomplete]="auto">
-                        <mat-autocomplete #auto="matAutocomplete">
-                            <mat-option *ngFor="let company of filteredCompanies()" [value]="company">
-                                {{company}}
-                            </mat-option>
-                        </mat-autocomplete>
-                    </div>
+    <!-- Le poste --------------------------------------------------------- -->
+    <div class="form-grid">
+        <div class="field span-2">
+            <label for="of-title">Intitulé du poste <span class="req">obligatoire</span></label>
+            <input id="of-title" type="text" formControlName="title" placeholder="Chargé·e de communication digitale"
+                [class.invalid]="form.controls.title.touched && form.controls.title.invalid">
+            <p class="error" *ngIf="form.controls.title.touched && form.controls.title.invalid">
+                C'est le seul champ dont l'application a besoin.
+            </p>
+        </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Type de contrat</label>
-                        <select formControlName="contractType" class="form-control">
-                            <option value="CDI">CDI</option>
-                            <option value="CDD">CDD</option>
-                            <option value="Freelance">Freelance</option>
-                            <option value="Stage">Stage</option>
-                            <option value="Alternance">Alternance</option>
-                            <option value="Intérim">Intérim</option>
-                        </select>
-                    </div>
+        <div class="field span-2" *ngIf="!anonymous">
+            <label for="of-company">Entreprise <span class="opt">facultatif</span></label>
+            <input id="of-company" type="text" formControlName="company" list="known-companies"
+                placeholder="Commencez à taper, les fiches existantes s'affichent" autocomplete="off">
+            <datalist id="known-companies">
+                <option *ngFor="let name of companyNames()" [value]="name"></option>
+            </datalist>
+        </div>
 
-                    <ng-container
-                        *ngIf="['CDD', 'Stage', 'Freelance', 'Intérim'].includes(firstFormGroup.get('contractType')?.value)">
-                        <div class="form-group">
-                            <label class="form-label">Durée du contrat *</label>
-                            <input matInput formControlName="contractDuration" placeholder="Ex: 6 mois"
-                                class="form-control">
-                        </div>
-                    </ng-container>
+        <div class="field span-2" *ngIf="anonymous">
+            <label for="of-agency">Intermédiaire <span class="opt">facultatif</span></label>
+            <input id="of-agency" type="text" formControlName="agencyName"
+                placeholder="Agence ou cabinet qui diffuse l'annonce" autocomplete="off">
+        </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Durée hebdomadaire</label>
-                        <input matInput formControlName="weeklyHours" placeholder="Ex: 35h" class="form-control">
-                    </div>
+        <div class="span-2">
+            <button type="button" class="anon-toggle" [class.on]="anonymous" (click)="toggleAnonymous()">
+                <i class="fa-solid" [class.fa-square-check]="anonymous" [class.fa-square]="!anonymous"></i>
+                L'entreprise n'est pas communiquée
+            </button>
+            <p class="hint" *ngIf="anonymous">
+                Pour les annonces d'intérim ou de cabinet (« pour notre client »). Vous pourrez nommer l'entreprise plus
+                tard sans rien perdre.
+            </p>
+        </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Lieu</label>
-                        <input matInput formControlName="location" placeholder="Ex: Paris / Remote"
-                            class="form-control">
-                    </div>
+        <div class="field">
+            <label for="of-location">Lieu</label>
+            <input id="of-location" type="text" formControlName="location" placeholder="Rennes · 2 j de télétravail">
+        </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Salaire</label>
-                        <input matInput formControlName="salary" placeholder="Ex: 45k - 55k" class="form-control">
-                    </div>
+        <div class="field">
+            <label for="of-source">Source</label>
+            <input id="of-source" type="text" formControlName="source" list="known-sources"
+                placeholder="Où avez-vous trouvé l'annonce ?" autocomplete="off">
+            <datalist id="known-sources">
+                <option *ngFor="let source of sources" [value]="source"></option>
+            </datalist>
+        </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Lien de l'annonce</label>
-                        <input matInput formControlName="link" placeholder="https://..." class="form-control">
-                    </div>
-                </div>
+        <div class="field">
+            <label for="of-contract">Type de contrat</label>
+            <select id="of-contract" formControlName="contractType">
+                <option value="">—</option>
+                <option *ngFor="let type of contractTypes" [value]="type">{{ type }}</option>
+            </select>
+        </div>
 
-                <div class="stepper-actions">
-                    <button mat-button matStepperNext type="button" class="btn btn-primary"
-                        title="Passer à l'étape suivante">Suivant</button>
-                </div>
-            </form>
-        </mat-step>
+        <div class="field" *ngIf="needsDuration">
+            <label for="of-duration">Durée</label>
+            <input id="of-duration" type="text" formControlName="contractDuration" placeholder="6 mois">
+        </div>
 
-        <!-- Step 2: Détails -->
-        <mat-step [stepControl]="secondFormGroup">
-            <form [formGroup]="secondFormGroup">
-                <ng-template matStepLabel>Détails</ng-template>
+        <div class="field">
+            <label for="of-hours">Temps de travail</label>
+            <input id="of-hours" type="text" formControlName="weeklyHours" placeholder="35 h">
+        </div>
 
-                <div class="form-group">
-                    <label class="form-label">Présentation entreprise</label>
-                    <textarea matInput formControlName="companyDescription" rows="3" class="form-control"
-                        [readonly]="isEditing() || isExistingCompanySelected()"
-                        [placeholder]="(isEditing() || isExistingCompanySelected()) ? 'Modifiable uniquement depuis la page entreprise' : 'Description de l\'entreprise...'"></textarea>
-                    <small *ngIf="isEditing() || isExistingCompanySelected()"
-                        style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">
-                        💡 Pour modifier la présentation de l'entreprise, rendez-vous sur la page de l'entreprise
-                    </small>
-                </div>
+        <div class="field">
+            <label for="of-salary">Salaire</label>
+            <input id="of-salary" type="text" formControlName="salary" placeholder="32 000 – 36 000 € brut / an">
+        </div>
+    </div>
 
-                <div class="form-group">
-                    <label class="form-label">Missions</label>
-                    <textarea matInput formControlName="missions" rows="4" class="form-control"></textarea>
-                </div>
+    <!-- Où la ranger ----------------------------------------------------- -->
+    <fieldset class="status-block">
+        <legend>Où la ranger ?</legend>
+        <div class="status-choices">
+            <button type="button" *ngFor="let value of statuses" class="status-choice"
+                [ngClass]="status === value ? statusClass(value) : ''" [class.selected]="status === value"
+                [attr.aria-pressed]="status === value" (click)="setStatus(value)">
+                {{ statusLabels[value] }}
+            </button>
+        </div>
 
-                <div class="form-group">
-                    <label class="form-label">Profil recherché</label>
-                    <textarea matInput formControlName="profile" rows="3" class="form-control"></textarea>
-                </div>
+        <div class="interview-row" *ngIf="status === 'interview'">
+            <div class="field">
+                <label for="of-itw-date">Date de l'entretien</label>
+                <input id="of-itw-date" type="datetime-local" formControlName="interviewDate">
+            </div>
+            <div class="field">
+                <label for="of-itw-kind">Type</label>
+                <select id="of-itw-kind" formControlName="interviewKind">
+                    <option *ngFor="let kind of interviewKinds" [value]="kind.value">{{ kind.label }}</option>
+                </select>
+            </div>
+            <p class="hint">Renseignez la date et une tâche de préparation sera créée.</p>
+        </div>
+    </fieldset>
 
-                <div class="stepper-actions">
-                    <button mat-button matStepperPrevious type="button" class="btn btn-outline"
-                        title="Revenir à l'étape précédente">Retour</button>
-                    <button mat-button matStepperNext type="button" class="btn btn-primary"
-                        title="Passer à l'étape suivante">Suivant</button>
-                </div>
-            </form>
-        </mat-step>
+    <!-- Contenu de l'annonce --------------------------------------------- -->
+    <details class="posting" [open]="hasContent">
+        <summary>
+            <span>Contenu de l'annonce</span>
+            <span class="summary-note">{{ hasContent ? 'rempli' : 'facultatif' }}</span>
+        </summary>
 
-        <!-- Step 3: Extras -->
-        <mat-step [stepControl]="thirdFormGroup">
-            <form [formGroup]="thirdFormGroup">
-                <ng-template matStepLabel>Extras</ng-template>
+        <div class="posting-body">
+            <div class="field">
+                <label for="of-missions">Missions</label>
+                <textarea id="of-missions" rows="4" formControlName="missions"></textarea>
+            </div>
+            <div class="field">
+                <label for="of-profile">Profil recherché</label>
+                <textarea id="of-profile" rows="3" formControlName="profile"></textarea>
+            </div>
+            <div class="field">
+                <label for="of-benefits">Avantages</label>
+                <textarea id="of-benefits" rows="2" formControlName="benefits"></textarea>
+            </div>
+            <div class="field">
+                <label for="of-process">Étapes de recrutement</label>
+                <textarea id="of-process" rows="2" formControlName="recruitmentProcess"></textarea>
+            </div>
+            <div class="field">
+                <label for="of-description">Présentation du poste</label>
+                <textarea id="of-description" rows="3" formControlName="description"></textarea>
+            </div>
+            <div class="field">
+                <label for="of-others">Autres informations</label>
+                <textarea id="of-others" rows="2" formControlName="others"></textarea>
+            </div>
+        </div>
+    </details>
 
-                <div class="form-group">
-                    <label class="form-label">Avantages</label>
-                    <textarea matInput formControlName="benefits" rows="3" class="form-control"
-                        placeholder="Tickets resto, mutuelle..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Étapes de recrutement</label>
-                    <textarea matInput formControlName="recruitmentProcess" rows="3" class="form-control"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Autres informations</label>
-                    <textarea matInput formControlName="others" rows="2" class="form-control"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Statut initial *</label>
-                    <select formControlName="status" required class="form-control">
-                        <option value="To Apply">À postuler</option>
-                        <option value="Applied">En attente</option>
-                        <option value="To Relaunch">À relancer</option>
-                        <option value="No Response">Sans réponse</option>
-                        <option value="Interview">Entretien</option>
-                        <option value="Offer">Offre reçue</option>
-                        <option value="Rejected">Refusé</option>
-                    </select>
-                </div>
-
-                <div class="form-grid" *ngIf="thirdFormGroup.get('status')?.value === 'Interview'">
-                    <div class="form-group">
-                        <label class="form-label">Date de l'entretien *</label>
-                        <mat-form-field>
-                            <input matInput [matDatepicker]="pickerInterviewDate" formControlName="interviewDate" />
-                            <mat-datepicker-toggle matIconSuffix [for]="pickerInterviewDate"></mat-datepicker-toggle>
-                            <mat-datepicker #pickerInterviewDate></mat-datepicker>
-                        </mat-form-field>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Type d'entretien *</label>
-                        <select formControlName="interviewType" class="form-control">
-                            <option value="Préqual">Préqual</option>
-                            <option value="Entretien Physique">Entretien Physique</option>
-                            <option value="Entretien Téléphonique">Entretien Téléphonique</option>
-                            <option value="Entretien Visio">Entretien Visio</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="stepper-actions">
-                    <button mat-button matStepperPrevious type="button" class="btn btn-outline"
-                        title="Revenir à l'étape précédente">Retour</button>
-                    <button mat-button (click)="submit()" type="button" class="btn btn-primary"
-                        title="Enregistrer l'offre">
-                        {{ isEditing() ? 'Mettre à jour' : 'Sauvegarder' }}
-                    </button>
-                </div>
-            </form>
-        </mat-step>
-    </mat-stepper>
-</div>
+    <footer class="form-foot">
+        <span class="foot-hint">Rien d'obligatoire à part l'intitulé du poste.</span>
+        <button type="button" class="btn-ghost" (click)="onCancel()">Annuler</button>
+        <button type="submit" class="btn-solid">{{ isEditing() ? 'Enregistrer' : 'Ajouter la candidature' }}</button>
+    </footer>
+</form>

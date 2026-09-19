@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { OffersService } from '../core/services/offers.service';
 import { TasksService } from '../core/services/tasks.service';
+import { JobSearchStore } from '../core/services/job-search-store.service';
+import { ApplicationStatus, countEnteredStatus } from '../core/models/job-search.models';
 
 @Component({
     selector: 'app-summary',
@@ -14,6 +16,7 @@ import { TasksService } from '../core/services/tasks.service';
 export class SummaryComponent {
     private offersService = inject(OffersService);
     private tasksService = inject(TasksService);
+    private store = inject(JobSearchStore);
 
     // Computed statistics based on real data
     stats = computed(() => {
@@ -148,78 +151,35 @@ export class SummaryComponent {
         return activities.slice(0, 3);
     });
 
-    // Chart data based on real offer counts
+    /**
+     * Évolution des statuts, comptée sur des événements datés.
+     *
+     * Chaque barre compte les candidatures *entrées* dans ce statut pendant le
+     * mois, pas celles qui s'y trouvent aujourd'hui. Sans cette distinction, le
+     * chiffre d'un mois ne bougeait plus jamais : il affichait le total de tous
+     * les refus depuis le début, quel que soit le mois consulté.
+     */
     chartData = computed(() => {
-        const offers = this.offersService.offers();
+        const applications = this.store.applications();
         const now = new Date();
 
-        // Get the start of current month and previous month
-        const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+        const currentStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const currentEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        const previousStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const previousEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-        /**
-         * Get the status count for a specific month based on status history
-         * @param status - The status to count
-         * @param monthStart - Start date of the month
-         * @param monthEnd - End date of the month
-         */
-        const getStatusCountForMonth = (status: string, monthStart: Date, monthEnd: Date): number => {
-            return offers.filter(offer => {
-                // If no status history, use the current status and dateAdded
-                if (!offer.statusHistory || offer.statusHistory.length === 0) {
-                    const offerDate = new Date(offer.dateAdded);
-                    return offer.status === status && offerDate >= monthStart && offerDate <= monthEnd;
-                }
-
-                // Sort history by date (oldest first)
-                const sortedHistory = [...offer.statusHistory].sort((a, b) =>
-                    new Date(a.date).getTime() - new Date(b.date).getTime()
-                );
-
-                // Find what status the offer had during this month
-                // We need to check if at any point during the month, the offer had this status
-                let hadStatusDuringMonth = false;
-
-                for (let i = 0; i < sortedHistory.length; i++) {
-                    const entry = sortedHistory[i];
-                    const entryDate = new Date(entry.date);
-                    const nextEntry = sortedHistory[i + 1];
-                    const nextDate = nextEntry ? new Date(nextEntry.date) : now;
-
-                    // If this status entry is the one we're looking for
-                    if (entry.status === status) {
-                        // Check if this status was active during the target month
-                        // The status is active from entryDate to nextDate (or now if it's the last entry)
-                        if (entryDate <= monthEnd && nextDate >= monthStart) {
-                            hadStatusDuringMonth = true;
-                            break;
-                        }
-                    }
-                }
-
-                return hadStatusDuringMonth;
-            }).length;
-        };
-
-        // Current month counts (offers that currently have this status)
-        const appliedCount = offers.filter(o => o.status === 'Applied').length;
-        const interviewCount = offers.filter(o => o.status === 'Interview').length;
-        const rejectedCount = offers.filter(o => o.status === 'Rejected').length;
-        const toRelaunchCount = offers.filter(o => o.status === 'To Relaunch').length;
-
-        // Previous month counts (offers that had this status during the previous month)
-        const previousAppliedCount = getStatusCountForMonth('Applied', previousMonthStart, previousMonthEnd);
-        const previousInterviewCount = getStatusCountForMonth('Interview', previousMonthStart, previousMonthEnd);
-        const previousRejectedCount = getStatusCountForMonth('Rejected', previousMonthStart, previousMonthEnd);
-        const previousToRelaunchCount = getStatusCountForMonth('To Relaunch', previousMonthStart, previousMonthEnd);
-
-        return [
-            { label: 'En attente', value: appliedCount, adjustment: previousAppliedCount },
-            { label: 'À relancer', value: toRelaunchCount, adjustment: previousToRelaunchCount },
-            { label: 'Entretien', value: interviewCount, adjustment: previousInterviewCount },
-            { label: 'Refus', value: rejectedCount, adjustment: previousRejectedCount }
+        const rows: { label: string, status: ApplicationStatus }[] = [
+            { label: 'En attente', status: 'sent' },
+            { label: 'À relancer', status: 'to_relaunch' },
+            { label: 'Entretien', status: 'interview' },
+            { label: 'Refus', status: 'rejected' }
         ];
+
+        return rows.map(row => ({
+            label: row.label,
+            value: countEnteredStatus(applications, row.status, currentStart, currentEnd),
+            adjustment: countEnteredStatus(applications, row.status, previousStart, previousEnd)
+        }));
     });
 
     // Responsive chart configuration

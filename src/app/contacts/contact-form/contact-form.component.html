@@ -1,0 +1,58 @@
+<form class="contact-form" [formGroup]="form" (ngSubmit)="submit()">
+
+    <div class="form-grid">
+        <div class="field span-2">
+            <label for="cf-name">Nom et prénom <span class="req">obligatoire</span></label>
+            <input id="cf-name" type="text" formControlName="fullName" placeholder="Claire Ferrand"
+                [class.invalid]="form.controls.fullName.touched && form.controls.fullName.invalid">
+            <p class="error" *ngIf="form.controls.fullName.touched && form.controls.fullName.invalid">
+                Un nom suffit pour créer la fiche.
+            </p>
+        </div>
+
+        <div class="field">
+            <label for="cf-role">Fonction</label>
+            <input id="cf-role" type="text" formControlName="role" placeholder="DRH, chargée de recrutement…">
+        </div>
+
+        <div class="field">
+            <label for="cf-company">Entreprise <span class="opt">facultatif</span></label>
+            <input id="cf-company" type="text" formControlName="companyName" list="contact-companies"
+                placeholder="Créée si elle n'existe pas encore" autocomplete="off">
+            <datalist id="contact-companies">
+                <option *ngFor="let name of companyNames()" [value]="name"></option>
+            </datalist>
+        </div>
+
+        <div class="field">
+            <label for="cf-email">Email</label>
+            <input id="cf-email" type="email" formControlName="email" placeholder="claire.ferrand@exemple.fr"
+                [class.invalid]="form.controls.email.touched && form.controls.email.invalid">
+            <p class="error" *ngIf="form.controls.email.touched && form.controls.email.invalid">
+                Cette adresse ne ressemble pas à un email.
+            </p>
+        </div>
+
+        <div class="field">
+            <label for="cf-phone">Téléphone</label>
+            <input id="cf-phone" type="tel" formControlName="phone" placeholder="06 12 34 56 78">
+        </div>
+
+        <div class="field span-2">
+            <label for="cf-linkedin">Profil LinkedIn</label>
+            <input id="cf-linkedin" type="url" formControlName="linkedin" placeholder="https://www.linkedin.com/in/…">
+        </div>
+
+        <div class="field span-2">
+            <label for="cf-notes">Notes</label>
+            <textarea id="cf-notes" rows="3" formControlName="notes"
+                placeholder="Rencontrée au salon Tech Rennes, s'occupe des profils communication…"></textarea>
+        </div>
+    </div>
+
+    <footer class="form-foot">
+        <span class="foot-hint">Ce contact restera dans votre répertoire, même après une remise à zéro.</span>
+        <button type="button" class="btn-ghost" (click)="onCancel()">Annuler</button>
+        <button type="submit" class="btn-solid">{{ isEditing() ? 'Enregistrer' : 'Ajouter le contact' }}</button>
+    </footer>
+</form>

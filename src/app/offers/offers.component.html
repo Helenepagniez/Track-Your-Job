@@ -1,121 +1,247 @@
-<section>
-    <div class="page-header">
-        <h1>Mes Offres</h1>
-        <button class="btn btn-primary" (click)="openAddModal()" title="Ajouter une nouvelle offre">
-            <span>+</span> Ajouter une offre
+<section class="applications">
+
+    <header class="page-head">
+        <div class="head-title">
+            <h1 class="display-title">Mes candidatures</h1>
+            <span class="campaign-chip">Campagne · {{ campaignName() }}</span>
+        </div>
+
+        <div class="head-actions">
+            <div class="view-switch" role="group" aria-label="Mode d'affichage">
+                <button type="button" [class.active]="view() === 'board'" (click)="view.set('board')">
+                    <i class="fa-solid fa-table-columns"></i> Tableau
+                </button>
+                <button type="button" [class.active]="view() === 'list'" (click)="view.set('list')">
+                    <i class="fa-solid fa-list"></i> Liste
+                </button>
+            </div>
+            <button type="button" class="btn-solid" (click)="openForm()">
+                <i class="fa-solid fa-plus"></i> Ajouter
+            </button>
+        </div>
+    </header>
+
+    <div class="filters">
+        <div class="search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="search" placeholder="Poste, entreprise ou lieu…" aria-label="Rechercher une candidature"
+                [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
+        </div>
+
+        <select aria-label="Filtrer par statut" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+            <option value="">Tous les statuts</option>
+            <option *ngFor="let status of allStatuses" [value]="status">{{ statusLabels[status] }}</option>
+        </select>
+
+        <select aria-label="Filtrer par entreprise" [ngModel]="companyFilter()"
+            (ngModelChange)="companyFilter.set($event)">
+            <option value="">Toutes les entreprises</option>
+            <option *ngFor="let company of companies()" [ngValue]="company.id">{{ company.name }}</option>
+        </select>
+
+        <button type="button" class="chip-filter" [class.on]="onlyDue()" (click)="onlyDue.set(!onlyDue())"
+            *ngIf="dueCount() > 0">
+            <i class="fa-solid fa-bell"></i> Relance due · {{ dueCount() }}
+        </button>
+
+        <button type="button" class="link-btn" (click)="resetFilters()" *ngIf="hasFilters()">Tout afficher</button>
+
+        <span class="count">{{ filteredCards().length }} / {{ total() }}</span>
+    </div>
+
+    <!-- Vue tableau ------------------------------------------------------- -->
+    <div class="board" *ngIf="view() === 'board'" cdkDropListGroup>
+        <section class="column" *ngFor="let col of columns()">
+            <div class="column-head">
+                <span class="status-dot" [ngClass]="col.dotClass"></span>
+                <h2>{{ col.label }}</h2>
+                <span class="column-count">{{ col.cards.length }}</span>
+            </div>
+
+            <div class="column-body" cdkDropList [cdkDropListData]="col"
+                (cdkDropListDropped)="onCardDropped($event, col)">
+
+                <article class="card-item" *ngFor="let card of col.cards" cdkDrag [cdkDragData]="card"
+                    [class.urgent]="card.urgent">
+
+                    <div class="card-top">
+                        <span class="logo" aria-hidden="true">{{ card.initials }}</span>
+                        <div class="card-titles">
+                            <button type="button" class="card-title" (click)="openDetail(card)">{{ card.title }}</button>
+                            <button type="button" class="card-company" *ngIf="card.companyId !== null"
+                                (click)="openCompany(card, $event)">{{ card.companyName }}</button>
+                            <span class="card-company muted" *ngIf="card.companyId === null">{{ card.companyName }}</span>
+                        </div>
+                        <button type="button" class="icon-btn" [attr.aria-label]="'Supprimer ' + card.title"
+                            (click)="askDelete(card)">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+
+                    <p class="card-meta">{{ card.meta }}</p>
+
+                    <div class="card-bottom">
+                        <div class="chip-wrap">
+                            <button type="button" class="status-chip" [ngClass]="card.statusClass"
+                                [attr.aria-expanded]="openStatusMenu() === card.id"
+                                [attr.aria-label]="'Changer le statut de ' + card.title"
+                                (click)="toggleStatusMenu(card)">
+                                {{ card.statusLabel }}
+                                <i class="fa-solid fa-chevron-down chip-caret"></i>
+                            </button>
+
+                            <div class="status-menu" *ngIf="openStatusMenu() === card.id">
+                                <p class="menu-title">Nouveau statut</p>
+                                <button type="button" *ngFor="let status of allStatuses"
+                                    [class.current]="status === card.status" (click)="pickStatus(card, status)">
+                                    <span class="status-dot" [ngClass]="statusDotClass(status)"></span>
+                                    <span class="menu-label">{{ statusLabels[status] }}</span>
+                                    <i class="fa-solid fa-check" *ngIf="status === card.status"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <span class="contact-pill" *ngIf="card.contactInitials"
+                            [attr.title]="'Contact identifié'">{{ card.contactInitials }}</span>
+                    </div>
+
+                    <div class="interview-draft" *ngIf="isDraftingInterview(card)">
+                        <label [attr.for]="'itw-' + card.id">Date de l'entretien</label>
+                        <div class="draft-row">
+                            <input [id]="'itw-' + card.id" type="datetime-local" [ngModel]="draftDate()"
+                                (ngModelChange)="updateInterviewDraft($event)">
+                            <button type="button" class="btn-mini primary" (click)="confirmInterviewDate()">
+                                Valider
+                            </button>
+                            <button type="button" class="btn-mini" (click)="cancelInterviewDate()">Plus tard</button>
+                        </div>
+                    </div>
+
+                    <p class="needs-date" *ngIf="card.needsInterviewDate && !isDraftingInterview(card)">
+                        <button type="button" (click)="startInterviewDraft(card.id)">
+                            <i class="fa-solid fa-calendar-plus"></i> Préciser la date
+                        </button>
+                    </p>
+                </article>
+
+                <button type="button" class="add-here" (click)="openForm()">+ Ajouter ici</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Vue liste --------------------------------------------------------- -->
+    <div class="list-view" *ngIf="view() === 'list'">
+        <table>
+            <caption class="sr-only">Liste des candidatures de la campagne en cours</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Poste</th>
+                    <th scope="col">Entreprise</th>
+                    <th scope="col">Statut</th>
+                    <th scope="col">Dernière activité</th>
+                    <th scope="col">Source</th>
+                    <th scope="col"><span class="sr-only">Actions</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let card of filteredCards()" [class.urgent]="card.urgent">
+                    <td>
+                        <button type="button" class="card-title" (click)="openDetail(card)">{{ card.title }}</button>
+                        <span class="row-sub" *ngIf="card.location">{{ card.location }}</span>
+                    </td>
+                    <td>
+                        <button type="button" class="card-company" *ngIf="card.companyId !== null"
+                            (click)="openCompany(card, $event)">{{ card.companyName }}</button>
+                        <span class="muted" *ngIf="card.companyId === null">{{ card.companyName }}</span>
+                    </td>
+                    <td>
+                        <div class="chip-wrap">
+                            <button type="button" class="status-chip" [ngClass]="card.statusClass"
+                                [attr.aria-expanded]="openStatusMenu() === card.id"
+                                [attr.aria-label]="'Changer le statut de ' + card.title"
+                                (click)="toggleStatusMenu(card)">
+                                {{ card.statusLabel }}
+                                <i class="fa-solid fa-chevron-down chip-caret"></i>
+                            </button>
+                            <div class="status-menu" *ngIf="openStatusMenu() === card.id">
+                                <p class="menu-title">Nouveau statut</p>
+                                <button type="button" *ngFor="let status of allStatuses"
+                                    [class.current]="status === card.status" (click)="pickStatus(card, status)">
+                                    <span class="status-dot" [ngClass]="statusDotClass(status)"></span>
+                                    <span class="menu-label">{{ statusLabels[status] }}</span>
+                                    <i class="fa-solid fa-check" *ngIf="status === card.status"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="muted">{{ card.meta }}</td>
+                    <td class="muted">{{ card.source || '—' }}</td>
+                    <td class="row-actions">
+                        <button type="button" class="icon-btn" [attr.aria-label]="'Modifier ' + card.title"
+                            (click)="openForm(card)">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button type="button" class="icon-btn" [attr.aria-label]="'Supprimer ' + card.title"
+                            (click)="askDelete(card)">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="empty" *ngIf="total() === 0">
+        <div class="empty-icon"><i class="fa-solid fa-briefcase"></i></div>
+        <h3>Aucune candidature pour l'instant</h3>
+        <p>Collez le lien d'une annonce et l'essentiel sera déjà rempli.</p>
+        <button type="button" class="btn-solid" (click)="openForm()">
+            <i class="fa-solid fa-plus"></i> Ajouter ma première candidature
         </button>
     </div>
 
-    <div class="filters-bar glass">
-        <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Rechercher une offre..." class="search-input" [ngModel]="searchTerm()"
-                (ngModelChange)="searchTerm.set($event)">
-        </div>
-        <div class="filter-options">
-            <select class="form-select" [class.select-to-apply]="statusFilter() === 'To Apply'"
-                [class.select-applied]="statusFilter() === 'Applied'"
-                [class.select-to-relaunch]="statusFilter() === 'To Relaunch'"
-                [class.select-no-response]="statusFilter() === 'No Response'"
-                [class.select-interview]="statusFilter() === 'Interview'"
-                [class.select-offer]="statusFilter() === 'Offer'"
-                [class.select-rejected]="statusFilter() === 'Rejected'" [ngModel]="statusFilter()"
-                (ngModelChange)="statusFilter.set($event)">
-                <option value="" class="status-option-default">Tous les statuts</option>
-                <option value="To Apply" class="status-option status-to-apply">À postuler</option>
-                <option value="Applied" class="status-option status-applied">En attente</option>
-                <option value="To Relaunch" class="status-option status-to-relaunch">À relancer</option>
-                <option value="No Response" class="status-option status-no-response">Sans réponse</option>
-                <option value="Interview" class="status-option status-interview">Entretien</option>
-                <option value="Offer" class="status-option status-offer">Offre reçue</option>
-                <option value="Rejected" class="status-option status-rejected">Refusé</option>
-            </select>
-        </div>
-    </div>
-
-    <div class="offers-grid">
-        <div class="card offer-card" *ngFor="let offer of filteredOffers(); let i = index">
-            <div class="offer-header">
-                <div class="company-logo">{{ offer.company.charAt(0) }}</div>
-                <div class="offer-main-info">
-                    <h3>{{ offer.title }}</h3>
-                    <p class="company-name">{{ offer.company }}</p>
-                </div>
-                <div class="offer-actions">
-                    <button mat-icon-button [matMenuTriggerFor]="offerMenu" class="menu-trigger" title="Options">
-                        <i class="fa-solid fa-ellipsis-vertical"></i>
-                    </button>
-                    <mat-menu #offerMenu="matMenu">
-                        <button mat-menu-item (click)="openAddModal(offer)" class="modify-btn" title="Modifier l'offre">
-                            <i class="fa-solid fa-pen"></i>
-                            <span>Modifier</span>
-                        </button>
-                        <button mat-menu-item (click)="confirmDelete(offer.id)" class="delete-btn"
-                            title="Supprimer l'offre">
-                            <i class="fa-solid fa-trash-can"></i>
-                            <span>Supprimer</span>
-                        </button>
-                    </mat-menu>
-                </div>
-            </div>
-
-            <div class="offer-details">
-                <div class="detail-item">
-                    <i class="icon">📍</i> {{ offer.location }}
-                </div>
-                <div class="detail-item" *ngIf="offer.salary">
-                    <i class="icon">💰</i> {{ offer.salary }}
-                </div>
-            </div>
-
-            <div class="offer-footer">
-                <span class="status-badge" [style.background-color]="statusColors[offer.status].background"
-                    [style.color]="statusColors[offer.status].color" [style.border]="statusColors[offer.status].border">
-                    {{ getStatusLabel(offer.status) }}
-                </span>
-                <button class="btn btn-outline btn-sm" (click)="viewDetails(offer.id)"
-                    title="Voir les détails de l'offre">Voir détails <i class="fa-solid fa-arrow-right"></i></button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Empty State -->
-    <div *ngIf="offers().length === 0" class="empty-state">
-        <div class="empty-icon">
-            <i class="fa-solid fa-briefcase"></i>
-        </div>
-        <h3>Aucune offre trouvée</h3>
-        <p>Modifiez votre recherche ou ajoutez de nouvelles offres.</p>
+    <div class="empty" *ngIf="total() > 0 && filteredCards().length === 0">
+        <h3>Aucun résultat</h3>
+        <p>Aucune candidature ne correspond à ces filtres.</p>
+        <button type="button" class="link-btn" (click)="resetFilters()">Tout afficher</button>
     </div>
 </section>
 
-<!-- Add/Edit Offer Modal -->
-<div class="modal-overlay" *ngIf="showAddModal()">
-    <div class="modal-content stepper-modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h3>{{ editingOffer() ? 'Modifier l\'offre' : 'Ajouter une offre' }}</h3>
-            <button class="close-btn" (click)="closeAddModal()" title="Fermer">×</button>
-        </div>
+<!-- Fond cliquable qui referme le menu de statut ouvert -->
+<div class="menu-backdrop" *ngIf="openStatusMenu() !== null" (click)="closeMenus()"></div>
+
+<!-- Ajout / modification ------------------------------------------------- -->
+<div class="modal-overlay" *ngIf="showFormModal()">
+    <div class="modal-panel">
+        <header class="modal-head">
+            <h2 class="display-title">{{ editingOffer() ? 'Modifier la candidature' : 'Nouvelle candidature' }}</h2>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="closeForm()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
         <div class="modal-body">
-            <app-offer-form [offer]="editingOffer()" (save)="onSaveOffer($event)" (cancel)="closeAddModal()">
+            <app-offer-form [offer]="editingOffer()" (save)="onSaveOffer($event)" (cancel)="closeForm()">
             </app-offer-form>
         </div>
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<!-- Suppression ---------------------------------------------------------- -->
 <div class="modal-overlay" *ngIf="showDeleteConfirm()">
-    <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h3>Supprimer l'offre ?</h3>
-            <button class="close-btn" (click)="cancelDelete()" title="Fermer">×</button>
+    <div class="modal-panel narrow">
+        <header class="modal-head">
+            <h2 class="display-title">Supprimer cette candidature ?</h2>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="cancelDelete()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+        <div class="modal-body">
+            <p>L'entreprise et ses contacts sont conservés. Seule la candidature disparaît, et cette action est
+                irréversible.</p>
         </div>
-        <div class="modal-body-confirm">
-            <p>Êtes-vous sûr de vouloir supprimer cette offre ? Cette action est irréversible.</p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-outline" (click)="cancelDelete()" title="Annuler la suppression">Annuler</button>
-            <button class="btn btn-danger" (click)="deleteOffer()" title="Confirmer la suppression">Supprimer</button>
-        </div>
+        <footer class="modal-foot">
+            <button type="button" class="btn-ghost" (click)="cancelDelete()">Annuler</button>
+            <button type="button" class="btn-danger" (click)="confirmDelete()">Supprimer</button>
+        </footer>
     </div>
 </div>

@@ -1,219 +1,212 @@
-import { Component, EventEmitter, Input, Output, inject, OnInit, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatStepperModule } from '@angular/material/stepper';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSelectModule } from '@angular/material/select';
-import { MatOptionModule, MatNativeDateModule } from '@angular/material/core';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { JobOffer, OffersService } from '../../core/services/offers.service';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+    APPLICATION_STATUSES,
+    ApplicationStatus,
+    INTERVIEW_TO_LEGACY,
+    InterviewKind,
+    LEGACY_TO_INTERVIEW,
+    LEGACY_TO_STATUS,
+    STATUS_LABELS,
+    STATUS_TO_LEGACY
+} from '../../core/models/job-search.models';
+import { statusClass } from '../../core/models/status-style';
+import { JobSearchStore } from '../../core/services/job-search-store.service';
+import { JobOffer, NO_COMPANY_LABEL } from '../../core/services/offers.service';
 
+/** Types de contrat pour lesquels une durée a un sens. */
+const FIXED_TERM = ['CDD', 'Stage', 'Alternance', 'Freelance', 'Intérim'];
+
+const COMMON_SOURCES = [
+    'HelloWork',
+    'France Travail',
+    'Indeed',
+    'LinkedIn',
+    'Welcome to the Jungle',
+    'Apec',
+    'Candidature spontanée',
+    'Réseau / contact'
+];
+
+/**
+ * Saisie d'une candidature, sur un seul écran.
+ *
+ * Remplace l'assistant en trois étapes : plus rien n'est obligatoire à part
+ * l'intitulé du poste, et le contenu de l'annonce est replié par défaut — on
+ * ne le remplit que si on en a besoin.
+ */
 @Component({
     selector: 'app-offer-form',
     standalone: true,
-    imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        MatStepperModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatButtonModule,
-        MatSelectModule,
-        MatOptionModule,
-        MatAutocompleteModule,
-        MatDatepickerModule,
-        MatNativeDateModule
-    ],
+    imports: [CommonModule, ReactiveFormsModule],
     templateUrl: './offer-form.component.html',
     styleUrl: './offer-form.component.css'
 })
 export class OfferFormComponent implements OnInit {
-    private _formBuilder = inject(FormBuilder);
-    private _offersService = inject(OffersService);
+    private fb = inject(FormBuilder);
+    private store = inject(JobSearchStore);
 
     @Input() offer: JobOffer | null = null;
     @Output() save = new EventEmitter<Partial<JobOffer>>();
     @Output() cancel = new EventEmitter<void>();
 
     isEditing = signal(false);
-    isExistingCompanySelected = signal(false);
-    filteredCompanies = signal<string[]>([]);
 
-    firstFormGroup: FormGroup = this._formBuilder.group({
+    readonly statuses = APPLICATION_STATUSES;
+    readonly statusLabels = STATUS_LABELS;
+    readonly sources = COMMON_SOURCES;
+    readonly contractTypes = ['CDI', 'CDD', 'Alternance', 'Stage', 'Freelance', 'Intérim'];
+    readonly interviewKinds: { value: InterviewKind, label: string }[] = [
+        { value: 'prequal', label: 'Préqualification' },
+        { value: 'phone', label: 'Téléphone' },
+        { value: 'video', label: 'Visio' },
+        { value: 'onsite', label: 'Sur place' }
+    ];
+
+    statusClass = statusClass;
+
+    companyNames = computed(() =>
+        [...this.store.companies()].map(company => company.name).sort((a, b) => a.localeCompare(b, 'fr'))
+    );
+
+    form = this.fb.nonNullable.group({
+        link: [''],
         title: ['', Validators.required],
-        company: ['', Validators.required],
+        company: [''],
+        anonymous: [false],
+        agencyName: [''],
+        location: [''],
         contractType: [''],
         contractDuration: [''],
         weeklyHours: [''],
-        location: [''],
         salary: [''],
-        link: ['']
-    });
-
-    secondFormGroup: FormGroup = this._formBuilder.group({
-        companyDescription: [''],
+        source: [''],
+        status: ['to_apply' as ApplicationStatus],
+        interviewDate: [''],
+        interviewKind: ['video' as InterviewKind],
+        description: [''],
         missions: [''],
-        profile: ['']
-    });
-
-    thirdFormGroup: FormGroup = this._formBuilder.group({
+        profile: [''],
         benefits: [''],
         recruitmentProcess: [''],
-        others: [''],
-        status: ['To Apply', Validators.required],
-        interviewDate: [''],
-        interviewType: ['']
+        others: ['']
     });
 
-    ngOnInit() {
-        // Watch for company selection to auto-populate company description
-        this.firstFormGroup.get('company')?.valueChanges.subscribe(value => {
-            this._filterCompanies(value || '');
+    ngOnInit(): void {
+        const offer = this.offer;
+        if (!offer) return;
 
-            // If user selects an existing company, populate the company description
-            const existingOffer = this._offersService.offers().find(o => o.company === value);
-            if (existingOffer) {
-                this.isExistingCompanySelected.set(true);
-                if (existingOffer.companyDescription) {
-                    this.secondFormGroup.patchValue({
-                        companyDescription: existingOffer.companyDescription
-                    });
-                }
-            } else {
-                this.isExistingCompanySelected.set(false);
-            }
+        this.isEditing.set(true);
+        const anonymous = offer.company === NO_COMPANY_LABEL;
+
+        this.form.patchValue({
+            link: offer.link ?? '',
+            title: offer.title,
+            company: anonymous ? '' : offer.company,
+            anonymous,
+            agencyName: offer.agencyName ?? '',
+            location: offer.location ?? '',
+            contractType: offer.contractType ?? '',
+            contractDuration: offer.contractDuration ?? '',
+            weeklyHours: offer.weeklyHours ?? '',
+            salary: offer.salary ?? '',
+            source: offer.source ?? '',
+            status: LEGACY_TO_STATUS[offer.status] ?? 'to_apply',
+            interviewDate: toInputValue(offer.interviewDate),
+            interviewKind: offer.interviewType ? LEGACY_TO_INTERVIEW[offer.interviewType] : 'video',
+            description: offer.description ?? '',
+            missions: offer.missions ?? '',
+            profile: offer.profile ?? '',
+            benefits: offer.benefits ?? '',
+            recruitmentProcess: offer.recruitmentProcess ?? '',
+            others: offer.others ?? ''
         });
+    }
 
-        // Watch for contract type changes to show/hide duration fields
-        this.firstFormGroup.get('contractType')?.valueChanges.subscribe(value => {
-            const durationControl = this.firstFormGroup.get('contractDuration');
-            const showDurationFields = ['CDD', 'Stage', 'Freelance', 'Intérim'].includes(value);
+    get anonymous(): boolean {
+        return this.form.controls.anonymous.value;
+    }
 
-            if (showDurationFields) {
-                durationControl?.setValidators([Validators.required]);
-            } else {
-                durationControl?.clearValidators();
-                durationControl?.setValue('');
-            }
-            durationControl?.updateValueAndValidity();
-        });
+    get status(): ApplicationStatus {
+        return this.form.controls.status.value;
+    }
 
-        // Watch for status changes to clear/set validators for interview fields
-        this.thirdFormGroup.get('status')?.valueChanges.subscribe(status => {
-            const dateControl = this.thirdFormGroup.get('interviewDate');
-            const typeControl = this.thirdFormGroup.get('interviewType');
+    get needsDuration(): boolean {
+        return FIXED_TERM.includes(this.form.controls.contractType.value);
+    }
 
-            if (status === 'Interview') {
-                dateControl?.setValidators([Validators.required]);
-                typeControl?.setValidators([Validators.required]);
-            } else {
-                dateControl?.clearValidators();
-                typeControl?.clearValidators();
+    get hasContent(): boolean {
+        const { description, missions, profile, benefits, recruitmentProcess, others } = this.form.getRawValue();
+        return [description, missions, profile, benefits, recruitmentProcess, others].some(value => !!value.trim());
+    }
 
-                this.thirdFormGroup.patchValue({
-                    interviewDate: null,
-                    interviewType: null
-                });
-            }
-            dateControl?.updateValueAndValidity();
-            typeControl?.updateValueAndValidity();
-        });
+    setStatus(status: ApplicationStatus): void {
+        this.form.controls.status.setValue(status);
+    }
 
-        if (this.offer) {
-            this.isEditing.set(true);
-            this.isExistingCompanySelected.set(true);
-
-            // Get the latest company data to ensure we have the most up-to-date information
-            const companyData = this._offersService.getCompany(this.offer.company);
-
-            this.firstFormGroup.patchValue({
-                title: this.offer.title,
-                company: this.offer.company,
-                contractType: this.offer.contractType,
-                contractDuration: this.offer.contractDuration,
-                weeklyHours: this.offer.weeklyHours,
-                location: this.offer.location,
-                salary: this.offer.salary,
-                link: this.offer.link
-            });
-
-            // Trigger value change to set validation for contract duration
-            if (this.offer.contractType) {
-                this.firstFormGroup.get('contractType')?.setValue(this.offer.contractType);
-            }
-
-            // Use company data if available, otherwise fall back to offer data
-            this.secondFormGroup.patchValue({
-                companyDescription: companyData?.info?.description || this.offer.companyDescription,
-                missions: this.offer.missions,
-                profile: this.offer.profile
-            });
-
-            this.thirdFormGroup.patchValue({
-                benefits: this.offer.benefits,
-                recruitmentProcess: this.offer.recruitmentProcess,
-                others: this.offer.others,
-                status: this.offer.status,
-                interviewDate: this.offer.interviewDate ? new Date(this.offer.interviewDate) : null,
-                interviewType: this.offer.interviewType
-            });
+    toggleAnonymous(): void {
+        const next = !this.anonymous;
+        this.form.controls.anonymous.setValue(next);
+        if (next) {
+            this.form.controls.company.setValue('');
+        } else {
+            this.form.controls.agencyName.setValue('');
         }
     }
 
-    submit() {
-        if (this.firstFormGroup.valid && this.thirdFormGroup.valid) {
-            const step1 = this.firstFormGroup.value;
-            const step2 = this.secondFormGroup.value;
-            const step3 = this.thirdFormGroup.value;
-
-            const offerData: Partial<JobOffer> = {
-                title: step1.title,
-                company: step1.company,
-                contractType: step1.contractType,
-                contractDuration: step1.contractDuration,
-                weeklyHours: step1.weeklyHours,
-                location: step1.location || 'Remote',
-                salary: step1.salary,
-                link: step1.link,
-
-                companyDescription: step2.companyDescription,
-                missions: step2.missions,
-                profile: step2.profile,
-
-                benefits: step3.benefits,
-                recruitmentProcess: step3.recruitmentProcess,
-                others: step3.others,
-                status: step3.status || 'To Apply',
-                description: step2.missions, // Fallback
-
-                interviewDate: step3.interviewDate ? new Date(step3.interviewDate) : undefined,
-                interviewType: step3.interviewType
-            };
-
-            this.save.emit(offerData);
-        }
-    }
-
-    private _filterCompanies(value: string) {
-        const filterValue = value.toLowerCase();
-
-        // Get unique companies from offers
-        const uniqueCompanies = Array.from(new Set(this._offersService.offers().map(o => o.company))).sort();
-
-        if (!filterValue) {
-            this.filteredCompanies.set([]);
+    submit(): void {
+        if (this.form.invalid) {
+            this.form.controls.title.markAsTouched();
             return;
         }
 
-        const filtered = uniqueCompanies.filter(company => {
-            const words = company.toLowerCase().split(' ');
-            // Check if query matches start of any word
-            return words.some(word => word.startsWith(filterValue));
-        });
+        const value = this.form.getRawValue();
+        const anonymous = value.anonymous;
+        const wantsInterview = value.status === 'interview' && !!value.interviewDate;
 
-        this.filteredCompanies.set(filtered);
+        this.save.emit({
+            title: value.title.trim(),
+            company: anonymous ? NO_COMPANY_LABEL : value.company.trim(),
+            agencyName: anonymous ? blankToUndefined(value.agencyName) : undefined,
+            location: value.location.trim(),
+            contractType: blankToUndefined(value.contractType),
+            contractDuration: this.needsDuration ? blankToUndefined(value.contractDuration) : undefined,
+            weeklyHours: blankToUndefined(value.weeklyHours),
+            salary: blankToUndefined(value.salary),
+            source: blankToUndefined(value.source),
+            link: blankToUndefined(value.link),
+            status: STATUS_TO_LEGACY[value.status],
+            statusValue: value.status,
+            description: blankToUndefined(value.description),
+            missions: blankToUndefined(value.missions),
+            profile: blankToUndefined(value.profile),
+            benefits: blankToUndefined(value.benefits),
+            recruitmentProcess: blankToUndefined(value.recruitmentProcess),
+            others: blankToUndefined(value.others),
+            interviewDate: wantsInterview ? new Date(value.interviewDate) : undefined,
+            interviewType: wantsInterview ? INTERVIEW_TO_LEGACY[value.interviewKind] : undefined
+        });
     }
+
+    onCancel(): void {
+        this.cancel.emit();
+    }
+}
+
+// --------------------------------------------------------------------------
+
+function blankToUndefined(value: string): string | undefined {
+    const trimmed = (value ?? '').trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+}
+
+/** Date au format attendu par `<input type="datetime-local">`. */
+function toInputValue(date?: Date): string {
+    if (!date) return '';
+    const value = new Date(date);
+    if (isNaN(value.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`
+        + `T${pad(value.getHours())}:${pad(value.getMinutes())}`;
 }
