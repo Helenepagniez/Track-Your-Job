@@ -14,9 +14,11 @@ export class LandingComponent implements OnInit {
     private authService = inject(AuthService);
     private router = inject(Router);
 
-    ngOnInit() {
+    /** On attend la réponse de Firebase : sinon on redirige à tort. */
+    async ngOnInit(): Promise<void> {
+        await this.authService.whenReady();
         if (this.authService.isAuthenticated()) {
-            this.router.navigate(['/resume']);
+            await this.router.navigate(['/resume']);
         }
     }
 }

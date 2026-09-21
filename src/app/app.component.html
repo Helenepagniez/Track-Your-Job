@@ -1,9 +1,17 @@
-@if (authService.isAuthenticated()) {
+@if (!authService.ready()) {
+<div class="boot">
+    <span class="boot-mark">TJ</span>
+    <p>Chargement de votre espace…</p>
+</div>
+} @else if (authService.isAuthenticated()) {
 <div class="app-layout" [class.collapsed]="layoutService.isSidebarCollapsed()">
     <div class="sidebar-overlay" (click)="layoutService.closeSidebar()"></div>
     <app-nav-bar></app-nav-bar>
     <main class="main-content">
         <app-top-bar></app-top-bar>
+        <p class="sync-error" *ngIf="store.syncError()">
+            <i class="fa-solid fa-triangle-exclamation"></i> {{ store.syncError() }}
+        </p>
         <div class="content-area">
             <router-outlet></router-outlet>
         </div>

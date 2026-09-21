@@ -9,8 +9,9 @@ import {
     profileCompletion
 } from '../core/models/job-search.models';
 import { AuthService } from '../core/services/auth.service';
+import { BackupService } from '../core/services/backup.service';
 import { JobSearchStore } from '../core/services/job-search-store.service';
-import { LocalStorageService } from '../core/services/local-storage.service';
+import { UserDataService } from '../core/services/user-data.service';
 import { CampaignPanelComponent } from '../campaigns/campaign-panel/campaign-panel.component';
 import { ProfileDraft, ProfileFormComponent } from './profile-form/profile-form.component';
 
@@ -37,7 +38,8 @@ const DOCUMENT_KINDS: { value: ProfileDocument['kind'], label: string }[] = [
 export class ProfileComponent {
     private store = inject(JobSearchStore);
     private authService = inject(AuthService);
-    private localStorageService = inject(LocalStorageService);
+    private userData = inject(UserDataService);
+    private backup = inject(BackupService);
 
     readonly documentKinds = DOCUMENT_KINDS;
 
@@ -46,6 +48,15 @@ export class ProfileComponent {
     showDocumentForm = signal(false);
     documentDraft = signal({ label: '', fileName: '', kind: 'cv' as ProfileDocument['kind'] });
     importError = signal('');
+    importDone = signal('');
+
+    /** Reste-t-il des données de l'ancienne version dans ce navigateur ? */
+    hasLocalData = signal(this.backup.hasLocalData());
+
+    /** Un compte Google n'a pas de mot de passe à réinitialiser. */
+    hasPassword = computed(() => this.authService.currentUser()?.provider === 'password');
+    resetSent = signal(false);
+    resetError = signal('');
 
     profile = computed<Profile | null>(() => this.store.profile());
 
@@ -125,9 +136,6 @@ export class ProfileComponent {
             linkedin: draft.linkedin,
             portfolio: draft.portfolio
         };
-        if (draft.newPassword) {
-            patch.password = draft.newPassword;
-        }
         this.store.updateProfile(patch);
         this.closeEdit();
     }
@@ -185,14 +193,7 @@ export class ProfileComponent {
     // ---------------------------------------------------------- mes données
 
     exportData(): void {
-        const data = this.localStorageService.exportData();
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `track-your-job-${new Date().toISOString().split('T')[0]}.json`;
-        link.click();
-        window.URL.revokeObjectURL(url);
+        this.backup.download(this.userData.exportJson());
     }
 
     onFileSelected(event: Event): void {
@@ -201,16 +202,57 @@ export class ProfileComponent {
         if (!file) return;
 
         this.importError.set('');
+        this.importDone.set('');
+
         const reader = new FileReader();
         reader.onload = () => {
-            const content = String(reader.result ?? '');
-            if (this.localStorageService.importData(content)) {
-                window.location.reload();
-            } else {
-                this.importError.set('Ce fichier n\'est pas une sauvegarde lisible.');
+            const restored = this.backup.parseBackup(String(reader.result ?? ''));
+            if (!restored) {
+                this.importError.set('Ce fichier ne ressemble pas à une sauvegarde lisible.');
+                return;
             }
+            this.userData.replaceAll(restored);
+            this.importDone.set('Sauvegarde restaurée : elle remplace le contenu du compte.');
         };
         reader.readAsText(file);
+        input.value = '';
+    }
+
+    /** Reprend ce qui restait dans ce navigateur, sans en laisser de copie. */
+    importLocalData(): void {
+        const local = this.backup.readLocalData();
+        if (!local) {
+            this.hasLocalData.set(false);
+            return;
+        }
+        this.userData.replaceAll(local);
+        this.backup.clearLocalData();
+        this.hasLocalData.set(false);
+        this.importDone.set('Données de ce navigateur reprises dans votre compte.');
+    }
+
+    dismissLocalData(): void {
+        this.backup.clearLocalData();
+        this.hasLocalData.set(false);
+    }
+
+    // ------------------------------------------------------- mot de passe
+
+    /**
+     * Firebase envoie le lien de changement : l'application ne voit jamais le
+     * mot de passe, et n'en garde aucune copie.
+     */
+    async sendPasswordReset(): Promise<void> {
+        this.resetError.set('');
+        const email = this.profile()?.email;
+        if (!email) return;
+
+        const result = await this.authService.sendPasswordReset(email);
+        if (result.ok) {
+            this.resetSent.set(true);
+        } else {
+            this.resetError.set(result.error ?? 'Envoi impossible.');
+        }
     }
 
     // -------------------------------------------------------- suppression
@@ -223,9 +265,15 @@ export class ProfileComponent {
         this.isDeleting.set(false);
     }
 
-    confirmDelete(): void {
-        this.authService.deleteUser();
+    async confirmDelete(): Promise<void> {
+        // On vide le document avant de supprimer le compte : sans compte, les
+        // règles Firestore n'autorisent plus d'écrire.
+        await this.userData.clear();
+        const result = await this.authService.deleteAccount();
         this.isDeleting.set(false);
+        if (!result.ok) {
+            this.importError.set(result.error ?? 'Suppression impossible.');
+        }
     }
 }
 

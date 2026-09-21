@@ -11,7 +11,23 @@
         </div>
 
         <h1 class="display-title">Créer un compte</h1>
-        <p class="lead">Gratuit, sans email de confirmation : tout reste sur votre appareil.</p>
+        <p class="lead">Gratuit. Vos données suivent votre compte, sur tous vos appareils.</p>
+
+        <button type="button" class="btn-google" (click)="withGoogle()" [disabled]="busy()">
+            <svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true">
+                <path fill="#EA4335"
+                    d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.6 30.2.5 24 .5 14.6.5 6.5 5.9 2.6 13.8l7.8 6.1C12.3 13.9 17.6 9.5 24 9.5z" />
+                <path fill="#4285F4"
+                    d="M46.5 24.5c0-1.6-.15-3.2-.45-4.7H24v9h12.6c-.55 2.9-2.2 5.3-4.65 7l7.6 5.9c4.45-4.1 6.95-10.2 6.95-17.2z" />
+                <path fill="#FBBC05"
+                    d="M10.4 28.1c-.5-1.5-.8-3-.8-4.6s.3-3.1.8-4.6l-7.8-6.1C.95 16.1 0 20 0 23.5s.95 7.4 2.6 10.7l7.8-6.1z" />
+                <path fill="#34A853"
+                    d="M24 47.5c6.2 0 11.5-2 15.4-5.6l-7.6-5.9c-2.1 1.4-4.8 2.3-7.8 2.3-6.4 0-11.7-4.4-13.6-10.3l-7.8 6.1C6.5 42.1 14.6 47.5 24 47.5z" />
+            </svg>
+            Continuer avec Google
+        </button>
+
+        <div class="separator"><span>ou</span></div>
 
         <form (ngSubmit)="submit()">
             <div class="field">
@@ -41,7 +57,7 @@
 
             <p class="error" *ngIf="error()">{{ error() }}</p>
 
-            <button type="submit" class="btn-solid block" [disabled]="!canSubmit">Créer mon compte</button>
+            <button type="submit" class="btn-solid block" [disabled]="!canSubmit">{{ busy() ? 'Création…' : 'Créer mon compte' }}</button>
         </form>
 
         <p class="switch">
@@ -50,8 +66,8 @@
 
         <p class="storage-note">
             <i class="fa-solid fa-circle-info"></i>
-            Le mot de passe est enregistré tel quel dans ce navigateur : ne réutilisez pas un mot de passe
-            important. La connexion par Google et le chiffrement arrivent avec la prochaine version.
+Le mot de passe est géré par Firebase : il ne transite jamais par l'application et n'est jamais
+            stocké dans votre navigateur.
         </p>
     </div>
 </div>

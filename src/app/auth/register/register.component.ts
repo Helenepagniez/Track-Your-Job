@@ -20,12 +20,29 @@ export class RegisterComponent {
     password = signal('');
     confirmPassword = signal('');
     error = signal('');
+    busy = signal(false);
 
     get canSubmit(): boolean {
-        return !!this.fullName().trim() && !!this.email().trim() && this.password().length > 0;
+        return !this.busy()
+            && !!this.fullName().trim()
+            && !!this.email().trim()
+            && this.password().length > 0;
     }
 
-    submit(): void {
+    async withGoogle(): Promise<void> {
+        this.error.set('');
+        this.busy.set(true);
+        const result = await this.authService.loginWithGoogle();
+        this.busy.set(false);
+
+        if (result.ok) {
+            await this.router.navigate(['/resume']);
+        } else {
+            this.error.set(result.error ?? 'Inscription impossible.');
+        }
+    }
+
+    async submit(): Promise<void> {
         this.error.set('');
 
         if (this.password().length < 6) {
@@ -37,14 +54,16 @@ export class RegisterComponent {
             return;
         }
 
-        const result = this.authService.register(
+        this.busy.set(true);
+        const result = await this.authService.register(
             this.fullName().trim(),
             this.email().trim(),
             this.password()
         );
+        this.busy.set(false);
 
         if (result.ok) {
-            this.router.navigate(['/resume']);
+            await this.router.navigate(['/resume']);
         } else {
             this.error.set(result.error ?? 'Inscription impossible.');
         }

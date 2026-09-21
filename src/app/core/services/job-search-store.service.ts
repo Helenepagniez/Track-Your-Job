@@ -20,8 +20,8 @@ import {
 } from '../models/job-search.models';
 import { UserData } from './storage/app-data';
 import { AuthService } from './auth.service';
-import { LocalStorageService } from './local-storage.service';
 import { TasksService } from './tasks.service';
+import { UserDataService } from './user-data.service';
 
 /** Délai avant de proposer une relance, puis de classer sans réponse. */
 export const RELAUNCH_AFTER_DAYS = 14;
@@ -74,11 +74,16 @@ export interface NewApplication {
  */
 @Injectable({ providedIn: 'root' })
 export class JobSearchStore {
-    private storage = inject(LocalStorageService);
+    private userData = inject(UserDataService);
     private auth = inject(AuthService);
     private tasksService = inject(TasksService);
 
-    private data = signal<UserData | null>(null);
+    /** Les données viennent du document Firestore, pas d'un cache local. */
+    private data = computed<UserData | null>(() => this.userData.data());
+
+    /** Faux tant que Firestore n'a pas répondu pour ce compte. */
+    ready = computed(() => this.userData.ready());
+    syncError = computed(() => this.userData.error());
 
     profile = computed<Profile | null>(() => this.data()?.profile ?? null);
     campaigns = computed<Campaign[]>(() => this.data()?.campaigns ?? []);
@@ -98,14 +103,13 @@ export class JobSearchStore {
     });
 
     constructor() {
+        // Dès que les données du compte sont là, on fait avancer les
+        // candidatures restées sans nouvelle.
         effect(() => {
-            const user = this.auth.currentUser();
-            if (!user) {
-                this.data.set(null);
-                return;
+            const loaded = this.userData.ready() && !!this.data();
+            if (loaded) {
+                untracked(() => this.runRelaunchAutomation());
             }
-            this.data.set(this.storage.getUserData());
-            untracked(() => this.runRelaunchAutomation());
         }, { allowSignalWrites: true });
     }
 
@@ -143,26 +147,23 @@ export class JobSearchStore {
     // ------------------------------------------------------------- écritures
 
     /**
-     * Toute écriture relit d'abord le stockage. `TasksService` écrit dans le
-     * même bloc de son côté : partir d'un instantané en mémoire ferait perdre
-     * ses tâches à la première candidature modifiée.
+     * Toute écriture passe par le service qui détient le document : il part
+     * toujours de la dernière version connue, et `TasksService` emprunte le
+     * même chemin. Deux écrivains ne peuvent donc plus s'écraser.
      */
     private commit(mutate: (data: UserData) => void): void {
-        const stored = this.storage.getUserData();
-        if (!stored) return;
-
-        const next: UserData = {
-            ...stored,
-            campaigns: [...stored.campaigns],
-            companies: [...stored.companies],
-            contacts: [...stored.contacts],
-            applications: [...stored.applications],
-            tasks: [...stored.tasks]
-        };
-
-        mutate(next);
-        this.storage.setUserData(next);
-        this.data.set(next);
+        this.userData.update(current => {
+            const next: UserData = {
+                ...current,
+                campaigns: [...current.campaigns],
+                companies: [...current.companies],
+                contacts: [...current.contacts],
+                applications: [...current.applications],
+                tasks: [...current.tasks]
+            };
+            mutate(next);
+            return next;
+        });
     }
 
     private takeId(data: UserData): number {
@@ -182,7 +183,9 @@ export class JobSearchStore {
         this.commit(data => {
             data.profile = { ...data.profile, ...patch, id: data.profile.id };
         });
-        this.auth.refreshCurrentUser();
+        if (patch.fullName) {
+            void this.auth.updateDisplayName(patch.fullName);
+        }
     }
 
     /** Objectif hebdomadaire : porté par la campagne, pas par le profil. */

@@ -18,20 +18,36 @@ export class LoginComponent {
     email = signal('');
     password = signal('');
     error = signal('');
+    busy = signal(false);
 
-    /** Réinitialisation locale du mot de passe. */
+    /** Réinitialisation par email, envoyée par Firebase. */
     showReset = signal(false);
     resetEmail = signal('');
-    resetPassword = signal('');
     resetError = signal('');
-    resetDone = signal(false);
+    resetSent = signal(false);
+    resetBusy = signal(false);
 
-    submit(): void {
+    async withGoogle(): Promise<void> {
         this.error.set('');
-        const result = this.authService.login(this.email().trim(), this.password());
+        this.busy.set(true);
+        const result = await this.authService.loginWithGoogle();
+        this.busy.set(false);
 
         if (result.ok) {
-            this.router.navigate(['/resume']);
+            await this.router.navigate(['/resume']);
+        } else {
+            this.error.set(result.error ?? 'Connexion impossible.');
+        }
+    }
+
+    async submit(): Promise<void> {
+        this.error.set('');
+        this.busy.set(true);
+        const result = await this.authService.login(this.email().trim(), this.password());
+        this.busy.set(false);
+
+        if (result.ok) {
+            await this.router.navigate(['/resume']);
         } else {
             this.error.set(result.error ?? 'Connexion impossible.');
         }
@@ -39,9 +55,8 @@ export class LoginComponent {
 
     openReset(): void {
         this.resetEmail.set(this.email().trim());
-        this.resetPassword.set('');
         this.resetError.set('');
-        this.resetDone.set(false);
+        this.resetSent.set(false);
         this.showReset.set(true);
     }
 
@@ -49,19 +64,16 @@ export class LoginComponent {
         this.showReset.set(false);
     }
 
-    submitReset(): void {
+    async sendReset(): Promise<void> {
         this.resetError.set('');
-        const result = this.authService.resetPasswordLocally(
-            this.resetEmail().trim(),
-            this.resetPassword()
-        );
+        this.resetBusy.set(true);
+        const result = await this.authService.sendPasswordReset(this.resetEmail().trim());
+        this.resetBusy.set(false);
 
         if (result.ok) {
-            this.resetDone.set(true);
-            this.email.set(this.resetEmail().trim());
-            this.password.set('');
+            this.resetSent.set(true);
         } else {
-            this.resetError.set(result.error ?? 'Réinitialisation impossible.');
+            this.resetError.set(result.error ?? 'Envoi impossible.');
         }
     }
 }

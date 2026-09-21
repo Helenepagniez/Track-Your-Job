@@ -13,6 +13,22 @@
         <h1 class="display-title">Bon retour</h1>
         <p class="lead">Connectez-vous pour retrouver votre suivi.</p>
 
+        <button type="button" class="btn-google" (click)="withGoogle()" [disabled]="busy()">
+            <svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true">
+                <path fill="#EA4335"
+                    d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.6 30.2.5 24 .5 14.6.5 6.5 5.9 2.6 13.8l7.8 6.1C12.3 13.9 17.6 9.5 24 9.5z" />
+                <path fill="#4285F4"
+                    d="M46.5 24.5c0-1.6-.15-3.2-.45-4.7H24v9h12.6c-.55 2.9-2.2 5.3-4.65 7l7.6 5.9c4.45-4.1 6.95-10.2 6.95-17.2z" />
+                <path fill="#FBBC05"
+                    d="M10.4 28.1c-.5-1.5-.8-3-.8-4.6s.3-3.1.8-4.6l-7.8-6.1C.95 16.1 0 20 0 23.5s.95 7.4 2.6 10.7l7.8-6.1z" />
+                <path fill="#34A853"
+                    d="M24 47.5c6.2 0 11.5-2 15.4-5.6l-7.6-5.9c-2.1 1.4-4.8 2.3-7.8 2.3-6.4 0-11.7-4.4-13.6-10.3l-7.8 6.1C6.5 42.1 14.6 47.5 24 47.5z" />
+            </svg>
+            Continuer avec Google
+        </button>
+
+        <div class="separator"><span>ou</span></div>
+
         <form (ngSubmit)="submit()">
             <div class="field">
                 <label for="login-email">Email</label>
@@ -30,7 +46,9 @@
             <p class="error" *ngIf="error()">{{ error() }}</p>
 
             <button type="submit" class="btn-solid block"
-                [disabled]="!email().trim() || !password()">Se connecter</button>
+                [disabled]="busy() || !email().trim() || !password()">
+                {{ busy() ? 'Connexion…' : 'Se connecter' }}
+            </button>
         </form>
 
         <p class="switch">
@@ -38,9 +56,15 @@
         </p>
 
         <p class="storage-note">
+            <i class="fa-solid fa-cloud"></i>
+            Vos données suivent votre compte : elles sont disponibles sur tous vos appareils.
+        </p>
+
+        <p class="migration-note">
             <i class="fa-solid fa-circle-info"></i>
-            Vos données restent dans ce navigateur. La connexion par Google et la synchronisation entre appareils
-            arrivent avec la prochaine version.
+            Vous utilisiez la version précédente ? Les comptes n'y étaient enregistrés que dans le navigateur :
+            ils n'ont pas été transférés. Créez votre compte, puis restaurez votre sauvegarde depuis l'écran
+            Profil.
         </p>
     </div>
 </div>
@@ -55,47 +79,36 @@
             </button>
         </header>
 
-        <div class="modal-body" *ngIf="!resetDone()">
+        <div class="modal-body" *ngIf="!resetSent()">
             <p class="reset-note">
-                Aucun email n'est envoyé : vos données vivent dans ce navigateur, et l'application n'a pas de
-                serveur. Si votre compte s'y trouve, vous pouvez redéfinir votre mot de passe ici.
+                Indiquez l'adresse de votre compte : vous recevrez un lien pour choisir un nouveau mot de passe.
             </p>
-            <p class="reset-warning">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                Cela ne protège rien : les données de ce navigateur sont lisibles sans mot de passe. La vraie
-                réinitialisation par email arrivera avec Firebase.
-            </p>
-
-            <div class="form-grid">
-                <div class="field span-2">
-                    <label for="reset-email">Email du compte</label>
-                    <input id="reset-email" type="email" [ngModel]="resetEmail()"
-                        (ngModelChange)="resetEmail.set($event)" name="resetEmail" placeholder="vous@exemple.fr">
-                </div>
-                <div class="field span-2">
-                    <label for="reset-password">Nouveau mot de passe</label>
-                    <input id="reset-password" type="password" autocomplete="new-password"
-                        [ngModel]="resetPassword()" (ngModelChange)="resetPassword.set($event)" name="resetPassword">
-                    <p class="hint">Six caractères minimum.</p>
-                </div>
-                <p class="error span-2" *ngIf="resetError()">{{ resetError() }}</p>
+            <div class="field">
+                <label for="reset-email">Email du compte</label>
+                <input id="reset-email" type="email" autocomplete="email" [ngModel]="resetEmail()"
+                    (ngModelChange)="resetEmail.set($event)" name="resetEmail" placeholder="vous@exemple.fr">
             </div>
+            <p class="error" *ngIf="resetError()">{{ resetError() }}</p>
+            <p class="hint">
+                Si vous vous êtes inscrite avec Google, il n'y a pas de mot de passe à réinitialiser : utilisez le
+                bouton « Continuer avec Google ».
+            </p>
         </div>
 
-        <div class="modal-body" *ngIf="resetDone()">
+        <div class="modal-body" *ngIf="resetSent()">
             <p class="reset-success">
                 <i class="fa-solid fa-circle-check"></i>
-                Mot de passe redéfini. Vous pouvez vous connecter avec le nouveau.
+                Email envoyé à {{ resetEmail() }}. Regardez aussi vos indésirables.
             </p>
         </div>
 
         <footer class="modal-foot">
             <button type="button" class="btn-ghost" (click)="closeReset()">
-                {{ resetDone() ? 'Fermer' : 'Annuler' }}
+                {{ resetSent() ? 'Fermer' : 'Annuler' }}
             </button>
-            <button type="button" class="btn-solid" *ngIf="!resetDone()" (click)="submitReset()"
-                [disabled]="!resetEmail().trim() || !resetPassword()">
-                Redéfinir
+            <button type="button" class="btn-solid" *ngIf="!resetSent()" (click)="sendReset()"
+                [disabled]="resetBusy() || !resetEmail().trim()">
+                {{ resetBusy() ? 'Envoi…' : 'Envoyer le lien' }}
             </button>
         </footer>
     </div>

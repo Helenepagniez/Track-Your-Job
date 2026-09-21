@@ -45,21 +45,36 @@ export function migrateAppData(raw: unknown): AppData {
 function normalizeV2(data: AppData): AppData {
     const users: AppData['users'] = {};
     for (const [userId, userData] of Object.entries(data.users || {})) {
-        users[userId] = {
-            ...userData,
-            campaigns: userData.campaigns || [],
-            companies: userData.companies || [],
-            contacts: userData.contacts || [],
-            applications: (userData.applications || []).map(app => ({
-                ...app,
-                contactIds: app.contactIds || [],
-                events: app.events || []
-            })),
-            tasks: userData.tasks || [],
-            nextId: userData.nextId || nextFreeId(userData)
-        };
+        users[userId] = normalizeUserData(userData);
     }
     return { schemaVersion: SCHEMA_VERSION, currentUserId: data.currentUserId ?? null, users };
+}
+
+/**
+ * Complète les tableaux absents et recalcule le compteur d'identifiants.
+ * Appliqué à tout ce qui arrive du stockage, Firestore inclus : un document
+ * écrit par une version antérieure peut manquer de champs.
+ */
+export function normalizeUserData(userData: UserData): UserData {
+    return {
+        ...userData,
+        campaigns: userData.campaigns || [],
+        companies: (userData.companies || []).map(company => ({
+            ...company,
+            history: company.history || []
+        })),
+        contacts: (userData.contacts || []).map(contact => ({
+            ...contact,
+            affiliations: contact.affiliations || []
+        })),
+        applications: (userData.applications || []).map(app => ({
+            ...app,
+            contactIds: app.contactIds || [],
+            events: app.events || []
+        })),
+        tasks: userData.tasks || [],
+        nextId: userData.nextId || nextFreeId(userData)
+    };
 }
 
 function nextFreeId(userData: UserData): number {
@@ -235,8 +250,8 @@ function migrateProfile(user: LegacyUser): Profile {
         id: user.id,
         fullName: user.fullName,
         email: user.email,
-        password: user.password,
-        authMethod: 'email',
+        // Le mot de passe de l'ancienne version n'est pas repris : c'est
+        // Firebase qui gère l'authentification, l'application ne le voit plus.
         createdAt: toIso(user.createdAt || new Date()),
         title: user.title || undefined,
         location: user.location || undefined,

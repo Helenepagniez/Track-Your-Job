@@ -162,8 +162,6 @@ describe('complétion du profil', () => {
         id: 'u1',
         fullName: 'Démo Track',
         email: 'demo@example.test',
-        password: 'x',
-        authMethod: 'email',
         createdAt: '2026-05-01T08:00:00.000Z'
     };
 

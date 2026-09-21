@@ -1,88 +1,52 @@
-import { Injectable, signal, computed, effect, untracked } from '@angular/core';
+import { Injectable, computed, inject } from '@angular/core';
 import { Task } from '../../tasks/task.model';
-import { LocalStorageService } from './local-storage.service';
-import { AuthService } from './auth.service';
+import { UserDataService } from './user-data.service';
 
+/**
+ * Les tâches vivent dans le même document que le reste, et passent par le
+ * même écrivain : deux services ne peuvent plus s'écraser mutuellement.
+ */
 @Injectable({
     providedIn: 'root'
 })
 export class TasksService {
-    tasks = signal<Task[]>([]);
+    private userData = inject(UserDataService);
 
-    constructor(
-        private localStorageService: LocalStorageService,
-        private authService: AuthService
-    ) {
-        // React to user changes to load correct data
-        effect(() => {
-            const user = this.authService.currentUser();
-            if (user) {
-                this.loadTasksFromStorage();
-            } else {
-                this.tasks.set([]);
-            }
-        }, { allowSignalWrites: true });
+    tasks = computed<Task[]>(() => this.userData.data()?.tasks ?? []);
 
-        // Set up auto-save effect
-        effect(() => {
-            const currentTasks = this.tasks();
-            const user = untracked(() => this.authService.currentUser());
-
-            if (user) {
-                this.localStorageService.updateTasks(currentTasks);
-            }
-        });
+    private write(next: Task[]): void {
+        this.userData.update(data => ({ ...data, tasks: next }));
     }
 
-    /**
-     * Load tasks from localStorage
-     */
-    private loadTasksFromStorage() {
-        const tasks = this.localStorageService.getTasks();
-        if (tasks && tasks.length > 0) {
-            this.tasks.set(tasks);
-        }
+    addTask(task: Task): void {
+        this.write([task, ...this.tasks()]);
     }
 
-    addTask(task: Task) {
-        this.tasks.update(tasks => [task, ...tasks]);
+    setTasks(tasks: Task[]): void {
+        this.write(tasks);
     }
 
-    setTasks(tasks: Task[]) {
-        this.tasks.set(tasks);
+    updateTask(updated: Task): void {
+        this.write(this.tasks().map(task => (task.id === updated.id ? updated : task)));
     }
 
-    updateTask(updatedTask: Task) {
-        this.tasks.update(tasks => tasks.map(t => t.id === updatedTask.id ? updatedTask : t));
+    deleteTask(id: number): void {
+        this.write(this.tasks().filter(task => task.id !== id));
     }
 
-    deleteTask(id: number) {
-        this.tasks.update(tasks => tasks.filter(t => t.id !== id));
+    toggleTask(id: number): void {
+        this.write(this.tasks().map(task => {
+            if (task.id !== id) return task;
+            const completed = !task.completed;
+            return { ...task, completed, status: completed ? 'termine' : 'a_faire' };
+        }));
     }
 
-    toggleTask(id: number) {
-        this.tasks.update(tasks =>
-            tasks.map(t => {
-                if (t.id === id) {
-                    const newCompleted = !t.completed;
-                    return {
-                        ...t,
-                        completed: newCompleted,
-                        status: newCompleted ? 'termine' : 'a_faire'
-                    };
-                }
-                return t;
-            })
-        );
-    }
-
-    updateTaskStatus(id: number, newStatus: 'a_faire' | 'en_cours' | 'termine') {
-        this.tasks.update(tasks =>
-            tasks.map(t => t.id === id ? { ...t, status: newStatus, completed: newStatus === 'termine' } : t)
-        );
-    }
-
-    clearAll() {
-        this.tasks.set([]);
+    updateTaskStatus(id: number, status: Task['status']): void {
+        this.write(this.tasks().map(task =>
+            task.id === id
+                ? { ...task, status, completed: status === 'termine' }
+                : task
+        ));
     }
 }

@@ -15,11 +15,13 @@
     "@angular/common": "^18.2.0",
     "@angular/compiler": "^18.2.0",
     "@angular/core": "^18.2.0",
+    "@angular/fire": "^18.0.1",
     "@angular/forms": "^18.2.0",
     "@angular/material": "^18.2.14",
     "@angular/platform-browser": "^18.2.0",
     "@angular/platform-browser-dynamic": "^18.2.0",
     "@angular/router": "^18.2.0",
+    "firebase": "^10.14.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.10"
@@ -36,5 +38,11 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.5.2"
+  },
+  "overrides": {
+    "@firebase/app": "0.10.13",
+    "@firebase/component": "0.6.9",
+    "@firebase/logger": "0.4.2",
+    "@firebase/util": "1.10.0"
   }
 }

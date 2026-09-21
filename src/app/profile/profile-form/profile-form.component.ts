@@ -17,8 +17,6 @@ export interface ProfileDraft {
     salaryExpectation?: string;
     linkedin?: string;
     portfolio?: string;
-    /** Renseigné uniquement si l'utilisateur change son mot de passe. */
-    newPassword?: string;
 }
 
 const CONTRACT_TYPES = ['CDI', 'CDD', 'Alternance', 'Stage', 'Freelance', 'Intérim'];
@@ -49,9 +47,6 @@ export class ProfileFormComponent implements OnInit {
 
     selectedContracts = signal<string[]>([]);
 
-    showPasswordChange = signal(false);
-    passwordError = signal('');
-
     form = this.fb.nonNullable.group({
         fullName: ['', Validators.required],
         email: ['', [Validators.required, Validators.email]],
@@ -64,9 +59,7 @@ export class ProfileFormComponent implements OnInit {
         skills: [''],
         salaryExpectation: [''],
         linkedin: [''],
-        portfolio: [''],
-        newPassword: [''],
-        confirmPassword: ['']
+        portfolio: ['']
     });
 
     ngOnInit(): void {
@@ -102,32 +95,13 @@ export class ProfileFormComponent implements OnInit {
         return this.selectedContracts().includes(type);
     }
 
-    togglePasswordChange(): void {
-        this.showPasswordChange.update(shown => !shown);
-        this.passwordError.set('');
-        this.form.patchValue({ newPassword: '', confirmPassword: '' });
-    }
-
     submit(): void {
-        this.passwordError.set('');
-
         if (this.form.invalid) {
             this.form.markAllAsTouched();
             return;
         }
 
         const value = this.form.getRawValue();
-
-        if (this.showPasswordChange()) {
-            if (value.newPassword.length < 6) {
-                this.passwordError.set('Le mot de passe doit faire au moins 6 caractères.');
-                return;
-            }
-            if (value.newPassword !== value.confirmPassword) {
-                this.passwordError.set('Les deux mots de passe ne correspondent pas.');
-                return;
-            }
-        }
 
         this.save.emit({
             fullName: value.fullName.trim(),
@@ -142,8 +116,7 @@ export class ProfileFormComponent implements OnInit {
             skills: list(value.skills),
             salaryExpectation: blank(value.salaryExpectation),
             linkedin: blank(value.linkedin),
-            portfolio: blank(value.portfolio),
-            newPassword: this.showPasswordChange() ? value.newPassword : undefined
+            portfolio: blank(value.portfolio)
         });
     }
 

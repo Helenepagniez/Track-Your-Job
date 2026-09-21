@@ -57,3 +57,45 @@
         padding: 15px;
     }
 }
+/* Chargement initial : le temps que Firebase réponde sur la session. */
+.boot {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    background: var(--bg);
+}
+
+.boot-mark {
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+    background: var(--brand);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 600 17px var(--font-display);
+}
+
+.boot p {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--ink-3);
+}
+
+/* Bandeau d'échec de synchronisation. */
+.sync-error {
+    margin: 0;
+    padding: 11px 30px;
+    background: var(--warn-soft);
+    border-bottom: 1px solid var(--warn-line);
+    font-size: 12.5px;
+    color: var(--st-wait-fg);
+}
+
+.sync-error i {
+    margin-right: 8px;
+}

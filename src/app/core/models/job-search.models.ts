@@ -206,15 +206,10 @@ export interface ProfileDocument {
 }
 
 export interface Profile {
+    /** Identifiant Firebase du compte. */
     id: string;
     fullName: string;
     email: string;
-    /**
-     * Stocké en clair, comme dans la version précédente. Remplacé par Firebase
-     * Auth au chantier 5 ; ne pas ajouter d'autre usage d'ici là.
-     */
-    password: string;
-    authMethod: 'email';
     createdAt: string;
     title?: string;
     location?: string;

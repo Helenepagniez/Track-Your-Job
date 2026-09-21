@@ -1,0 +1,31 @@
+rules_version = '2';
+
+// Règles de sécurité Firestore de Track Your Job.
+//
+// Le modèle est simple : un document par compte, dans la collection « users »,
+// nommé avec l'identifiant Firebase du compte. Chacun ne peut lire et écrire
+// que le sien, et rien d'autre. C'est ce qui protège les données : la
+// configuration Firebase du code (apiKey, projectId…) est publique par nature.
+//
+// À publier depuis la console Firebase : Firestore Database > Règles, puis
+// coller ce contenu et cliquer sur « Publier ».
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      // Seule la personne connectée accède à son document.
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Aucune sous-collection n'est utilisée aujourd'hui, mais si l'on en
+      // ajoute (pièces jointes, historique…), la même règle s'applique.
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // Tout le reste est fermé, y compris en lecture.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

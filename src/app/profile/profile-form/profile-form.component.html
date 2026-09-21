@@ -107,31 +107,6 @@
         </div>
     </fieldset>
 
-    <!-- Mot de passe ----------------------------------------------------- -->
-    <fieldset>
-        <legend>Mot de passe</legend>
-        <button type="button" class="btn-ghost" (click)="togglePasswordChange()">
-            <i class="fa-solid" [class.fa-xmark]="showPasswordChange()" [class.fa-key]="!showPasswordChange()"></i>
-            {{ showPasswordChange() ? 'Ne pas changer le mot de passe' : 'Changer mon mot de passe' }}
-        </button>
-
-        <div class="form-grid" *ngIf="showPasswordChange()">
-            <div class="field">
-                <label for="pf-pwd">Nouveau mot de passe</label>
-                <input id="pf-pwd" type="password" formControlName="newPassword" autocomplete="new-password">
-            </div>
-            <div class="field">
-                <label for="pf-pwd2">Confirmation</label>
-                <input id="pf-pwd2" type="password" formControlName="confirmPassword" autocomplete="new-password">
-            </div>
-            <p class="error span-2" *ngIf="passwordError()">{{ passwordError() }}</p>
-            <p class="hint span-2">
-                Le mot de passe est stocké tel quel dans ce navigateur. Ne réutilisez pas un mot de passe
-                important : cela changera quand l'application passera sur Firebase.
-            </p>
-        </div>
-    </fieldset>
-
     <footer class="form-foot">
         <span class="foot-hint">Seuls le nom et l'email sont obligatoires.</span>
         <button type="button" class="btn-ghost" (click)="onCancel()">Annuler</button>

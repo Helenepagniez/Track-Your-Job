@@ -1,16 +1,22 @@
 import { inject } from '@angular/core';
-import { Router, CanActivateFn } from '@angular/router';
+import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
-export const authGuard: CanActivateFn = (route, state) => {
+/**
+ * Attend la première réponse de Firebase avant de décider. Sans cette
+ * attente, un rechargement de page renverrait sur l'accueil le temps que la
+ * session soit restaurée.
+ */
+export const authGuard: CanActivateFn = async () => {
     const authService = inject(AuthService);
     const router = inject(Router);
+
+    await authService.whenReady();
 
     if (authService.isAuthenticated()) {
         return true;
     }
 
-    // Redirect to login page
-    router.navigate(['/auth/login']);
+    await router.navigate(['/']);
     return false;
 };

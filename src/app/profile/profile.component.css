@@ -306,3 +306,35 @@
   border-color: var(--ko-line);
   background: var(--ko-soft);
 }
+
+/* Reprise de l'ancien stockage local ------------------------------------- */
+.local-data {
+  margin: 0 0 14px;
+  padding: 13px 15px;
+  border: 1px solid var(--warn-line);
+  border-radius: var(--radius-md);
+  background: var(--warn-soft);
+  display: grid;
+  gap: 10px;
+}
+
+.local-data > p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.local-data .hint {
+  font-size: 12px;
+  color: var(--ink-4);
+}
+
+.ok {
+  margin: 10px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--st-ok-fg);
+}

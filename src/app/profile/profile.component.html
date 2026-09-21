@@ -122,13 +122,55 @@
         <app-campaign-panel></app-campaign-panel>
     </section>
 
+    <!-- Mot de passe ------------------------------------------------------ -->
+    <section class="block" *ngIf="hasPassword()">
+        <h2>Mot de passe</h2>
+        <p class="hint">
+            Le changement passe par un lien envoyé à votre adresse : l'application ne voit jamais votre mot de
+            passe.
+        </p>
+        <div class="data-actions">
+            <button type="button" class="btn-ghost" (click)="sendPasswordReset()" [disabled]="resetSent()">
+                <i class="fa-solid fa-key"></i>
+                {{ resetSent() ? 'Email envoyé' : 'Changer mon mot de passe' }}
+            </button>
+        </div>
+        <p class="ok" *ngIf="resetSent()">
+            <i class="fa-solid fa-circle-check"></i>
+            Lien envoyé à {{ profile()?.email }}. Regardez aussi vos indésirables.
+        </p>
+        <p class="error" *ngIf="resetError()">{{ resetError() }}</p>
+    </section>
+
     <!-- Mes données ------------------------------------------------------- -->
     <section class="block">
         <h2>Mes données</h2>
         <p class="hint">
-            Tout est stocké dans ce navigateur, et nulle part ailleurs : vider les données du site les efface.
-            Exportez une sauvegarde régulièrement, ou pour passer sur un autre appareil.
+            Vos données suivent votre compte : elles sont les mêmes sur tous vos appareils, et une sauvegarde
+            reste utile pour en garder une copie chez vous.
         </p>
+
+        <!-- Reprise de l'ancien stockage, seulement s'il reste quelque chose -->
+        <div class="local-data" *ngIf="hasLocalData()">
+            <p>
+                <i class="fa-solid fa-box-archive"></i>
+                Ce navigateur contient encore des données de la version précédente, enregistrées avant la
+                création des comptes.
+            </p>
+            <div class="data-actions">
+                <button type="button" class="btn-solid" (click)="importLocalData()">
+                    Les reprendre dans mon compte
+                </button>
+                <button type="button" class="btn-ghost" (click)="dismissLocalData()">
+                    Les oublier
+                </button>
+            </div>
+            <p class="hint">
+                La reprise remplace le contenu actuel du compte. « Les oublier » efface cette copie du
+                navigateur, sans toucher au compte.
+            </p>
+        </div>
+
         <div class="data-actions">
             <button type="button" class="btn-solid" (click)="exportData()">
                 <i class="fa-solid fa-download"></i> Exporter une sauvegarde
@@ -139,6 +181,9 @@
             <input #fileInput type="file" accept=".json" class="sr-only" (change)="onFileSelected($event)">
         </div>
         <p class="error" *ngIf="importError()">{{ importError() }}</p>
+        <p class="ok" *ngIf="importDone()">
+            <i class="fa-solid fa-circle-check"></i> {{ importDone() }}
+        </p>
     </section>
 
     <!-- Compte ----------------------------------------------------------- -->
@@ -149,8 +194,8 @@
             <button type="button" class="btn-ghost danger" (click)="askDelete()">Supprimer</button>
         </div>
         <p class="hint">
-            Candidatures, entreprises, contacts et campagnes seront effacés définitivement. Pensez à exporter une
-            sauvegarde avant.
+            Le compte, les candidatures, entreprises, contacts et campagnes seront effacés définitivement, sur
+            tous vos appareils. Pensez à exporter une sauvegarde avant.
         </p>
     </section>
 </section>

@@ -163,3 +163,63 @@
 .reset-success i {
   margin-right: 8px;
 }
+
+/* Connexion Google ------------------------------------------------------- */
+.btn-google {
+  height: 44px;
+  width: 100%;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  font: 500 14px var(--font-body);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  margin-top: 6px;
+}
+
+.btn-google:hover {
+  background: var(--surface-3);
+}
+
+.btn-google:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.separator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink-4);
+  font-size: 12px;
+}
+
+.separator::before,
+.separator::after {
+  content: '';
+  flex-grow: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* Note de transition depuis l'ancienne version ---------------------------- */
+.migration-note {
+  margin: 10px 0 0;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  display: flex;
+  gap: 9px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+.migration-note i {
+  margin-top: 2px;
+  color: var(--accent);
+}

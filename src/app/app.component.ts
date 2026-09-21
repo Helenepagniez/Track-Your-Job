@@ -4,6 +4,7 @@ import { RouterOutlet } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
 import { LayoutService } from './core/services/layout.service';
 import { ThemeService } from './core/services/theme.service';
+import { JobSearchStore } from './core/services/job-search-store.service';
 import { NavBarComponent } from './nav-bar/nav-bar.component';
 import { TopBarComponent } from './top-bar/top-bar.component';
 
@@ -19,4 +20,5 @@ export class AppComponent {
   authService = inject(AuthService);
   layoutService = inject(LayoutService);
   themeService = inject(ThemeService);
+  store = inject(JobSearchStore);
 }
