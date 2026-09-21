@@ -154,6 +154,31 @@ export interface Contact {
 
 export type CampaignOutcome = 'found_job' | 'paused' | 'other';
 
+/**
+ * Photographie d'une campagne, figée à sa clôture.
+ *
+ * Les candidatures sont effacées à ce moment-là : sans ce résumé, les chiffres
+ * d'une campagne passée disparaîtraient avec elles. Il est immuable.
+ */
+export interface CampaignSummary {
+    /** Candidatures créées, envoyées ou non. */
+    applications: number;
+    sent: number;
+    answered: number;
+    interviews: number;
+    offers: number;
+    rejected: number;
+    noResponse: number;
+    relaunched: number;
+    /** Relances suivies d'une réponse. */
+    relaunchesAnswered: number;
+    bySource: { source: string; sent: number; answered: number }[];
+    /** Délai médian entre l'envoi et la première réponse, en jours. */
+    medianResponseDays: number | null;
+    from: string;
+    to: string;
+}
+
 export interface Campaign {
     id: number;
     name: string;
@@ -165,6 +190,8 @@ export interface Campaign {
     outcome?: CampaignOutcome;
     /** Dernière fois où l'on a demandé « toujours en recherche ? ». */
     lastCheckedAt?: string;
+    /** Renseigné à la clôture uniquement. */
+    summary?: CampaignSummary;
 }
 
 export interface ProfileDocument {
@@ -271,6 +298,124 @@ export function countEnteredStatus(
             return at >= start && at <= end;
         })
     ).length;
+}
+
+/** Comme `countEnteredStatus`, pour un ensemble de statuts (« a répondu »). */
+export function countEnteredAny(
+    applications: Application[],
+    statuses: ApplicationStatus[],
+    from: Date,
+    to: Date
+): number {
+    const start = from.getTime();
+    const end = to.getTime();
+    return applications.filter(app =>
+        statusEvents(app).some(e => {
+            if (!statuses.includes(e.status!)) return false;
+            const at = new Date(e.at).getTime();
+            return at >= start && at <= end;
+        })
+    ).length;
+}
+
+/** La candidature est-elle passée par ce statut, à un moment quelconque ? */
+export function everEntered(application: Application, status: ApplicationStatus): boolean {
+    return statusEvents(application).some(event => event.status === status);
+}
+
+/** Date ISO de la première réponse de l'entreprise, si elle a répondu. */
+export function firstAnswerAt(application: Application): string | undefined {
+    return statusEvents(application).find(event => ANSWERED_STATUSES.includes(event.status!))?.at;
+}
+
+/** Délai en jours entre l'envoi et la première réponse. */
+export function responseDelayDays(application: Application): number | null {
+    const sent = sentAt(application);
+    const answered = firstAnswerAt(application);
+    if (!sent || !answered) return null;
+    const days = (new Date(answered).getTime() - new Date(sent).getTime()) / 86400000;
+    return days >= 0 ? Math.round(days) : null;
+}
+
+/**
+ * Candidatures *parties* pendant la période. On regarde la date du premier
+ * statut d'envoi, pas le statut du jour : une candidature envoyée en juin puis
+ * refusée en août reste un envoi de juin.
+ */
+export function countSentIn(applications: Application[], from: Date, to: Date): number {
+    return applications.filter(app => inRange(sentAt(app), from, to)).length;
+}
+
+/** Candidatures dont l'entreprise a répondu pendant la période. */
+export function countAnsweredIn(applications: Application[], from: Date, to: Date): number {
+    return applications.filter(app => inRange(firstAnswerAt(app), from, to)).length;
+}
+
+function inRange(iso: string | undefined, from: Date, to: Date): boolean {
+    if (!iso) return false;
+    const at = new Date(iso).getTime();
+    return at >= from.getTime() && at <= to.getTime();
+}
+
+export function median(values: number[]): number | null {
+    if (values.length === 0) return null;
+    const sorted = [...values].sort((a, b) => a - b);
+    const middle = Math.floor(sorted.length / 2);
+    return sorted.length % 2 === 0
+        ? Math.round((sorted[middle - 1] + sorted[middle]) / 2)
+        : sorted[middle];
+}
+
+/**
+ * Chiffres d'un ensemble de candidatures, comptés sur les événements.
+ *
+ * Une candidature compte dans « envoyées » parce qu'elle est *passée* par un
+ * statut d'envoi, pas parce qu'elle s'y trouve aujourd'hui : un refus ne fait
+ * pas disparaître l'envoi qui l'a précédé.
+ */
+export function computeCampaignStats(
+    applications: Application[],
+    from: string,
+    to: string
+): CampaignSummary {
+    const sent = applications.filter(app => !!sentAt(app));
+    const answered = applications.filter(app => !!firstAnswerAt(app));
+    const relaunched = applications.filter(app => everEntered(app, 'to_relaunch'));
+
+    const bySourceMap = new Map<string, { sent: number; answered: number }>();
+    for (const application of sent) {
+        const key = application.source?.trim() || 'Source non renseignée';
+        const entry = bySourceMap.get(key) ?? { sent: 0, answered: 0 };
+        entry.sent++;
+        if (firstAnswerAt(application)) entry.answered++;
+        bySourceMap.set(key, entry);
+    }
+
+    const delays = applications
+        .map(responseDelayDays)
+        .filter((days): days is number => days !== null);
+
+    return {
+        applications: applications.length,
+        sent: sent.length,
+        answered: answered.length,
+        interviews: applications.filter(app => everEntered(app, 'interview')).length,
+        offers: applications.filter(app => everEntered(app, 'offer')).length,
+        rejected: applications.filter(app => everEntered(app, 'rejected')).length,
+        noResponse: applications.filter(app => currentStatus(app) === 'no_response').length,
+        relaunched: relaunched.length,
+        relaunchesAnswered: relaunched.filter(app => {
+            const relaunchAt = enteredStatusAt(app, 'to_relaunch');
+            const answer = firstAnswerAt(app);
+            return !!relaunchAt && !!answer && new Date(answer) > new Date(relaunchAt);
+        }).length,
+        bySource: [...bySourceMap.entries()]
+            .map(([source, counts]) => ({ source, ...counts }))
+            .sort((a, b) => (b.answered / b.sent) - (a.answered / a.sent) || b.sent - a.sent),
+        medianResponseDays: median(delays),
+        from,
+        to
+    };
 }
 
 // ---------------------------------------------------------------------------

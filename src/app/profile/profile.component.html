@@ -26,6 +26,14 @@
         </div>
     </div>
 
+    <!-- Cycle de vie de la recherche -->
+    <div class="profile-content">
+        <div class="card profile-card">
+            <h3>Ma recherche</h3>
+            <app-campaign-panel></app-campaign-panel>
+        </div>
+    </div>
+
     <!-- Empty State -->
     <div *ngIf="user.title === '' || user.location === ''" class="empty-state">
         <div class="empty-icon"><i class="fa-solid fa-user"></i></div>

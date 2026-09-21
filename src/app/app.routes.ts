@@ -39,6 +39,11 @@ export const routes: Routes = [
         loadComponent: () => import('./companies/company-detail/company-detail.component').then(m => m.CompanyDetailComponent)
     },
     {
+        path: 'statistiques',
+        canActivate: [authGuard],
+        loadComponent: () => import('./statistics/statistics.component').then(m => m.StatisticsComponent)
+    },
+    {
         path: 'taches',
         canActivate: [authGuard],
         loadComponent: () => import('./tasks/tasks.component').then(m => m.TasksComponent)

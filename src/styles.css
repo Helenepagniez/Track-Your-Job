@@ -209,9 +209,13 @@ i {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+/*
+ * Pas de `transform` au survol : une carte transformée devient le référentiel
+ * des enfants en `position: fixed`, et une modale ouverte depuis la carte se
+ * retrouve posée dedans au lieu de couvrir l'écran.
+ */
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
 }
 
 /* Form Styles */

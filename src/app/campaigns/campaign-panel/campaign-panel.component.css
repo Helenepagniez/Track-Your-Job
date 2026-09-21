@@ -1,0 +1,233 @@
+/* Les primitives de formulaire et les modales sont globales (styles.css). */
+
+.campaign-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.campaign-panel h3 {
+  margin: 0;
+  font: 600 15px var(--font-body);
+  color: var(--ink);
+}
+
+.ask-text {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  line-height: 1.55;
+}
+
+/* Toujours en recherche ? ------------------------------------------------- */
+.ask-block {
+  border: 2px solid var(--accent-line-strong);
+  background: var(--accent-soft);
+  border-radius: 14px;
+  padding: 15px 17px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.ask-block.dimmed {
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.ask-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.ask-actions .btn-solid,
+.ask-actions .btn-ghost {
+  flex-grow: 1;
+  justify-content: center;
+}
+
+/* Campagne en cours ------------------------------------------------------ */
+.current {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.current-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.current-head > div {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.label {
+  margin: 0;
+  font: 600 10.5px var(--font-body);
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+
+.name {
+  margin: 3px 0 0;
+  font: 600 14.5px var(--font-body);
+  color: var(--ink);
+}
+
+.current-meta {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+.btn-ghost.small {
+  height: 31px;
+  padding: 0 11px;
+  font-size: 12.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.close-btn {
+  height: 40px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  font: 500 13.5px var(--font-body);
+  color: var(--ink-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+
+.close-btn:hover {
+  border-color: var(--st-ko-dot);
+  color: var(--st-ko-fg);
+  background: var(--ko-soft);
+}
+
+/* En veille -------------------------------------------------------------- */
+.paused {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 15px 17px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.restart-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.restart-row .field {
+  flex-grow: 1;
+  min-width: 190px;
+}
+
+/* Archives --------------------------------------------------------------- */
+.archives {
+  border-top: 1px solid var(--line-soft);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.archive-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  padding: 10px 12px;
+  flex-wrap: wrap;
+}
+
+.archive-main {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.archive-name {
+  font: 500 13px var(--font-body);
+  color: var(--ink);
+}
+
+.archive-period {
+  font-size: 11.5px;
+  color: var(--ink-4);
+}
+
+.archive-counts {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.archives a {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+/* Contenu des modales ---------------------------------------------------- */
+.lead {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+
+.outcome-list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.outcome-list li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.outcome-list i {
+  margin-top: 3px;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.outcome-list .ok {
+  color: var(--st-ok-fg);
+}
+
+.outcome-list .warn {
+  color: var(--st-wait-fg);
+}
+
+.outcome-list .neutral {
+  color: var(--ink-3);
+}
+
+.outcome-list span {
+  font-size: 12.5px;
+  color: var(--ink-2);
+  line-height: 1.55;
+}

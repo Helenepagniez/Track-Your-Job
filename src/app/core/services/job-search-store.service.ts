@@ -10,6 +10,7 @@ import {
     InterviewKind,
     JobPosting,
     companyKey,
+    computeCampaignStats,
     currentStatus,
     enteredStatusAt,
     sentAt
@@ -436,6 +437,9 @@ export class JobSearchStore {
             const now = new Date().toISOString();
             const closing = data.applications.filter(app => app.campaignId === campaign.id);
 
+            // Les candidatures partent : on garde leurs chiffres avant.
+            const summary = computeCampaignStats(closing, campaign.startedAt, now);
+
             const historyByCompany = new Map<number, Company['history']>();
             for (const app of closing) {
                 if (app.companyId === null) continue;
@@ -457,7 +461,7 @@ export class JobSearchStore {
 
             data.campaigns = data.campaigns.map(entry =>
                 entry.id === campaign.id
-                    ? { ...entry, status: 'closed' as const, closedAt: now, outcome }
+                    ? { ...entry, status: 'closed' as const, closedAt: now, outcome, summary }
                     : entry
             );
 

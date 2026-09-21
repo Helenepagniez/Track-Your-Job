@@ -1,0 +1,171 @@
+<section class="stats-page">
+
+    <header class="page-head">
+        <div>
+            <h1 class="display-title">Statistiques</h1>
+            <p class="subtitle">
+                Chaque chiffre est daté à l'événement, pas à l'état du jour : un refus de juin reste en juin.
+            </p>
+        </div>
+        <select aria-label="Campagne consultée" [ngModel]="selectedCampaignId()"
+            (ngModelChange)="selectedCampaignId.set($event)" *ngIf="campaigns().length > 0">
+            <option value="">Campagne en cours</option>
+            <option *ngFor="let entry of campaigns()" [ngValue]="entry.id">
+                {{ entry.name }}{{ entry.status === 'closed' ? ' (clôturée)' : '' }}
+            </option>
+        </select>
+    </header>
+
+    <!-- Aucune campagne ------------------------------------------------- -->
+    <div class="empty" *ngIf="!campaign()">
+        <div class="empty-icon"><i class="fa-solid fa-chart-column"></i></div>
+        <h3>Aucune campagne ouverte</h3>
+        <p>Les compteurs démarrent avec une campagne. Vos contacts et entreprises restent en attendant.</p>
+        <a class="btn-solid" routerLink="/profil">Reprendre une recherche</a>
+    </div>
+
+    <ng-container *ngIf="campaign() as co">
+
+        <p class="period">
+            <span class="campaign-name">{{ co.name }}</span>
+            <span class="dot">·</span>
+            {{ periodLabel() }}
+            <span class="frozen" *ngIf="isArchived()">
+                <i class="fa-solid fa-lock"></i> chiffres figés à la clôture
+            </span>
+        </p>
+
+        <div class="empty" *ngIf="!hasData()">
+            <div class="empty-icon"><i class="fa-solid fa-chart-column"></i></div>
+            <h3>Rien à mesurer pour l'instant</h3>
+            <p>Ajoutez une première candidature et les chiffres apparaîtront ici.</p>
+            <a class="btn-solid" routerLink="/offres">Ajouter une candidature</a>
+        </div>
+
+        <ng-container *ngIf="hasData()">
+
+            <!-- Indicateurs ------------------------------------------------ -->
+            <div class="kpi-row">
+                <div class="kpi" *ngFor="let kpi of kpis()">
+                    <p class="kpi-label">{{ kpi.label }}</p>
+                    <p class="kpi-value">{{ kpi.value }}</p>
+                    <p class="kpi-note" [ngClass]="'tone-' + kpi.tone">{{ kpi.note }}</p>
+                </div>
+            </div>
+
+            <div class="two-col">
+
+                <!-- Histogramme mensuel ---------------------------------- -->
+                <section class="block" *ngIf="chart() as ch">
+                    <div class="block-head">
+                        <h2>Ce qui s'est passé chaque mois</h2>
+                        <span class="spacer"></span>
+                        <div class="legend">
+                            <span *ngFor="let serie of series" class="legend-item">
+                                <span class="swatch" [ngClass]="'fill-' + serie.key"></span>{{ serie.label }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <svg [attr.viewBox]="'0 0 ' + ch.width + ' ' + ch.height" width="100%" role="img"
+                        [attr.aria-label]="'Histogramme mensuel des candidatures envoyées, réponses, entretiens et refus'">
+                        <line *ngFor="let y of ch.gridY" [attr.x1]="40" [attr.x2]="620" [attr.y1]="y" [attr.y2]="y"
+                            class="grid" />
+                        <text [attr.x]="32" [attr.y]="ch.baseline + 4" class="axis">0</text>
+                        <text [attr.x]="32" [attr.y]="14" class="axis">{{ ch.max }}</text>
+
+                        <rect *ngFor="let bar of ch.bars" [attr.x]="bar.x" [attr.y]="bar.y" [attr.width]="16"
+                            [attr.height]="bar.height" rx="3" [ngClass]="'fill-' + bar.series" />
+
+                        <text *ngFor="let label of ch.labels" [attr.x]="label.x" [attr.y]="ch.baseline + 22"
+                            text-anchor="middle" class="month">{{ label.text }}</text>
+                    </svg>
+                </section>
+
+                <section class="block frozen-note" *ngIf="isArchived()">
+                    <h2>Ce qui s'est passé chaque mois</h2>
+                    <p class="muted">
+                        Le détail mois par mois demande les candidatures elles-mêmes, effacées à la clôture de cette
+                        campagne. Les totaux ci-dessus, eux, ont été figés.
+                    </p>
+                </section>
+
+                <!-- Entonnoir -------------------------------------------- -->
+                <section class="block narrow-col">
+                    <h2>Où ça s'arrête</h2>
+                    <div class="funnel">
+                        <div class="funnel-step" *ngFor="let step of funnel()">
+                            <div class="funnel-bar">
+                                <div class="funnel-fill" [ngClass]="step.className" [style.width.%]="step.width">
+                                    {{ step.label }}
+                                </div>
+                            </div>
+                            <span class="funnel-rate">{{ step.rate }}</span>
+                        </div>
+                    </div>
+                    <p class="leak">{{ leak() }}</p>
+                </section>
+            </div>
+
+            <div class="two-col">
+
+                <!-- Sources ---------------------------------------------- -->
+                <section class="block">
+                    <div class="block-head">
+                        <h2>Rendement par source</h2>
+                        <span class="spacer"></span>
+                        <span class="hint">trié par taux de réponse, pas par volume</span>
+                    </div>
+
+                    <div class="source-row" *ngFor="let source of sources()">
+                        <span class="source-name">{{ source.source }}</span>
+                        <div class="source-track">
+                            <div class="source-fill" [ngClass]="'tone-' + source.tone"
+                                [style.width.%]="source.width"></div>
+                        </div>
+                        <span class="source-figure" [ngClass]="'tone-' + source.tone">
+                            {{ source.rate }} % · {{ source.sent }} env.
+                        </span>
+                    </div>
+
+                    <p class="muted" *ngIf="sources().length === 0">Aucune candidature envoyée pour l'instant.</p>
+                </section>
+
+                <!-- Secteurs et relances --------------------------------- -->
+                <section class="block narrow-col">
+                    <h2>Secteurs visés</h2>
+                    <div class="sector-row" *ngFor="let sector of sectors()">
+                        <span class="sector-name">{{ sector.sector }}</span>
+                        <div class="sector-track">
+                            <div class="sector-fill" [style.width.%]="sector.share"></div>
+                        </div>
+                        <span class="sector-share">{{ sector.share }} %</span>
+                    </div>
+                    <p class="muted" *ngIf="sectors().length === 0">
+                        Renseignez le secteur sur vos fiches entreprise pour voir cette répartition.
+                    </p>
+
+                    <div class="divider"></div>
+
+                    <h2>Suivi des relances</h2>
+                    <div class="relaunch">
+                        <div class="relaunch-box">
+                            <p class="relaunch-value">{{ relaunch().sent }}</p>
+                            <p class="relaunch-label">relance{{ relaunch().sent === 1 ? '' : 's' }} nécessaire{{ relaunch().sent === 1 ? '' : 's' }}</p>
+                        </div>
+                        <div class="relaunch-box accent">
+                            <p class="relaunch-value">{{ relaunch().answered }}</p>
+                            <p class="relaunch-label">ont débloqué une réponse</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Lecture des chiffres ----------------------------------- -->
+            <section class="insight" *ngIf="insight()">
+                <span class="insight-icon"><i class="fa-solid fa-lightbulb"></i></span>
+                <p><strong>Ce que disent vos chiffres :</strong> {{ insight() }}</p>
+            </section>
+        </ng-container>
+    </ng-container>
+</section>

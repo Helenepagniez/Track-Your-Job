@@ -1,0 +1,159 @@
+<section class="campaign-panel">
+
+    <!-- Campagne en cours ------------------------------------------------ -->
+    <ng-container *ngIf="active() as campaign">
+
+        <div class="ask-block" [class.dimmed]="!shouldAsk()">
+            <h3>Toujours en recherche ?</h3>
+            <p class="ask-text" *ngIf="shouldAsk()">
+                On vous le demande tous les 30 jours. Si vous répondez « j'ai trouvé », l'application se met en
+                veille : plus de relances automatiques, plus de rappels.
+            </p>
+            <p class="ask-text" *ngIf="!shouldAsk()">
+                Confirmé il y a {{ sinceCheck() }} jour{{ sinceCheck() === 1 ? '' : 's' }}. On vous reposera la
+                question dans {{ 30 - (sinceCheck() || 0) }} jours.
+            </p>
+            <div class="ask-actions">
+                <button type="button" class="btn-solid" (click)="stillSearching()">Oui, je cherche</button>
+                <button type="button" class="btn-ghost" (click)="askFoundJob()">J'ai trouvé</button>
+            </div>
+        </div>
+
+        <div class="current">
+            <div class="current-head">
+                <div>
+                    <p class="label">Campagne en cours</p>
+                    <p class="name">{{ campaign.name }}</p>
+                </div>
+                <a class="btn-ghost small" routerLink="/statistiques">
+                    <i class="fa-solid fa-chart-column"></i> Statistiques
+                </a>
+            </div>
+            <p class="current-meta">
+                Ouverte depuis {{ counts().days }} jour{{ counts().days === 1 ? '' : 's' }} ·
+                {{ counts().applications }} candidature{{ counts().applications === 1 ? '' : 's' }},
+                dont {{ counts().sent }} envoyée{{ counts().sent === 1 ? '' : 's' }}
+            </p>
+        </div>
+
+        <button type="button" class="close-btn" (click)="openCloseModal()">
+            <i class="fa-solid fa-rotate-left"></i> Clôturer et repartir à zéro
+        </button>
+    </ng-container>
+
+    <!-- Aucune campagne active ------------------------------------------- -->
+    <div class="paused" *ngIf="!active()">
+        <h3>Recherche en veille</h3>
+        <p class="ask-text">
+            Aucune campagne ouverte : rien n'est compté, aucune relance n'est proposée. Vos
+            {{ kept().companies }} entreprise{{ kept().companies === 1 ? '' : 's' }} et
+            {{ kept().contacts }} contact{{ kept().contacts === 1 ? '' : 's' }} vous attendent.
+        </p>
+        <div class="restart-row">
+            <div class="field">
+                <label for="restart-name">Nom de la nouvelle campagne</label>
+                <input id="restart-name" type="text" [ngModel]="restartName()"
+                    (ngModelChange)="restartName.set($event)" [placeholder]="suggestedName()">
+            </div>
+            <button type="button" class="btn-solid" (click)="restart()">Reprendre une recherche</button>
+        </div>
+    </div>
+
+    <!-- Archives --------------------------------------------------------- -->
+    <div class="archives" *ngIf="archived().length > 0">
+        <h3>Campagnes archivées</h3>
+        <div class="archive-row" *ngFor="let row of archived()">
+            <div class="archive-main">
+                <span class="archive-name">{{ row.name }}</span>
+                <span class="archive-period">{{ row.period }} · {{ row.outcomeLabel }}</span>
+            </div>
+            <span class="archive-counts" *ngIf="row.summary as sum">
+                {{ sum.sent }} envoyée{{ sum.sent === 1 ? '' : 's' }} ·
+                {{ sum.interviews }} entretien{{ sum.interviews === 1 ? '' : 's' }} ·
+                {{ sum.offers }} offre{{ sum.offers === 1 ? '' : 's' }}
+            </span>
+            <span class="archive-counts muted" *ngIf="!row.summary">chiffres non enregistrés</span>
+        </div>
+        <p class="hint">
+            Les chiffres d'une campagne clôturée sont figés : ils restent consultables dans les
+            <a routerLink="/statistiques">statistiques</a>.
+        </p>
+    </div>
+</section>
+
+<!-- Clôture -------------------------------------------------------------- -->
+<div class="modal-overlay" *ngIf="showCloseModal()">
+    <div class="modal-panel narrow">
+        <header class="modal-head">
+            <h2 class="display-title">Clôturer et repartir à zéro</h2>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="cancelClose()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+
+        <div class="modal-body">
+            <p class="lead">Vos compteurs redémarrent, votre réseau reste. Voici exactement ce qui se passe :</p>
+
+            <ul class="outcome-list">
+                <li>
+                    <i class="fa-solid fa-check ok"></i>
+                    <span><strong>Conservé :</strong> vos {{ kept().contacts }} contacts et vos
+                        {{ kept().companies }} fiches entreprise, intacts.</span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-check ok"></i>
+                    <span><strong>Résumé :</strong> chacune des {{ counts().applications }} candidatures devient une
+                        ligne d'historique — poste, issue, date — sur la fiche de son entreprise. Les chiffres de la
+                        campagne sont figés pour les statistiques.</span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-xmark warn"></i>
+                    <span><strong>Effacé :</strong> le contenu des annonces, les liens, et les tâches en
+                        cours.</span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-rotate-left neutral"></i>
+                    <span><strong>Remis à zéro :</strong> tous les compteurs du tableau de bord et du suivi.</span>
+                </li>
+            </ul>
+
+            <div class="field">
+                <label for="new-campaign">Nom de la nouvelle campagne <span class="opt">facultatif</span></label>
+                <input id="new-campaign" type="text" [ngModel]="newCampaignName()"
+                    (ngModelChange)="newCampaignName.set($event)" [placeholder]="suggestedName()">
+                <p class="hint">Laissez vide pour mettre la recherche en veille et repartir plus tard.</p>
+            </div>
+        </div>
+
+        <footer class="modal-foot">
+            <button type="button" class="btn-ghost" (click)="cancelClose()">Annuler</button>
+            <button type="button" class="btn-danger" (click)="confirmClose()">Clôturer la campagne</button>
+        </footer>
+    </div>
+</div>
+
+<!-- J'ai trouvé ---------------------------------------------------------- -->
+<div class="modal-overlay" *ngIf="showFoundJobModal()">
+    <div class="modal-panel narrow">
+        <header class="modal-head">
+            <h2 class="display-title">Vous avez trouvé ?</h2>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="cancelFoundJob()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+        <div class="modal-body">
+            <p class="lead">Félicitations. La campagne va être clôturée de la même façon :</p>
+            <ul class="outcome-list">
+                <li><i class="fa-solid fa-check ok"></i><span>Contacts et entreprises conservés.</span></li>
+                <li><i class="fa-solid fa-check ok"></i><span>Candidatures résumées sur les fiches entreprise.</span>
+                </li>
+                <li><i class="fa-solid fa-xmark warn"></i><span>Annonces et tâches effacées.</span></li>
+            </ul>
+            <p>Le jour où vous recommencerez, tout votre réseau sera là, et les compteurs repartiront de zéro.</p>
+        </div>
+        <footer class="modal-foot">
+            <button type="button" class="btn-ghost" (click)="cancelFoundJob()">Pas encore</button>
+            <button type="button" class="btn-solid" (click)="confirmFoundJob()">Mettre en veille</button>
+        </footer>
+    </div>
+</div>

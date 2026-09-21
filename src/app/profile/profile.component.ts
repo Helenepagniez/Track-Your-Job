@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../core/services/auth.service';
 import { ProfileFormComponent } from './profile-form/profile-form.component';
 import { LocalStorageService } from '../core/services/local-storage.service';
+import { CampaignPanelComponent } from '../campaigns/campaign-panel/campaign-panel.component';
 
 @Component({
     selector: 'app-profile',
     standalone: true,
-    imports: [CommonModule, FormsModule, ProfileFormComponent],
+    imports: [CommonModule, FormsModule, ProfileFormComponent, CampaignPanelComponent],
     templateUrl: './profile.component.html',
     styleUrl: './profile.component.css'
 })
