@@ -1,6 +1,5 @@
-/* Sidebar Styles moved from Dashboard */
 .sidebar {
-    width: 250px;
+    width: 216px;
     height: 100vh;
     position: fixed;
     left: 0;
@@ -9,42 +8,42 @@
     flex-direction: column;
     transition: width 0.3s ease;
     z-index: 1000;
-    background: var(--surface-color);
+    background: var(--surface);
+    border-right: 1px solid var(--line);
 }
 
 .sidebar.collapsed {
-    width: 80px;
+    width: 68px;
 }
 
 .sidebar-header {
-    height: 66px;
+    height: 60px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
-    padding: 0 20px;
+    gap: 10px;
+    padding: 0 14px;
 }
 
 .logo-icon {
-    width: 40px;
-    height: 40px;
-    background: var(--primary-color);
-    color: var(--surface-color);
-    border-radius: 7px;
+    width: 30px;
+    height: 30px;
+    background: var(--brand);
+    color: var(--accent);
+    border-radius: 9px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    font-size: 1.2rem;
-    margin-right: 12px;
+    font: 600 12px var(--font-display);
     flex-shrink: 0;
 }
 
 .logo-text {
-    font: 700 19px Roboto, sans-serif;
-    color: var(--text-color);
+    font: 600 14.5px var(--font-display);
+    color: var(--ink);
     white-space: nowrap;
     overflow: hidden;
     transition: opacity 0.3s ease;
-    letter-spacing: 0.2px;
 }
 
 .sidebar.collapsed .logo-text {
@@ -54,53 +53,57 @@
 
 .sidebar-nav {
     flex: 1;
-    padding: 0;
+    padding: 6px 8px;
     overflow-y: auto;
-}
-
-.sidebar-nav i {
-    font-size: 24px;
-    width: 24px;
-    text-align: center;
-    margin-right: 12px;
-    color: var(--primary-color);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
 .nav-item {
     display: flex;
     align-items: center;
-    padding: 23px 20px;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    border: none;
+    gap: 11px;
+    height: 38px;
+    padding: 0 11px;
+    border: 0;
+    border-radius: 9px;
     background: none;
     width: 100%;
     text-align: left;
-    font: 600 19px Roboto, sans-serif;
-    letter-spacing: 0.2px;
+    font: 500 13.5px var(--font-body);
     text-decoration: none;
-    color: var(--text-color);
+    color: var(--ink-2);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nav-item i,
+.icon {
+    font-style: normal;
+    font-size: 15px;
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+    color: var(--ink-4);
 }
 
 .nav-item:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-    color: var(--primary-color);
+    background-color: var(--surface-3);
+    color: var(--ink);
 }
 
+.nav-item:hover i {
+    color: var(--ink-2);
+}
 
 .nav-item.active {
-    background-color: rgba(0, 86, 179, 0.1);
-    color: var(--primary-color);
-    border-right: 3px solid var(--primary-color);
+    background-color: var(--brand);
+    color: var(--on-brand);
+    font-weight: 600;
 }
 
-.icon {
-    font-style: normal;
-    font-size: 22px;
-    width: 24px;
-    text-align: center;
-    margin-right: 12px;
-    flex-shrink: 0;
+.nav-item.active i {
+    color: var(--accent);
 }
 
 .label {
@@ -114,22 +117,28 @@
     width: 0;
 }
 
-.logout i {
-    font-size: 22px;
-    width: 24px;
-    text-align: center;
-    margin-right: 12px;
+.sidebar-footer {
+    flex-shrink: 0;
+    padding: 8px;
+    border-top: 1px solid var(--line-soft);
 }
 
 .logout {
-    color: var(--danger-color);
+    color: var(--ink-3);
+}
+
+.logout i {
+    color: var(--ink-4);
 }
 
 .logout:hover {
-    color: #c0392b;
-    background-color: rgba(231, 76, 60, 0.1);
+    color: var(--st-ko-fg);
+    background-color: var(--ko-soft);
 }
 
+.logout:hover i {
+    color: var(--st-ko-fg);
+}
 
 @media (max-width: 768px) {
     .sidebar {
@@ -138,16 +147,14 @@
 
     .sidebar.collapsed {
         transform: translateX(0);
-        width: 250px;
-        /* Full width on mobile when toggled */
+        width: 216px;
     }
 
-    /* Fix to show labels on mobile when sidebar is open (which uses 'collapsed' class) */
+    /* Sur mobile, la classe « collapsed » ouvre le panneau : les libellés
+       doivent rester lisibles. */
     .sidebar.collapsed .label,
     .sidebar.collapsed .logo-text {
         opacity: 1;
-        /* Reset opacity */
         width: auto;
-        /* Reset width */
     }
 }

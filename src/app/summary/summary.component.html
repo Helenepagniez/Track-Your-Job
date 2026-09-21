@@ -83,9 +83,12 @@
                             <a class="hint-link" routerLink="/statistiques">Tout voir</a>
                         </div>
                         <div class="funnel">
-                            <div class="funnel-fill" *ngFor="let step of funnel()" [ngClass]="step.className"
-                                [style.width.%]="step.width">
-                                {{ step.label }}
+                            <div class="funnel-step" *ngFor="let step of funnel()">
+                                <span class="funnel-label">{{ step.label }}</span>
+                                <span class="funnel-track">
+                                    <span class="funnel-fill" [ngClass]="step.className"
+                                        [style.width.%]="step.width"></span>
+                                </span>
                             </div>
                         </div>
                     </section>

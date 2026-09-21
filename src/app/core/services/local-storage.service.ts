@@ -134,6 +134,22 @@ export class LocalStorageService {
         this.saveAppData(data);
     }
 
+    /**
+     * Change le mot de passe d'un compte de ce navigateur, sans être connecté.
+     * Sert à la réinitialisation locale : les données de ce navigateur sont déjà
+     * lisibles sans mot de passe, cela n'ouvre donc aucun accès nouveau.
+     */
+    updatePasswordByEmail(email: string, password: string): boolean {
+        const data = this.loadAppData();
+        const entry = Object.values(data.users).find(userData => userData.profile.email === email);
+        if (!entry) {
+            return false;
+        }
+        entry.profile = { ...entry.profile, password };
+        this.saveAppData(data);
+        return true;
+    }
+
     logout(): void {
         const data = this.loadAppData();
         data.currentUserId = null;

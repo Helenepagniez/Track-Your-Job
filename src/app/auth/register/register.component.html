@@ -1,54 +1,57 @@
-<div class="auth-container">
-    <div class="nav-header">
-        <button class="btn-back" routerLink="/" title="Retourner à l'accueil">
-            <i class="fa-solid fa-circle-left"></i> Retour
-        </button>
-        <div class="breadcrumb">
-            <span class="crumb-link" routerLink="/" title="Retourner à l'accueil">Accueil</span>
-            <span class="separator">></span>
-            <span class="current">Inscription</span>
-        </div>
-    </div>
-    <div class="glass auth-card">
-        <div class="auth-header">
-            <h1>Créer un compte</h1>
-            <p>Rejoignez Track Your Job aujourd'hui.</p>
+<div class="auth-page">
+
+    <a class="back-home" routerLink="/">
+        <i class="fa-solid fa-arrow-left"></i> Accueil
+    </a>
+
+    <div class="auth-card">
+        <div class="brand">
+            <span class="brand-mark">TJ</span>
+            <span class="brand-name">Track Your Job</span>
         </div>
 
-        <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
-            <div class="form-group">
-                <label for="fullName" class="form-label">Nom complet</label>
-                <input type="text" id="fullName" name="fullName" class="form-control" [(ngModel)]="fullName" required
-                    placeholder="Jean Dupont">
+        <h1 class="display-title">Créer un compte</h1>
+        <p class="lead">Gratuit, sans email de confirmation : tout reste sur votre appareil.</p>
+
+        <form (ngSubmit)="submit()">
+            <div class="field">
+                <label for="reg-name">Nom et prénom</label>
+                <input id="reg-name" type="text" name="fullName" autocomplete="name" required
+                    [ngModel]="fullName()" (ngModelChange)="fullName.set($event)">
             </div>
 
-            <div class="form-group">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" id="email" name="email" class="form-control" [(ngModel)]="email" required
-                    placeholder="exemple@email.com">
+            <div class="field">
+                <label for="reg-email">Email</label>
+                <input id="reg-email" type="email" name="email" autocomplete="email" required
+                    [ngModel]="email()" (ngModelChange)="email.set($event)" placeholder="vous@exemple.fr">
             </div>
 
-            <div class="form-group">
-                <label for="password" class="form-label">Mot de passe</label>
-                <input type="password" id="password" name="password" class="form-control" [(ngModel)]="password"
-                    required placeholder="••••••••">
+            <div class="field">
+                <label for="reg-password">Mot de passe</label>
+                <input id="reg-password" type="password" name="password" autocomplete="new-password" required
+                    [ngModel]="password()" (ngModelChange)="password.set($event)">
+                <p class="hint">Six caractères minimum.</p>
             </div>
 
-            <div class="form-group">
-                <label for="confirmPassword" class="form-label">Confirmer le mot de passe</label>
-                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control"
-                    [(ngModel)]="confirmPassword" required placeholder="••••••••">
+            <div class="field">
+                <label for="reg-confirm">Confirmation du mot de passe</label>
+                <input id="reg-confirm" type="password" name="confirmPassword" autocomplete="new-password" required
+                    [ngModel]="confirmPassword()" (ngModelChange)="confirmPassword.set($event)">
             </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary btn-block" [disabled]="!registerForm.form.valid">
-                    S'inscrire
-                </button>
-            </div>
+            <p class="error" *ngIf="error()">{{ error() }}</p>
+
+            <button type="submit" class="btn-solid block" [disabled]="!canSubmit">Créer mon compte</button>
         </form>
 
-        <div class="auth-footer">
-            <p>Déjà un compte ? <a routerLink="/auth/login" title="Se connecter">Se connecter</a></p>
-        </div>
+        <p class="switch">
+            Déjà un compte ? <a routerLink="/auth/login">Se connecter</a>
+        </p>
+
+        <p class="storage-note">
+            <i class="fa-solid fa-circle-info"></i>
+            Le mot de passe est enregistré tel quel dans ce navigateur : ne réutilisez pas un mot de passe
+            important. La connexion par Google et le chiffrement arrivent avec la prochaine version.
+        </p>
     </div>
 </div>

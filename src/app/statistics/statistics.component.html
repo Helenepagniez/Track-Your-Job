@@ -95,11 +95,11 @@
                     <h2>Où ça s'arrête</h2>
                     <div class="funnel">
                         <div class="funnel-step" *ngFor="let step of funnel()">
-                            <div class="funnel-bar">
-                                <div class="funnel-fill" [ngClass]="step.className" [style.width.%]="step.width">
-                                    {{ step.label }}
-                                </div>
-                            </div>
+                            <span class="funnel-label">{{ step.label }}</span>
+                            <span class="funnel-track">
+                                <span class="funnel-fill" [ngClass]="step.className"
+                                    [style.width.%]="step.width"></span>
+                            </span>
                             <span class="funnel-rate">{{ step.rate }}</span>
                         </div>
                     </div>

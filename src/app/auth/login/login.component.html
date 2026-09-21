@@ -1,42 +1,102 @@
-<div class="auth-container">
-    <div class="nav-header">
-        <button class="btn-back" routerLink="/" title="Retourner à l'accueil">
-            <i class="fa-solid fa-circle-left"></i> Retour
-        </button>
-        <div class="breadcrumb">
-            <span class="crumb-link" routerLink="/" title="Retourner à l'accueil">Accueil</span>
-            <span class="separator">></span>
-            <span class="current">Connexion</span>
-        </div>
-    </div>
-    <div class="glass auth-card">
-        <div class="auth-header">
-            <h1>Bon retour parmi nous !</h1>
-            <p>Connectez-vous pour accéder à votre espace.</p>
+<div class="auth-page">
+
+    <a class="back-home" routerLink="/">
+        <i class="fa-solid fa-arrow-left"></i> Accueil
+    </a>
+
+    <div class="auth-card">
+        <div class="brand">
+            <span class="brand-mark">TJ</span>
+            <span class="brand-name">Track Your Job</span>
         </div>
 
-        <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
-            <div class="form-group">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" id="email" name="email" class="form-control" [(ngModel)]="email" required
-                    placeholder="exemple@email.com">
+        <h1 class="display-title">Bon retour</h1>
+        <p class="lead">Connectez-vous pour retrouver votre suivi.</p>
+
+        <form (ngSubmit)="submit()">
+            <div class="field">
+                <label for="login-email">Email</label>
+                <input id="login-email" type="email" name="email" autocomplete="email" required
+                    [ngModel]="email()" (ngModelChange)="email.set($event)" placeholder="vous@exemple.fr">
             </div>
 
-            <div class="form-group">
-                <label for="password" class="form-label">Mot de passe</label>
-                <input type="password" id="password" name="password" class="form-control" [(ngModel)]="password"
-                    required placeholder="••••••••">
+            <div class="field">
+                <label for="login-password">Mot de passe</label>
+                <input id="login-password" type="password" name="password" autocomplete="current-password" required
+                    [ngModel]="password()" (ngModelChange)="password.set($event)" placeholder="••••••••">
+                <button type="button" class="forgot" (click)="openReset()">Mot de passe oublié ?</button>
             </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary btn-block" [disabled]="!loginForm.form.valid">
-                    Se connecter
-                </button>
-            </div>
+            <p class="error" *ngIf="error()">{{ error() }}</p>
+
+            <button type="submit" class="btn-solid block"
+                [disabled]="!email().trim() || !password()">Se connecter</button>
         </form>
 
-        <div class="auth-footer">
-            <p>Pas encore de compte ? <a routerLink="/auth/register" title="Créer un compte">S'inscrire</a></p>
+        <p class="switch">
+            Pas encore de compte ? <a routerLink="/auth/register">Créer un compte</a>
+        </p>
+
+        <p class="storage-note">
+            <i class="fa-solid fa-circle-info"></i>
+            Vos données restent dans ce navigateur. La connexion par Google et la synchronisation entre appareils
+            arrivent avec la prochaine version.
+        </p>
+    </div>
+</div>
+
+<!-- Mot de passe oublié -------------------------------------------------- -->
+<div class="modal-overlay" *ngIf="showReset()">
+    <div class="modal-panel narrow">
+        <header class="modal-head">
+            <h2 class="display-title">Mot de passe oublié</h2>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="closeReset()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+
+        <div class="modal-body" *ngIf="!resetDone()">
+            <p class="reset-note">
+                Aucun email n'est envoyé : vos données vivent dans ce navigateur, et l'application n'a pas de
+                serveur. Si votre compte s'y trouve, vous pouvez redéfinir votre mot de passe ici.
+            </p>
+            <p class="reset-warning">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                Cela ne protège rien : les données de ce navigateur sont lisibles sans mot de passe. La vraie
+                réinitialisation par email arrivera avec Firebase.
+            </p>
+
+            <div class="form-grid">
+                <div class="field span-2">
+                    <label for="reset-email">Email du compte</label>
+                    <input id="reset-email" type="email" [ngModel]="resetEmail()"
+                        (ngModelChange)="resetEmail.set($event)" name="resetEmail" placeholder="vous@exemple.fr">
+                </div>
+                <div class="field span-2">
+                    <label for="reset-password">Nouveau mot de passe</label>
+                    <input id="reset-password" type="password" autocomplete="new-password"
+                        [ngModel]="resetPassword()" (ngModelChange)="resetPassword.set($event)" name="resetPassword">
+                    <p class="hint">Six caractères minimum.</p>
+                </div>
+                <p class="error span-2" *ngIf="resetError()">{{ resetError() }}</p>
+            </div>
         </div>
+
+        <div class="modal-body" *ngIf="resetDone()">
+            <p class="reset-success">
+                <i class="fa-solid fa-circle-check"></i>
+                Mot de passe redéfini. Vous pouvez vous connecter avec le nouveau.
+            </p>
+        </div>
+
+        <footer class="modal-foot">
+            <button type="button" class="btn-ghost" (click)="closeReset()">
+                {{ resetDone() ? 'Fermer' : 'Annuler' }}
+            </button>
+            <button type="button" class="btn-solid" *ngIf="!resetDone()" (click)="submitReset()"
+                [disabled]="!resetEmail().trim() || !resetPassword()">
+                Redéfinir
+            </button>
+        </footer>
     </div>
 </div>

@@ -214,13 +214,13 @@
 <div class="modal-overlay" *ngIf="showFormModal()">
     <div class="modal-panel">
         <header class="modal-head">
-            <h2 class="display-title">{{ editingOffer() ? 'Modifier la candidature' : 'Nouvelle candidature' }}</h2>
+            <h2 class="display-title">{{ editing() ? 'Modifier la candidature' : 'Nouvelle candidature' }}</h2>
             <button type="button" class="icon-btn" aria-label="Fermer" (click)="closeForm()">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </header>
         <div class="modal-body">
-            <app-offer-form [offer]="editingOffer()" (save)="onSaveOffer($event)" (cancel)="closeForm()">
+            <app-offer-form [application]="editing()" (save)="onSaveOffer($event)" (cancel)="closeForm()">
             </app-offer-form>
         </div>
     </div>

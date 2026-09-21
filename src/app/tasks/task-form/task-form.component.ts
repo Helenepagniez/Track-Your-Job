@@ -1,114 +1,125 @@
-import { Component, EventEmitter, Input, Output, OnInit, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { NO_COMPANY_LABEL, STATUS_LABELS, currentStatus } from '../../core/models/job-search.models';
+import { JobSearchStore } from '../../core/services/job-search-store.service';
 import { Task } from '../task.model';
-import { OffersService, JobOffer } from '../../core/services/offers.service';
+
+interface ApplicationOption {
+    id: number;
+    label: string;
+    status: string;
+}
 
 @Component({
     selector: 'app-task-form',
     standalone: true,
-    imports: [CommonModule, FormsModule, MatFormFieldModule, MatInputModule, MatDatepickerModule, MatNativeDateModule],
+    imports: [CommonModule, FormsModule],
     templateUrl: './task-form.component.html',
     styleUrl: './task-form.component.css'
 })
 export class TaskFormComponent implements OnInit {
+    private store = inject(JobSearchStore);
+
     @Input() task: Task | null = null;
     @Output() save = new EventEmitter<Partial<Task>>();
     @Output() cancel = new EventEmitter<void>();
 
-    private offersService = inject(OffersService);
+    title = signal('');
+    dueDate = signal(toInputDate(new Date()));
+    priority = signal<Task['priority']>('moyenne');
+    status = signal<Task['status']>('a_faire');
+    link = signal('');
+    linked = signal<number[]>([]);
+    searchTerm = signal('');
 
-    formData: Partial<Task> = {
-        priority: 'moyenne',
-        status: 'a_faire',
-        dueDate: new Date(),
-        relatedOffers: []
-    };
+    readonly priorities: { value: Task['priority'], label: string }[] = [
+        { value: 'haute', label: 'Haute' },
+        { value: 'moyenne', label: 'Moyenne' },
+        { value: 'faible', label: 'Basse' }
+    ];
 
-    searchTerm = '';
-    showSuggestions = false;
-    filteredOffers: JobOffer[] = [];
+    /** Candidatures de la campagne en cours, cherchables par poste ou entreprise. */
+    private options = computed<ApplicationOption[]>(() =>
+        this.store.currentApplications().map(application => {
+            const company = this.store.company(application.companyId);
+            return {
+                id: application.id,
+                label: `${application.title} — ${company?.name ?? NO_COMPANY_LABEL}`,
+                status: STATUS_LABELS[currentStatus(application)]
+            };
+        })
+    );
 
-    ngOnInit() {
-        if (this.task) {
-            this.formData = { ...this.task };
-            // Ensure date is a Date object if it comes as string
-            if (this.formData.dueDate) {
-                this.formData.dueDate = new Date(this.formData.dueDate);
-            }
-        }
-        if (!this.formData.relatedOffers) {
-            this.formData.relatedOffers = [];
-        }
+    suggestions = computed<ApplicationOption[]>(() => {
+        const term = this.searchTerm().trim().toLowerCase();
+        if (term.length === 0) return [];
+        const chosen = this.linked();
+        return this.options()
+            .filter(option => !chosen.includes(option.id) && option.label.toLowerCase().includes(term))
+            .slice(0, 6);
+    });
+
+    chosen = computed<ApplicationOption[]>(() => {
+        const ids = this.linked();
+        return this.options().filter(option => ids.includes(option.id));
+    });
+
+    /** Liens que la migration n'a pas su rattacher : affichés tels quels. */
+    orphanLabels = signal<string[]>([]);
+
+    ngOnInit(): void {
+        const task = this.task;
+        if (!task) return;
+
+        this.title.set(task.title);
+        this.dueDate.set(toInputDate(new Date(task.dueDate)));
+        this.priority.set(task.priority);
+        this.status.set(task.status);
+        this.link.set(task.link ?? '');
+        this.linked.set([...(task.applicationIds ?? [])]);
+        this.orphanLabels.set([...(task.relatedOffers ?? [])]);
     }
 
-    onSearchInput() {
-        const term = this.searchTerm.toLowerCase();
-        if (term.length > 0) {
-            this.filteredOffers = this.offersService.offers().filter(offer => {
-                const titleWords = offer.title.toLowerCase().split(' ');
-                // Check if any word starts with the search term
-                return titleWords.some(word => word.startsWith(term));
-            });
-            this.showSuggestions = true;
-        } else {
-            this.showSuggestions = false;
-        }
+    add(option: ApplicationOption): void {
+        this.linked.update(current => [...current, option.id]);
+        this.searchTerm.set('');
     }
 
-    getOfferLabel(offer: JobOffer): string {
-        const clientStatus = this.translateStatus(offer.status);
-        return `${offer.title} - ${offer.company} - ${clientStatus}`;
+    remove(id: number): void {
+        this.linked.update(current => current.filter(entry => entry !== id));
     }
 
-    translateStatus(status: string): string {
-        const statusMap: Record<string, string> = {
-            'To Apply': 'À postuler',
-            'Applied': 'En attente',
-            'To Relaunch': 'À relancer',
-            'No Response': 'Sans réponse',
-            'Interview': 'Entretien',
-            'Offer': 'Offre reçue',
-            'Rejected': 'Refusé'
-        };
-        return statusMap[status] || status;
+    removeOrphan(index: number): void {
+        this.orphanLabels.update(current => current.filter((_, position) => position !== index));
     }
 
-    selectOffer(offer: JobOffer) {
-        const offerString = this.getOfferLabel(offer);
-        if (!this.formData.relatedOffers) {
-            this.formData.relatedOffers = [];
-        }
-        if (!this.formData.relatedOffers.includes(offerString)) {
-            this.formData.relatedOffers.push(offerString);
-        }
-        this.searchTerm = '';
-        this.showSuggestions = false;
+    submit(): void {
+        const title = this.title().trim();
+        if (!title) return;
+
+        const ids = this.linked();
+        const orphans = this.orphanLabels();
+
+        this.save.emit({
+            title,
+            dueDate: new Date(this.dueDate()),
+            priority: this.priority(),
+            status: this.status(),
+            completed: this.status() === 'termine',
+            link: this.link().trim() || undefined,
+            applicationIds: ids.length > 0 ? ids : undefined,
+            relatedOffers: orphans.length > 0 ? orphans : undefined
+        });
     }
 
-    removeOffer(index: number) {
-        this.formData.relatedOffers?.splice(index, 1);
-    }
-
-    // Allow clicking on suggestions
-    onBlur() {
-        // dynamic timeout to allow click event to register
-        setTimeout(() => {
-            this.showSuggestions = false;
-        }, 200);
-    }
-
-    onSubmit() {
-        if (this.formData.title) {
-            this.save.emit(this.formData);
-        }
-    }
-
-    onCancel() {
+    onCancel(): void {
         this.cancel.emit();
     }
+}
+
+function toInputDate(date: Date): string {
+    if (isNaN(date.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }

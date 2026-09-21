@@ -1,70 +1,243 @@
-<div class="landing-container">
-  <header class="glass header">
-    <div class="logo">Track Your Job</div>
-    <nav>
-      <a routerLink="/auth/login" class="btn btn-outline" title="Se connecter">Se connecter</a>
-      <a routerLink="/auth/register" class="btn btn-primary" title="Créer un compte">S'inscrire</a>
-    </nav>
-  </header>
+<div class="landing">
 
-  <main class="hero">
-    <div class="hero-content">
-      <h1>Maîtrisez votre recherche d'emploi</h1>
-      <p>
-        Arrêtez de jongler avec plusieurs plateformes. Suivez vos candidatures, gérez vos tâches,
-        et analysez vos progrès, le tout au même endroit.
-      </p>
-      <div class="cta-group">
-        <a routerLink="/auth/register" class="btn btn-primary btn-lg" title="Créer un compte gratuit">Commencer
-          gratuitement</a>
-        <a href="#features" class="btn btn-outline btn-lg" title="Découvrir les fonctionnalités">En savoir plus</a>
-      </div>
-    </div>
-    <div class="hero-visual">
-      <div class="glass mockup-card">
-        <div class="mockup-header">
-          <div class="dot red"></div>
-          <div class="dot yellow"></div>
-          <div class="dot green"></div>
-        </div>
-        <div class="mockup-body">
-          <div class="stat-row">
-            <div class="stat-box">
-              <span>Candidatures</span>
-              <strong>12</strong>
+    <header class="top">
+        <div class="wrap top-inner">
+            <div class="brand">
+                <span class="brand-mark">TJ</span>
+                <span class="brand-name">Track Your Job</span>
             </div>
-            <div class="stat-box">
-              <span>Entretiens</span>
-              <strong>3</strong>
-            </div>
-          </div>
-          <div class="list-preview">
-            <div class="list-item"></div>
-            <div class="list-item"></div>
-            <div class="list-item"></div>
-          </div>
+            <nav>
+                <a class="btn-ghost" routerLink="/auth/login">Se connecter</a>
+                <a class="btn-solid" routerLink="/auth/register">Créer un compte</a>
+            </nav>
         </div>
-      </div>
-    </div>
-  </main>
+    </header>
 
-  <section id="features" class="features">
-    <div class="container">
-      <h2>Pourquoi Track Your Job ?</h2>
-      <div class="feature-grid">
-        <div class="card feature-card">
-          <h3>Suivi Centralisé</h3>
-          <p>Gardez toutes vos offres d'emploi et statuts de candidature dans un tableau de bord organisé.</p>
+    <!-- Hero ------------------------------------------------------------- -->
+    <section class="hero">
+        <div class="wrap hero-inner">
+            <div class="hero-text">
+                <p class="eyebrow">Suivi de candidatures</p>
+                <h1 class="display-title">Votre recherche d'emploi,<br>enfin lisible</h1>
+                <p class="pitch">
+                    Un tableau qui vous dit quoi faire aujourd'hui, des chiffres qui ne mentent pas, et un carnet
+                    d'adresses qui survit à chaque nouvelle recherche.
+                </p>
+                <div class="cta">
+                    <a class="btn-solid large" routerLink="/auth/register">Commencer gratuitement</a>
+                    <a class="btn-ghost large" href="#comment">Comment ça marche</a>
+                </div>
+                <p class="reassure">
+                    <i class="fa-solid fa-lock"></i>
+                    Sans publicité, sans revente de données. Gratuit.
+                </p>
+            </div>
+
+            <div class="hero-visual" aria-hidden="true">
+                <div class="halo"></div>
+                <div class="fake-card">
+                    <div class="fake-head">
+                        <span class="fake-title">À faire aujourd'hui</span>
+                        <span class="fake-badge">3</span>
+                    </div>
+                    <div class="fake-row urgent">
+                        <span class="fake-dot"></span>
+                        <span class="fake-lines">
+                            <span class="fake-line w80"></span>
+                            <span class="fake-line w50 dim"></span>
+                        </span>
+                    </div>
+                    <div class="fake-row soon">
+                        <span class="fake-dot"></span>
+                        <span class="fake-lines">
+                            <span class="fake-line w70"></span>
+                            <span class="fake-line w40 dim"></span>
+                        </span>
+                    </div>
+                    <div class="fake-stats">
+                        <div class="fake-stat">
+                            <span class="fake-value">34</span>
+                            <span class="fake-label">envoyées</span>
+                        </div>
+                        <div class="fake-stat">
+                            <span class="fake-value">38 %</span>
+                            <span class="fake-label">de réponses</span>
+                        </div>
+                        <div class="fake-stat accent">
+                            <span class="fake-value">3</span>
+                            <span class="fake-label">relances dues</span>
+                        </div>
+                    </div>
+                    <div class="fake-funnel">
+                        <span class="fake-bar b1"></span>
+                        <span class="fake-bar b2"></span>
+                        <span class="fake-bar b3"></span>
+                        <span class="fake-bar b4"></span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card feature-card">
-          <h3>Analyses Intelligentes</h3>
-          <p>Visualisez vos progrès avec des statistiques détaillées sur vos candidatures et résultats.</p>
+    </section>
+
+    <!-- Comment ça marche ------------------------------------------------ -->
+    <section id="comment" class="band steps">
+        <div class="wrap">
+            <p class="section-eyebrow">En pratique</p>
+            <h2>Trois gestes, et le suivi se fait tout seul</h2>
+
+            <ol class="step-list">
+                <li>
+                    <span class="step-num">1</span>
+                    <h3>Vous collez un lien</h3>
+                    <p>
+                        La candidature se crée. Seul l'intitulé du poste est obligatoire — l'entreprise peut même
+                        rester inconnue, comme dans les annonces d'intérim.
+                    </p>
+                </li>
+                <li>
+                    <span class="step-num">2</span>
+                    <h3>Vous cliquez sur une pastille</h3>
+                    <p>
+                        Envoyée, entretien, refus : deux clics, sans quitter la page. Chaque changement est daté,
+                        c'est ce qui rend les statistiques justes.
+                    </p>
+                </li>
+                <li>
+                    <span class="step-num">3</span>
+                    <h3>L'application vous relance</h3>
+                    <p>
+                        Sans réponse depuis deux semaines, une relance apparaît dans vos tâches. Après cinq, la
+                        candidature est classée sans réponse.
+                    </p>
+                </li>
+            </ol>
         </div>
-        <div class="card feature-card">
-          <h3>Gestion des Tâches</h3>
-          <p>Ne manquez jamais une relance ou un entretien grâce au suivi des tâches intégré.</p>
+    </section>
+
+    <!-- Ce qui change ---------------------------------------------------- -->
+    <section class="features">
+        <div class="wrap">
+            <p class="section-eyebrow">Ce qui change vraiment</p>
+            <h2>Une mémoire qui vous appartient</h2>
+
+            <div class="feature-grid">
+                <article class="feature">
+                    <span class="feature-icon"><i class="fa-solid fa-address-book"></i></span>
+                    <h3>Un répertoire qui vous suit</h3>
+                    <p>
+                        Les recruteurs rencontrés restent dans votre carnet, indépendamment des candidatures. Même
+                        après une remise à zéro.
+                    </p>
+                </article>
+                <article class="feature">
+                    <span class="feature-icon"><i class="fa-solid fa-building"></i></span>
+                    <h3>Une fiche par entreprise</h3>
+                    <p>
+                        Saisie une fois, référencée partout. Vous voyez d'un coup d'œil que vous avez déjà
+                        candidaté trois fois chez eux, et ce que ça a donné.
+                    </p>
+                </article>
+                <article class="feature">
+                    <span class="feature-icon"><i class="fa-solid fa-chart-column"></i></span>
+                    <h3>Des chiffres qui bougent</h3>
+                    <p>
+                        Quelle source vous répond le mieux, où s'arrête votre entonnoir, combien de temps avant une
+                        réponse. Un refus de juin reste en juin.
+                    </p>
+                </article>
+                <article class="feature">
+                    <span class="feature-icon"><i class="fa-solid fa-rotate-left"></i></span>
+                    <h3>Repartir à zéro sans rien perdre</h3>
+                    <p>
+                        Vous avez trouvé ? L'application se met en veille. Vous recommencez dans deux ans ? Les
+                        compteurs sont vides, le réseau est intact.
+                    </p>
+                </article>
+            </div>
         </div>
-      </div>
-    </div>
-  </section>
+    </section>
+
+    <!-- Le temps gagné --------------------------------------------------- -->
+    <section class="numbers">
+        <div class="wrap">
+            <h2>Le temps, c'est là qu'on le gagne</h2>
+            <div class="number-grid">
+                <div class="number">
+                    <span class="number-value">2</span>
+                    <span class="number-unit">clics</span>
+                    <p>pour passer une candidature en « refusée ». Sans changer de page.</p>
+                </div>
+                <div class="number">
+                    <span class="number-value">1</span>
+                    <span class="number-unit">écran</span>
+                    <p>pour ajouter une candidature, et un seul champ obligatoire.</p>
+                </div>
+                <div class="number">
+                    <span class="number-value">0</span>
+                    <span class="number-unit">rappel à noter</span>
+                    <p>les relances et les préparations d'entretien s'ajoutent d'elles-mêmes.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Questions -------------------------------------------------------- -->
+    <section class="band faq">
+        <div class="wrap">
+            <p class="section-eyebrow">Bon à savoir</p>
+            <h2>Questions fréquentes</h2>
+
+            <div class="faq-list">
+                <details>
+                    <summary>Où sont stockées mes données ?</summary>
+                    <p>
+                        Pour l'instant, dans votre navigateur uniquement : rien ne part sur un serveur. C'est
+                        privé, mais cela veut dire qu'un nettoyage de navigateur les efface — pensez à exporter une
+                        sauvegarde depuis votre profil. La synchronisation entre appareils arrive bientôt.
+                    </p>
+                </details>
+                <details>
+                    <summary>Et si l'annonce ne nomme pas l'entreprise ?</summary>
+                    <p>
+                        C'est prévu. Une case « l'entreprise n'est pas communiquée » vous laisse enregistrer
+                        l'intermédiaire à la place, et nommer l'employeur plus tard sans rien perdre.
+                    </p>
+                </details>
+                <details>
+                    <summary>Que se passe-t-il quand j'ai trouvé un poste ?</summary>
+                    <p>
+                        Vous répondez « j'ai trouvé » et l'application se met en veille : plus de relances, plus de
+                        rappels. Vos candidatures deviennent une ligne d'historique sur chaque fiche entreprise, et
+                        vos contacts restent intacts pour la prochaine fois.
+                    </p>
+                </details>
+                <details>
+                    <summary>Faut-il payer, ou donner une carte bancaire ?</summary>
+                    <p>
+                        Non. Pas d'abonnement, pas de version limitée, pas de carte demandée. Il n'y a pas non plus
+                        de publicité ni de revente de données.
+                    </p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- Conclusion ------------------------------------------------------- -->
+    <section class="closing">
+        <div class="wrap">
+            <h2>Prête à vous y remettre ?</h2>
+            <p>Deux minutes pour créer un compte, et la première candidature est déjà suivie.</p>
+            <a class="btn-solid large" routerLink="/auth/register">Créer mon compte</a>
+            <p class="closing-note">
+                Déjà inscrite ? <a routerLink="/auth/login">Se connecter</a>
+            </p>
+        </div>
+    </section>
+
+    <footer class="bottom">
+        <div class="wrap bottom-inner">
+            <span class="brand-name small">Track Your Job</span>
+            <span>Vos données restent dans votre navigateur</span>
+        </div>
+    </footer>
 </div>

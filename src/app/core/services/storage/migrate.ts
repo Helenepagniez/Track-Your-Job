@@ -11,6 +11,7 @@ import {
     Profile,
     companyKey
 } from '../../models/job-search.models';
+import { Task } from '../../../tasks/task.model';
 import {
     AppData,
     LegacyAppData,
@@ -204,10 +205,28 @@ function migrateV1User(legacyUserData: LegacyUserData): UserData {
         companies,
         contacts,
         applications,
-        tasks: (legacyUserData.tasks || []).map(task => ({
-            ...task,
-            dueDate: task.dueDate
-        }))
+        tasks: (legacyUserData.tasks || []).map(task => linkTask(task, campaign.id, offers))
+    };
+}
+
+/**
+ * Rattache une tâche à ses candidatures. L'ancien format ne gardait qu'un
+ * libellé « Poste - Entreprise - Statut » : on retrouve l'offre par ce préfixe,
+ * et on conserve le libellé quand la correspondance échoue.
+ */
+function linkTask(task: Task, campaignId: number, offers: LegacyOffer[]): Task {
+    const matched = new Set<number>();
+
+    for (const label of task.relatedOffers || []) {
+        const offer = offers.find(entry => label.startsWith(`${entry.title} - ${entry.company}`));
+        if (offer) matched.add(offer.id);
+    }
+
+    return {
+        ...task,
+        campaignId,
+        applicationIds: matched.size > 0 ? [...matched] : undefined,
+        relatedOffers: matched.size > 0 ? undefined : task.relatedOffers
     };
 }
 

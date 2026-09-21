@@ -14,8 +14,8 @@ function legacyData(): LegacyAppData {
             user_1: {
                 user: {
                     id: 'user_1',
-                    fullName: 'Hélène Pagniez',
-                    email: 'helene@example.com',
+                    fullName: 'Prénom Nom',
+                    email: 'compte@example.com',
                     password: 'secret',
                     authMethod: 'email',
                     createdAt: '2025-04-24T08:00:00.000Z',
@@ -107,8 +107,8 @@ describe('migrateAppData (v1 → v2)', () => {
     it('conserve le profil et les tâches', () => {
         const user = migrateAppData(legacyData()).users['user_1'];
 
-        expect(user.profile.fullName).toBe('Hélène Pagniez');
-        expect(user.profile.email).toBe('helene@example.com');
+        expect(user.profile.fullName).toBe('Prénom Nom');
+        expect(user.profile.email).toBe('compte@example.com');
         expect(user.tasks.length).toBe(1);
     });
 

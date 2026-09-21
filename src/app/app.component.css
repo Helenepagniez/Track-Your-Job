@@ -10,7 +10,7 @@
     /* Sans cette ligne, un enfant large (le tableau des candidatures) pousse
        la colonne au-delà de la fenêtre au lieu de défiler à l'intérieur. */
     min-width: 0;
-    margin-left: 250px;
+    margin-left: 216px;
     transition: margin-left 0.3s ease;
     display: flex;
     flex-direction: column;
@@ -23,7 +23,7 @@
 }
 
 .app-layout.collapsed .main-content {
-    margin-left: 80px;
+    margin-left: 68px;
 }
 
 .sidebar-overlay {

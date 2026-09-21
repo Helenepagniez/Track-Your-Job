@@ -1,68 +1,82 @@
-<div class="modal-header">
-    <h3>{{ task ? 'Modifier la Tâche' : 'Nouvelle Tâche' }}</h3>
-    <button class="close-btn" (click)="onCancel()" title="Fermer">×</button>
-</div>
-<div class="modal-body">
-    <div class="form-group">
-        <label class="form-label">Titre *</label>
-        <input type="text" class="form-control" [(ngModel)]="formData.title" placeholder="Ex: Relancer RH">
-    </div>
-    <div class="form-group">
-        <label class="form-label">Date d'échéance</label>
-        <mat-form-field>
-            <input matInput [matDatepicker]="pickerDueDate" [ngModel]="formData.dueDate"
-                (ngModelChange)="formData.dueDate = $event" />
-            <mat-datepicker-toggle matIconSuffix [for]="pickerDueDate"></mat-datepicker-toggle>
-            <mat-datepicker #pickerDueDate></mat-datepicker>
-        </mat-form-field>
-    </div>
-    <div class="form-group">
-        <label class="form-label">Priorité</label>
-        <select class="form-control" [(ngModel)]="formData.priority">
-            <option value="haute">Haute</option>
-            <option value="moyenne">Moyenne</option>
-            <option value="faible">Basse</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label class="form-label">Lien (optionnel)</label>
-        <input type="url" class="form-control" [(ngModel)]="formData.link" placeholder="https://example.com">
-    </div>
-    <div class="form-group">
-        <label class="form-label">Offres liées (optionnel)</label>
+<form class="task-form" (ngSubmit)="submit()">
 
-        <div class="chips-container" *ngIf="formData.relatedOffers && formData.relatedOffers.length > 0">
-            <span class="chip" *ngFor="let offer of formData.relatedOffers; let i = index">
-                {{ offer }}
-                <span class="remove-chip" (click)="removeOffer(i)" title="Retirer l'offre">×</span>
+    <div class="field">
+        <label for="tf-title">Intitulé <span class="req">obligatoire</span></label>
+        <input id="tf-title" type="text" [ngModel]="title()" (ngModelChange)="title.set($event)" name="title"
+            placeholder="Relancer Claire Ferrand">
+    </div>
+
+    <div class="form-grid">
+        <div class="field">
+            <label for="tf-date">Échéance</label>
+            <input id="tf-date" type="date" [ngModel]="dueDate()" (ngModelChange)="dueDate.set($event)" name="dueDate">
+        </div>
+
+        <div class="field">
+            <label for="tf-status">Colonne</label>
+            <select id="tf-status" [ngModel]="status()" (ngModelChange)="status.set($event)" name="status">
+                <option value="a_faire">À faire</option>
+                <option value="en_cours">En cours</option>
+                <option value="termine">Terminé</option>
+            </select>
+        </div>
+
+        <div class="field span-2">
+            <span class="group-label">Priorité</span>
+            <div class="toggles">
+                <button type="button" *ngFor="let entry of priorities" class="toggle"
+                    [class.on]="priority() === entry.value" [attr.aria-pressed]="priority() === entry.value"
+                    (click)="priority.set(entry.value)">
+                    {{ entry.label }}
+                </button>
+            </div>
+        </div>
+
+        <div class="field span-2">
+            <label for="tf-link">Lien</label>
+            <input id="tf-link" type="url" [ngModel]="link()" (ngModelChange)="link.set($event)" name="link"
+                placeholder="https://…">
+        </div>
+    </div>
+
+    <div class="field">
+        <label for="tf-search">Candidatures liées</label>
+
+        <div class="chips" *ngIf="chosen().length > 0 || orphanLabels().length > 0">
+            <span class="chip" *ngFor="let option of chosen()">
+                {{ option.label }}
+                <button type="button" [attr.aria-label]="'Détacher ' + option.label" (click)="remove(option.id)">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </span>
+            <span class="chip orphan" *ngFor="let label of orphanLabels(); let i = index">
+                {{ label }}
+                <button type="button" aria-label="Retirer ce lien" (click)="removeOrphan(i)">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </span>
         </div>
 
-        <div class="autocomplete-wrapper">
-            <input type="text" class="form-control" [(ngModel)]="searchTerm" (ngModelChange)="onSearchInput()"
-                (blur)="onBlur()" placeholder="Ex: Senior Angular Developer">
+        <input id="tf-search" type="text" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)"
+            name="search" placeholder="Chercher un poste ou une entreprise…" autocomplete="off">
 
-            <ul class="suggestions-list" *ngIf="showSuggestions">
-                <li *ngFor="let offer of filteredOffers" (mousedown)="selectOffer(offer)">
-                    {{getOfferLabel(offer)}}
-                </li>
-                <li *ngIf="filteredOffers.length === 0" class="no-results">
-                    Aucune offre trouvée
-                </li>
-            </ul>
-        </div>
+        <ul class="suggestions" *ngIf="suggestions().length > 0">
+            <li *ngFor="let option of suggestions()">
+                <button type="button" (click)="add(option)">
+                    <span class="suggestion-label">{{ option.label }}</span>
+                    <span class="suggestion-status">{{ option.status }}</span>
+                </button>
+            </li>
+        </ul>
+
+        <p class="hint">
+            Le lien est enregistré par identifiant : il reste valable même si le poste ou l'entreprise est renommé.
+        </p>
     </div>
-    <div class="form-group">
-        <label class="form-label">Statut</label>
-        <select class="form-control" [(ngModel)]="formData.status">
-            <option value="a_faire">À faire</option>
-            <option value="en_cours">En cours</option>
-            <option value="termine">Terminé</option>
-        </select>
-    </div>
-    <div class="form-actions">
-        <button class="btn btn-outline" (click)="onCancel()" title="Annuler les modifications">Annuler</button>
-        <button class="btn btn-primary" (click)="onSubmit()" title="Enregistrer la tâche">{{ task ? 'Mettre à jour' :
-            'Ajouter' }}</button>
-    </div>
-</div>
+
+    <footer class="form-foot">
+        <span class="foot-hint">Seul l'intitulé est obligatoire.</span>
+        <button type="button" class="btn-ghost" (click)="onCancel()">Annuler</button>
+        <button type="submit" class="btn-solid">{{ task ? 'Enregistrer' : 'Ajouter la tâche' }}</button>
+    </footer>
+</form>

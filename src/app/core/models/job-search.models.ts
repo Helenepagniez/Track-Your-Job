@@ -11,6 +11,9 @@
  *     candidature. Un refus du 3 juin reste en juin, quoi qu'il arrive ensuite.
  */
 
+/** Affiché quand l'employeur n'est pas nommé (intérim, cabinet). */
+export const NO_COMPANY_LABEL = 'Entreprise non communiquée';
+
 export const APPLICATION_STATUSES = [
     'to_apply',
     'sent',

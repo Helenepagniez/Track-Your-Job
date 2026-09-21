@@ -1,197 +1,124 @@
-.modal-header {
-    padding: 24px 30px;
-    border-bottom: 2px solid var(--primary-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: var(--surface-color);
+/* Les primitives de formulaire sont globales (styles.css). */
+
+.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.modal-header h3 {
-    margin: 0;
-    color: var(--primary-color);
-    font-size: 1.5rem;
-    font-weight: 600;
+.group-label {
+  font: 600 12px var(--font-body);
+  color: var(--ink-2);
 }
 
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 1.8rem;
-    color: var(--text-secondary);
-    cursor: pointer;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: all 0.2s ease;
+.toggles {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
 }
 
-.close-btn:hover {
-    background-color: rgba(214, 48, 49, 0.1);
-    color: var(--danger-color);
-    transform: rotate(90deg);
+.toggle {
+  height: 34px;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  font: 500 13px var(--font-body);
+  color: var(--ink-3);
 }
 
-.modal-body {
-    padding: 20px;
+.toggle:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
 }
 
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+.toggle.on {
+  border-color: var(--accent-line-strong);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-weight: 600;
 }
 
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-label {
-    display: block;
-    margin-bottom: 5px;
-    color: var(--text-color);
-    font: 600 16px Roboto, sans-serif;
-    letter-spacing: 0.5px;
-}
-
-.form-control {
-    width: 100%;
-    padding: 10px 12px;
-    margin-top: 5px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    transition: border-color 0.2s;
-    font: 16px Roboto, sans-serif;
-    letter-spacing: 0.5px;
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
-    border: 2px solid var(--primary-color);
-}
-
-/* Button styles if not global, but assuming they are global or I should copy them if they were in tasks.component.css but they weren't explicitly defined there except usage */
-.btn {
-    padding: 10px 20px;
-    border-radius: var(--radius-sm);
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: none;
-    font-size: 14px;
-}
-
-.btn-primary {
-    background-color: var(--primary-color);
-    color: var(--surface-color);
-    font: 500 14px Roboto, sans-serif;
-}
-
-.btn-primary:hover {
-    background-color: var(--secondary-color);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.btn-outline {
-    background-color: var(--surface-color);
-    border: 2px solid var(--primary-color);
-    color: var(--primary-color);
-    font: 500 14px Roboto, sans-serif;
-}
-
-.btn-outline:hover {
-    background-color: var(--primary-color);
-    color: var(--surface-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Chips */
-.chips-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 8px;
+/* Candidatures liées ----------------------------------------------------- */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 2px;
 }
 
 .chip {
-    display: inline-flex;
-    align-items: center;
-    background-color: var(--background-color);
-    color: var(--primary-color);
-    padding: 6px 12px;
-    border-radius: 16px;
-    font-size: 14px;
-    border: 2px solid var(--primary-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 12px var(--font-body);
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  padding: 5px 6px 5px 10px;
+  border-radius: 7px;
 }
 
-.remove-chip {
-    margin-left: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 16px;
-    line-height: 1;
-    color: var(--primary-color);
-    opacity: 0.7;
+.chip.orphan {
+  color: var(--ink-3);
+  background: var(--surface-3);
+  border-color: var(--line);
 }
 
-.remove-chip:hover {
-    opacity: 1;
-    color: var(--danger-color);
+.chip button {
+  border: 0;
+  background: transparent;
+  padding: 2px 4px;
+  color: inherit;
+  font-size: 11px;
+  opacity: 0.7;
 }
 
-/* Autocomplete */
-.autocomplete-wrapper {
-    position: relative;
+.chip button:hover {
+  opacity: 1;
 }
 
-.suggestions-list {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    background: var(--surface-color);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    box-shadow: var(--shadow-md);
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-    list-style: none;
-    padding: 0;
-    margin: 4px 0 0;
+.suggestions {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 5px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.suggestions-list li {
-    padding: 10px 15px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    border-bottom: 1px solid var(--border-color);
-    color: var(--text-color);
-    font-size: 14px;
+.suggestions button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  padding: 7px 9px;
+  text-align: left;
 }
 
-.suggestions-list li:last-child {
-    border-bottom: none;
+.suggestions button:hover {
+  background: var(--surface-3);
 }
 
-.suggestions-list li:hover {
-    background-color: var(--background-color);
+.suggestion-label {
+  flex-grow: 1;
+  min-width: 0;
+  font: 12.5px var(--font-body);
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.no-results {
-    color: var(--text-secondary);
-    font-style: normal;
-    cursor: default !important;
-}
-
-.no-results:hover {
-    background-color: transparent !important;
+.suggestion-status {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--ink-4);
 }

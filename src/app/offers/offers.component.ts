@@ -8,6 +8,7 @@ import {
     Application,
     ApplicationStatus,
     Company,
+    NO_COMPANY_LABEL,
     STATUS_LABELS,
     currentStatus,
     enteredStatusAt,
@@ -15,8 +16,7 @@ import {
     sentAt
 } from '../core/models/job-search.models';
 import { statusClass, statusDotClass } from '../core/models/status-style';
-import { JobSearchStore } from '../core/services/job-search-store.service';
-import { JobOffer, NO_COMPANY_LABEL, OffersService } from '../core/services/offers.service';
+import { ApplicationDraft, JobSearchStore } from '../core/services/job-search-store.service';
 import { OfferFormComponent } from './offer-form/offer-form.component';
 
 /** Une carte du tableau, tout ce qu'il faut afficher et rien de plus. */
@@ -68,7 +68,6 @@ const COLUMNS: { key: string; label: string; statuses: ApplicationStatus[] }[] =
 })
 export class OffersComponent {
     private store = inject(JobSearchStore);
-    private offersService = inject(OffersService);
     private router = inject(Router);
 
     view = signal<'board' | 'list'>('board');
@@ -83,7 +82,7 @@ export class OffersComponent {
     interviewDraft = signal<{ id: number; date: string } | null>(null);
 
     showFormModal = signal(false);
-    editingOffer = signal<JobOffer | null>(null);
+    editing = signal<Application | null>(null);
     showDeleteConfirm = signal(false);
     toDelete = signal<number | null>(null);
 
@@ -186,7 +185,7 @@ export class OffersComponent {
     confirmInterviewDate(): void {
         const draft = this.interviewDraft();
         if (!draft || !draft.date) return;
-        this.store.addInterview(draft.id, 'video', new Date(draft.date));
+        this.store.recordInterview(draft.id, 'video', new Date(draft.date));
         this.interviewDraft.set(null);
     }
 
@@ -205,30 +204,17 @@ export class OffersComponent {
     // ----------------------------------------------------------- formulaire
 
     openForm(card?: Card): void {
-        this.editingOffer.set(card ? this.offersService.getOffer(card.id) ?? null : null);
+        this.editing.set(card ? this.store.application(card.id) ?? null : null);
         this.showFormModal.set(true);
     }
 
     closeForm(): void {
         this.showFormModal.set(false);
-        this.editingOffer.set(null);
+        this.editing.set(null);
     }
 
-    onSaveOffer(data: Partial<JobOffer>): void {
-        const editing = this.editingOffer();
-        if (editing) {
-            this.offersService.updateOffer({ ...editing, ...data } as JobOffer);
-        } else {
-            this.offersService.addOffer({
-                id: 0,
-                dateAdded: new Date(),
-                status: 'To Apply',
-                location: '',
-                ...data,
-                title: data.title ?? 'Candidature sans intitulé',
-                company: data.company ?? ''
-            } as JobOffer);
-        }
+    onSaveOffer(draft: ApplicationDraft): void {
+        this.store.applyDraft(this.editing()?.id ?? null, draft);
         this.closeForm();
     }
 

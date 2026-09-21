@@ -7,6 +7,7 @@ import {
     CampaignOutcome,
     Company,
     Contact,
+    INTERVIEW_LABELS,
     InterviewKind,
     JobPosting,
     Profile,
@@ -14,6 +15,7 @@ import {
     computeCampaignStats,
     currentStatus,
     enteredStatusAt,
+    interviewEvents,
     sentAt
 } from '../models/job-search.models';
 import { UserData } from './storage/app-data';
@@ -24,6 +26,29 @@ import { TasksService } from './tasks.service';
 /** Délai avant de proposer une relance, puis de classer sans réponse. */
 export const RELAUNCH_AFTER_DAYS = 14;
 export const NO_RESPONSE_AFTER_DAYS = 35;
+
+/**
+ * Ce qu'un formulaire de candidature renvoie. Le store se charge de traduire
+ * cela en entités et en événements datés ; aucun écran n'écrit d'événement.
+ */
+export interface ApplicationDraft {
+    title: string;
+    /** Vide = employeur non communiqué. */
+    companyName: string;
+    agencyName?: string;
+    location?: string;
+    contractType?: string;
+    contractDuration?: string;
+    weeklyHours?: string;
+    salary?: string;
+    source?: string;
+    link?: string;
+    posting?: JobPosting;
+    status: ApplicationStatus;
+    /** Date ISO d'un entretien à enregistrer avec la candidature. */
+    interviewAt?: string;
+    interviewKind?: InterviewKind;
+}
 
 export interface NewApplication {
     title: string;
@@ -331,6 +356,75 @@ export class JobSearchStore {
         return createdId;
     }
 
+    /**
+     * Enregistre une candidature depuis un formulaire : crée ou met à jour,
+     * puis n'ajoute que les événements réellement nouveaux. Point d'entrée
+     * unique, pour que les deux écrans qui saisissent une candidature se
+     * comportent exactement pareil.
+     */
+    applyDraft(id: number | null, draft: ApplicationDraft): number {
+        const companyId = draft.companyName.trim()
+            ? this.ensureCompany(draft.companyName)
+            : null;
+
+        const fields = {
+            companyId,
+            agencyName: companyId === null ? draft.agencyName : undefined,
+            title: draft.title,
+            location: draft.location,
+            contractType: draft.contractType,
+            contractDuration: draft.contractDuration,
+            weeklyHours: draft.weeklyHours,
+            salary: draft.salary,
+            source: draft.source,
+            link: draft.link,
+            posting: draft.posting
+        };
+
+        const applicationId = id !== null
+            ? (this.updateApplication(id, fields), id)
+            : this.addApplication({ ...fields, companyName: undefined, status: draft.status });
+
+        if (id !== null) {
+            this.setStatus(applicationId, draft.status);
+        }
+
+        if (draft.interviewAt) {
+            this.recordInterview(applicationId, draft.interviewKind ?? 'video', new Date(draft.interviewAt));
+        }
+
+        return applicationId;
+    }
+
+    /**
+     * Ajoute un entretien s'il n'est pas déjà connu, et la tâche de préparation
+     * qui va avec. Appeler deux fois avec la même date ne crée pas de doublon.
+     */
+    recordInterview(id: number, kind: InterviewKind, at: Date, details?: string): void {
+        const application = this.application(id);
+        if (!application) return;
+
+        const known = interviewEvents(application).some(event =>
+            new Date(event.at).getTime() === at.getTime() && event.interviewKind === kind
+        );
+        if (known) return;
+
+        this.addInterview(id, kind, at, details);
+
+        const company = this.company(application.companyId);
+        this.tasksService.addTask({
+            id: Date.now() + Math.floor(Math.random() * 1000),
+            title: `Préparer : ${INTERVIEW_LABELS[kind].toLowerCase()}`,
+            dueDate: at,
+            completed: false,
+            status: 'a_faire',
+            priority: 'haute',
+            applicationIds: [id],
+            campaignId: application.campaignId,
+            relatedOffers: [`${application.title} — ${company?.name ?? 'entreprise non citée'}`]
+        });
+    }
+
     updateApplication(id: number, patch: Partial<Omit<Application, 'id' | 'events'>>): void {
         this.commit(data => {
             data.applications = data.applications.map(app =>
@@ -493,12 +587,16 @@ export class JobSearchStore {
             );
 
             if (clearTasks) {
-                data.tasks = [];
+                // Seules les tâches de cette campagne partent ; un rappel
+                // personnel sans campagne reste.
+                data.tasks = data.tasks.filter(task => task.campaignId !== campaign.id);
             }
         });
 
         if (clearTasks) {
-            this.tasksService.setTasks([]);
+            this.tasksService.setTasks(
+                this.tasksService.tasks().filter(task => task.campaignId !== campaign.id)
+            );
         }
     }
 
@@ -548,14 +646,13 @@ export class JobSearchStore {
                 const company = this.company(application.companyId);
                 this.tasksService.addTask({
                     id: Date.now() + Math.floor(Math.random() * 1000),
-                    title: 'À relancer',
+                    title: `Relancer ${company?.name ?? 'cette entreprise'}`,
                     dueDate: now,
                     completed: false,
                     status: 'a_faire',
                     priority: 'haute',
-                    relatedOffers: [
-                        `${application.title} - ${company?.name ?? 'Entreprise non communiquée'} - À relancer`
-                    ]
+                    applicationIds: [application.id],
+                    campaignId: application.campaignId
                 });
             }
         }

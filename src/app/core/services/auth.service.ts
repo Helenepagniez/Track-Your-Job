@@ -2,6 +2,12 @@ import { Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { LocalStorageService, User } from './local-storage.service';
 
+/** Résultat d'une tentative d'authentification, message inclus. */
+export interface AuthResult {
+    ok: boolean;
+    error?: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -35,11 +41,9 @@ export class AuthService {
         }
     }
 
-    register(fullName: string, email: string, password: string): boolean {
-        // Check if email already exists
+    register(fullName: string, email: string, password: string): AuthResult {
         if (this.localStorageService.emailExists(email)) {
-            alert('Un compte avec cet email existe déjà');
-            return false;
+            return { ok: false, error: 'Un compte existe déjà avec cet email.' };
         }
 
         const user: User = {
@@ -55,27 +59,39 @@ export class AuthService {
         this.localStorageService.registerUser(user);
         this.currentUser.set(user);
         this.isAuthenticated.set(true);
-        return true;
+        return { ok: true };
     }
 
-    login(email: string, password: string): boolean {
+    login(email: string, password: string): AuthResult {
         const user = this.localStorageService.findUserByEmail(email);
 
-        if (!user) {
-            alert('Email ou mot de passe incorrect');
-            return false;
-        }
-
-        if (user.password !== password) {
-            alert('Email ou mot de passe incorrect');
-            return false;
+        if (!user || user.password !== password) {
+            return { ok: false, error: 'Email ou mot de passe incorrect.' };
         }
 
         // Set as current user in localStorage
         this.localStorageService.setCurrentUser(user);
         this.currentUser.set(user);
         this.isAuthenticated.set(true);
-        return true;
+        return { ok: true };
+    }
+
+    /**
+     * Réinitialisation locale du mot de passe.
+     *
+     * Il n'y a pas d'envoi d'email : les données vivent dans ce navigateur et
+     * rien n'est chiffré, donc quiconque l'ouvre y a déjà accès. Cela ne
+     * protège de rien, mais cela évite d'être enfermé dehors. Un vrai
+     * « mot de passe oublié » par email arrivera avec Firebase Auth.
+     */
+    resetPasswordLocally(email: string, newPassword: string): AuthResult {
+        if (newPassword.length < 6) {
+            return { ok: false, error: 'Le mot de passe doit faire au moins 6 caractères.' };
+        }
+        if (!this.localStorageService.updatePasswordByEmail(email, newPassword)) {
+            return { ok: false, error: 'Aucun compte avec cet email dans ce navigateur.' };
+        }
+        return { ok: true };
     }
 
     logout() {

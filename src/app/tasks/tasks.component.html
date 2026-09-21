@@ -1,267 +1,180 @@
-<section>
-    <div class="page-header">
-        <div class="header-left">
-            <h1>Mes Tâches</h1>
-            <div class="view-toggle">
-                <button class="toggle-btn" [class.active]="viewMode() === 'kanban'" (click)="setViewMode('kanban')"
-                    title="Vue Kanban">
-                    <i class="fa-solid fa-sitemap"><strong><span>Vue Kanban</span></strong></i>
+<section class="tasks-page">
+
+    <header class="page-head">
+        <div>
+            <h1 class="display-title">Tâches</h1>
+            <p class="subtitle">
+                {{ remaining() }} à faire sur {{ total() }}
+                <span *ngIf="overdueCount() > 0"> · {{ overdueCount() }} en retard</span>
+            </p>
+        </div>
+        <div class="head-actions">
+            <div class="view-switch" role="group" aria-label="Mode d'affichage">
+                <button type="button" [class.active]="view() === 'board'" (click)="view.set('board')">
+                    <i class="fa-solid fa-table-columns"></i> Tableau
                 </button>
-                <button class="toggle-btn" [class.active]="viewMode() === 'list'" (click)="setViewMode('list')"
-                    title="Vue Liste">
-                    <i class="fa-solid fa-list-check"><strong><span>Vue Liste</span></strong></i>
+                <button type="button" [class.active]="view() === 'list'" (click)="view.set('list')">
+                    <i class="fa-solid fa-list"></i> Liste
                 </button>
             </div>
+            <button type="button" class="btn-solid" (click)="openForm()">
+                <i class="fa-solid fa-plus"></i> Ajouter
+            </button>
         </div>
-        <button class="btn btn-primary" (click)="openAddModal()" title="Ajouter une nouvelle tâche">
-            <span>+</span> Nouvelle Tâche
+    </header>
+
+    <div class="filters" *ngIf="total() > 0">
+        <div class="search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="search" placeholder="Intitulé ou candidature…" aria-label="Rechercher une tâche"
+                [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
+        </div>
+
+        <select aria-label="Filtrer par priorité" [ngModel]="priorityFilter()"
+            (ngModelChange)="priorityFilter.set($event)">
+            <option value="">Toutes les priorités</option>
+            <option value="haute">Haute</option>
+            <option value="moyenne">Moyenne</option>
+            <option value="faible">Basse</option>
+        </select>
+
+        <button type="button" class="chip-filter" [class.on]="onlyOverdue()" *ngIf="overdueCount() > 0"
+            (click)="onlyOverdue.set(!onlyOverdue())">
+            <i class="fa-solid fa-clock"></i> En retard · {{ overdueCount() }}
+        </button>
+
+        <button type="button" class="link-btn" *ngIf="hasFilters()" (click)="resetFilters()">Tout afficher</button>
+    </div>
+
+    <!-- Vue tableau ------------------------------------------------------ -->
+    <div class="board" *ngIf="view() === 'board' && total() > 0" cdkDropListGroup>
+        <section class="column" *ngFor="let col of columns()">
+            <div class="column-head">
+                <h2>{{ col.label }}</h2>
+                <span class="column-count">{{ col.cards.length }}</span>
+            </div>
+
+            <div class="column-body" cdkDropList [cdkDropListData]="col" (cdkDropListDropped)="onDropped($event, col)">
+
+                <article class="task-card" *ngFor="let card of col.cards" cdkDrag [cdkDragData]="card"
+                    [class.overdue]="card.overdue" [class.done]="card.task.completed">
+
+                    <div class="card-top">
+                        <label class="check">
+                            <input type="checkbox" [checked]="card.task.completed" (change)="toggle(card)"
+                                [attr.aria-label]="'Terminer ' + card.task.title">
+                        </label>
+                        <p class="card-title">{{ card.task.title }}</p>
+                        <button type="button" class="icon-btn" [attr.aria-label]="'Modifier ' + card.task.title"
+                            (click)="openForm(card)">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button type="button" class="icon-btn" [attr.aria-label]="'Supprimer ' + card.task.title"
+                            (click)="askDelete(card)">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+
+                    <div class="card-bottom">
+                        <span class="priority" [ngClass]="'p-' + card.task.priority">{{ card.task.priority }}</span>
+                        <span class="due" [class.late]="card.overdue" [class.today]="card.dueToday">
+                            <i class="fa-solid fa-calendar"></i> {{ card.dueLabel }}
+                        </span>
+                    </div>
+
+                    <div class="links" *ngIf="card.links.length > 0 || card.orphans.length > 0">
+                        <a class="link-chip" *ngFor="let link of card.links" [routerLink]="['/offres', link.id]">
+                            {{ link.label }}
+                        </a>
+                        <span class="link-chip orphan" *ngFor="let label of card.orphans">{{ label }}</span>
+                    </div>
+
+                    <a class="external" *ngIf="card.task.link" [href]="card.task.link" target="_blank"
+                        rel="noopener">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Lien
+                    </a>
+                </article>
+
+                <button type="button" class="add-here" (click)="openForm()">+ Ajouter ici</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Vue liste -------------------------------------------------------- -->
+    <div class="list-view" *ngIf="view() === 'list' && total() > 0">
+        <label class="list-row" *ngFor="let card of filtered()" [class.overdue]="card.overdue"
+            [class.done]="card.task.completed">
+            <input type="checkbox" [checked]="card.task.completed" (change)="toggle(card)">
+            <span class="row-main">
+                <span class="row-title">{{ card.task.title }}</span>
+                <span class="row-links" *ngIf="card.links.length > 0">
+                    {{ card.links[0].label }}<span *ngIf="card.links.length > 1"> + {{ card.links.length - 1 }}</span>
+                </span>
+            </span>
+            <span class="priority" [ngClass]="'p-' + card.task.priority">{{ card.task.priority }}</span>
+            <span class="due" [class.late]="card.overdue" [class.today]="card.dueToday">{{ card.dueLabel }}</span>
+            <span class="row-actions">
+                <button type="button" class="icon-btn" [attr.aria-label]="'Modifier ' + card.task.title"
+                    (click)="openForm(card)">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="icon-btn" [attr.aria-label]="'Supprimer ' + card.task.title"
+                    (click)="askDelete(card)">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </span>
+        </label>
+    </div>
+
+    <div class="empty" *ngIf="total() > 0 && filtered().length === 0">
+        <h3>Aucun résultat</h3>
+        <p>Aucune tâche ne correspond à ces filtres.</p>
+        <button type="button" class="link-btn" (click)="resetFilters()">Tout afficher</button>
+    </div>
+
+    <div class="empty" *ngIf="total() === 0">
+        <div class="empty-icon"><i class="fa-solid fa-square-check"></i></div>
+        <h3>Aucune tâche</h3>
+        <p>
+            Les relances et les préparations d'entretien s'ajoutent d'elles-mêmes quand vous suivez vos
+            candidatures. Vous pouvez aussi en créer à la main.
+        </p>
+        <button type="button" class="btn-solid" (click)="openForm()">
+            <i class="fa-solid fa-plus"></i> Créer une tâche
         </button>
     </div>
-
-    <!-- Empty State -->
-    <div *ngIf="tasks().length === 0" class="empty-state">
-        <div class="empty-icon"><i class="fa-solid fa-square-check"></i></div>
-        <h3>Aucune tâche trouvée</h3>
-        <p>Ajoutez de nouvelles tâches.</p>
-    </div>
-
-    <!-- Kanban View -->
-    <div class="kanban-board" *ngIf="viewMode() === 'kanban' && tasks().length > 0" cdkDropListGroup>
-        <!-- Todo Column -->
-        <div class="kanban-column todo">
-            <div class="column-header">
-                <h3>À faire</h3>
-                <span class="count">{{ todoTasks().length }}</span>
-            </div>
-            <div class="column-content" cdkDropList id="todoList" [cdkDropListData]="todoTasks()"
-                (cdkDropListDropped)="drop($event)">
-                <div class="kanban-card" *ngFor="let task of todoTasks()" cdkDrag [cdkDragData]="task">
-                    <div class="card-header">
-                        <span class="priority-badge" [class]="task.priority">{{ task.priority.charAt(0).toUpperCase() +
-                            task.priority.slice(1)}}</span>
-                        <div class="round">
-                            <button class="btn-pen" (click)="updateTask(task.id)" title="Modifier la tâche"><i
-                                    class="fa-solid fa-pen"></i></button>
-                            <button class="btn-icon-sm" (click)="confirmDelete(task.id)"
-                                title="Supprimer la tâche">×</button>
-                        </div>
-                    </div>
-                    <h4>{{ task.title }}</h4>
-                    <div class="card-meta" *ngIf="task.link">
-                        <a [href]="task.link" target="_blank" (click)="$event.stopPropagation()" class="task-link">
-                            <i class="fa-solid fa-link"></i> Lien
-                        </a>
-                    </div>
-                    <div class="card-meta" *ngIf="task.relatedOffers && task.relatedOffers.length">
-                        <span *ngFor="let offer of task.relatedOffers | slice:0:2; let last = last">
-                            <i class="icon">💼</i> {{ offer }}{{ !last ? ', ' : '' }}
-                        </span>
-                        <span *ngIf="task.relatedOffers.length > 2">
-                            (+{{ task.relatedOffers.length - 2 }} offres)
-                        </span>
-                    </div>
-                    <div class="card-footer">
-                        <span class="due-date" [class.overdue]="!task.completed && getDaysLeft(task.dueDate) < 0">
-                            <i class="icon">📅</i> {{ task.dueDate | date:'dd MMM' }}
-                            <ng-container *ngIf="!task.completed">
-                                <span *ngIf="getDaysLeft(task.dueDate) > 0">
-                                    · {{ getDaysLeft(task.dueDate) }} jours restants
-                                </span>
-                                <span *ngIf="getDaysLeft(task.dueDate) === 0">
-                                    · Dernier jour !
-                                </span>
-                                <span *ngIf="getDaysLeft(task.dueDate) < 0">
-                                    · En retard de {{ -getDaysLeft(task.dueDate) }} jours
-                                </span>
-                            </ng-container>
-                        </span>
-                        <div class="button-container">
-                            <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'en_cours')"
-                                title="Démarrer la tâche">
-                                Démarer <i class="fa-solid fa-arrow-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- In Progress Column -->
-        <div class="kanban-column in-progress">
-            <div class="column-header">
-                <h3>En cours</h3>
-                <span class="count">{{ inProgressTasks().length }}</span>
-            </div>
-            <div class="column-content" cdkDropList id="inProgressList" [cdkDropListData]="inProgressTasks()"
-                (cdkDropListDropped)="drop($event)">
-                <div class="kanban-card" *ngFor="let task of inProgressTasks()" cdkDrag [cdkDragData]="task">
-                    <div class="card-header">
-                        <span class="priority-badge" [class]="task.priority">{{ task.priority.charAt(0).toUpperCase() +
-                            task.priority.slice(1)}}</span>
-                        <div class="round">
-                            <button class="btn-pen" (click)="updateTask(task.id)" title="Modifier la tâche"><i
-                                    class="fa-solid fa-pen"></i></button>
-                            <button class="btn-icon-sm" (click)="confirmDelete(task.id)"
-                                title="Supprimer la tâche">×</button>
-                        </div>
-                    </div>
-                    <h4>{{ task.title }}</h4>
-                    <div class="card-meta" *ngIf="task.relatedOffers && task.relatedOffers.length">
-                        <span *ngFor="let offer of task.relatedOffers | slice:0:2; let last = last">
-                            <i class="icon">💼</i> {{ offer }}{{ !last ? ', ' : '' }}
-                        </span>
-                        <span *ngIf="task.relatedOffers.length > 2">
-                            (+{{ task.relatedOffers.length - 2 }} offres)
-                        </span>
-                    </div>
-                    <div class="card-footer">
-                        <span class="due-date" [class.overdue]="!task.completed && getDaysLeft(task.dueDate) < 0">
-                            <i class="icon">📅</i> {{ task.dueDate | date:'dd MMM' }}
-                            <ng-container *ngIf="!task.completed">
-                                <span *ngIf="getDaysLeft(task.dueDate) > 0">
-                                    · {{ getDaysLeft(task.dueDate) }} jours restants
-                                </span>
-                                <span *ngIf="getDaysLeft(task.dueDate) === 0">
-                                    · Dernier jour !
-                                </span>
-                                <span *ngIf="getDaysLeft(task.dueDate) < 0">
-                                    · En retard de {{ -getDaysLeft(task.dueDate) }} jours
-                                </span>
-                            </ng-container>
-                        </span>
-                        <div class="button-container">
-                            <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'a_faire')"
-                                title="Recommencer la tâche">
-                                <i class="fa-solid fa-arrow-left"></i> Refaire
-                            </button>
-                            <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'termine')"
-                                title="Terminer la tâche">
-                                Terminer <i class="fa-solid fa-arrow-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Done Column -->
-        <div class="kanban-column done">
-            <div class="column-header">
-                <h3>Terminé</h3>
-                <span class="count">{{ doneTasks().length }}</span>
-            </div>
-            <div class="column-content" cdkDropList id="doneList" [cdkDropListData]="doneTasks()"
-                (cdkDropListDropped)="drop($event)">
-                <div class="kanban-card completed" *ngFor="let task of doneTasks()" cdkDrag [cdkDragData]="task">
-                    <div class="card-header">
-                        <span class="priority-badge" [class]="task.priority">{{ task.priority.charAt(0).toUpperCase() +
-                            task.priority.slice(1)}}</span>
-                        <div class="round">
-                            <button class="btn-pen" (click)="updateTask(task.id)" title="Modifier la tâche"><i
-                                    class="fa-solid fa-pen"></i></button>
-                            <button class="btn-icon-sm" (click)="confirmDelete(task.id)"
-                                title="Supprimer la tâche">×</button>
-                        </div>
-                    </div>
-                    <h4>{{ task.title }}</h4>
-                    <div class="card-meta" *ngIf="task.relatedOffers && task.relatedOffers.length">
-                        <span *ngFor="let offer of task.relatedOffers | slice:0:2; let last = last">
-                            <i class="icon">💼</i> {{ offer }}{{ !last ? ', ' : '' }}
-                        </span>
-                        <span *ngIf="task.relatedOffers.length > 2">
-                            (+{{ task.relatedOffers.length - 2 }} offres)
-                        </span>
-                    </div>
-                    <div class="card-footer">
-                        <span class="due-date">📅 {{ task.dueDate | date:'dd MMM' }}</span>
-                        <div class="button-container">
-                            <button class="btn btn-move" (click)="updateTaskStatus(task.id, 'en_cours')"
-                                title="Rouvrir la tâche">
-                                <i class="fa-solid fa-arrow-left"></i> Rouvrir
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- List View -->
-    <div class="tasks-list glass" *ngIf="viewMode() === 'list' && tasks().length > 0" cdkDropList
-        [cdkDropListData]="tasks()" (cdkDropListDropped)="dropList($event)">
-        <div class="task-item" *ngFor="let task of tasks()" [class.completed]="task.completed" cdkDrag
-            [cdkDragData]="task">
-            <div class="task-checkbox">
-                <input type="checkbox" [checked]="task.completed" (change)="toggleTask(task.id)">
-            </div>
-            <div class="task-content">
-                <div class="task-title-row">
-                    <span class="task-title">{{ task.title }}</span>
-                    <span class="priority-badge" [class]="task.priority">{{ task.priority.charAt(0).toUpperCase() +
-                        task.priority.slice(1)}}</span>
-                    <span class="status-badge-small" [class]="task.status">
-                        {{ (task.status.charAt(0).toUpperCase() + task.status.slice(1)).replace("_", " ") }}
-                    </span>
-                </div>
-                <div class="task-meta">
-                    <a *ngIf="task.link" [href]="task.link" target="_blank" (click)="$event.stopPropagation()"
-                        class="task-link">
-                        <i class="fa-solid fa-link"></i> Lien
-                    </a>
-                    <span *ngIf="task.relatedOffers && task.relatedOffers.length" class="related-offer">
-                        <span *ngFor="let offer of task.relatedOffers; let last = last">
-                            <i class="icon">💼</i> {{ offer }}{{ !last ? ', ' : '' }}
-                        </span>
-                    </span>
-                    <span class="due-date" [class.overdue]="!task.completed && getDaysLeft(task.dueDate) < 0">
-                        <i class="icon">📅</i> {{ task.dueDate | date:'dd MMM' }}
-                        <ng-container *ngIf="!task.completed">
-                            <span *ngIf="getDaysLeft(task.dueDate) > 0">
-                                · {{ getDaysLeft(task.dueDate) }} jours restants
-                            </span>
-                            <span *ngIf="getDaysLeft(task.dueDate) === 0">
-                                · Dernier jour !
-                            </span>
-                            <span *ngIf="getDaysLeft(task.dueDate) < 0">
-                                · En retard de {{ -getDaysLeft(task.dueDate) }} jours
-                            </span>
-                        </ng-container>
-                    </span>
-                </div>
-            </div>
-            <div class="task-actions">
-                <button class="btn btn-outline" (click)="updateTask(task.id)" title="Modifier la tâche"><i
-                        class="fa-solid fa-pen"></i>Modifier</button>
-                <button class="btn-icon" (click)="confirmDelete(task.id)" title="Supprimer la tâche"><i
-                        class="fa-solid fa-trash-can"></i></button>
-            </div>
-        </div>
-    </div>
-
-
 </section>
 
-<!-- Add Task Modal -->
-<div class="modal-overlay" *ngIf="showAddModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-        <app-task-form [task]="selectedTask()" (save)="handleSaveTask($event)" (cancel)="closeAddModal()">
-        </app-task-form>
+<!-- Ajout / modification ------------------------------------------------- -->
+<div class="modal-overlay" *ngIf="showFormModal()">
+    <div class="modal-panel">
+        <header class="modal-head">
+            <h2 class="display-title">{{ editing() ? 'Modifier la tâche' : 'Nouvelle tâche' }}</h2>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="closeForm()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+        <div class="modal-body">
+            <app-task-form [task]="editing()" (save)="onSave($event)" (cancel)="closeForm()"></app-task-form>
+        </div>
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<!-- Suppression ---------------------------------------------------------- -->
 <div class="modal-overlay" *ngIf="showDeleteConfirm()">
-    <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h3>Supprimer la tâche ?</h3>
-            <button class="close-btn" (click)="cancelDelete()" title="Fermer">×</button>
+    <div class="modal-panel narrow">
+        <header class="modal-head">
+            <h2 class="display-title">Supprimer cette tâche ?</h2>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="cancelDelete()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+        <div class="modal-body">
+            <p>La candidature liée n'est pas touchée. Cette action est irréversible.</p>
         </div>
-        <div class="modal-body-confirm">
-            <p>Êtes-vous sûr de vouloir supprimer cette tâche ? Cette action est irréversible.</p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-outline" (click)="cancelDelete()" title="Annuler la suppression">Annuler</button>
-            <button class="btn btn-danger" (click)="deleteTask()" title="Confirmer la suppression">Supprimer</button>
-        </div>
+        <footer class="modal-foot">
+            <button type="button" class="btn-ghost" (click)="cancelDelete()">Annuler</button>
+            <button type="button" class="btn-danger" (click)="confirmDelete()">Supprimer</button>
+        </footer>
     </div>
 </div>

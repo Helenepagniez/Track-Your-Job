@@ -1,453 +1,247 @@
-<section *ngIf="offer() as o">
-    <!-- Breadcrumb & Back -->
-    <div class="nav-header">
-        <button class="btn-back" routerLink="/offres" title="Retour aux offres">
-            <i class="fa-solid fa-circle-left"></i> Retour
+<section class="detail-page" *ngIf="application() as app; else notFound">
+
+    <header class="detail-head">
+        <button type="button" class="back" (click)="back()">
+            <i class="fa-solid fa-arrow-left"></i> Mes candidatures
         </button>
-        <div class="breadcrumb">
-            <span class="crumb-link" routerLink="/offres" title="Retour aux offres">Mes Offres</span>
-            <span class="separator">></span>
-            <span class="current">{{ o.title }}</span>
-        </div>
-    </div>
 
-    <!-- Header Section -->
-    <div class="offer-header-card glass">
-        <div class="header-main">
-            <div class="company-logo">{{ o.company.charAt(0) }}</div>
-            <div class="header-info">
-                <h1>{{ o.title }}</h1>
-                <div class="subtitle">
-                    <span class="company">{{ o.company }}</span>
-                    <span class="separator">•</span>
-                    <span class="location">📍 {{ o.location }}</span>
+        <div class="title-row">
+            <div class="title-text">
+                <h1 class="display-title">{{ app.title }}</h1>
+                <p class="company-line">
+                    <button type="button" class="company-link" *ngIf="company()" (click)="openCompany()">
+                        {{ companyLabel() }}
+                    </button>
+                    <span class="muted" *ngIf="!company()">{{ companyLabel() }}</span>
+                </p>
+            </div>
+
+            <div class="chip-wrap">
+                <button type="button" class="status-chip" [ngClass]="statusClass(status())"
+                    [attr.aria-expanded]="statusMenuOpen()" aria-label="Changer le statut"
+                    (click)="toggleStatusMenu()">
+                    {{ statusLabels[status()] }}
+                    <i class="fa-solid fa-chevron-down chip-caret"></i>
+                </button>
+
+                <div class="status-menu" *ngIf="statusMenuOpen()">
+                    <p class="menu-title">Nouveau statut</p>
+                    <button type="button" *ngFor="let value of allStatuses" [class.current]="value === status()"
+                        (click)="pickStatus(value)">
+                        <span class="status-dot" [ngClass]="statusDotClass(value)"></span>
+                        <span class="menu-label">{{ statusLabels[value] }}</span>
+                        <i class="fa-solid fa-check" *ngIf="value === status()"></i>
+                    </button>
                 </div>
             </div>
-        </div>
-        <div class="header-actions">
-            <span class="status-chip" [ngClass]="statusClass(o.status)">
-                {{ getStatusLabel(o.status) }}
-            </span>
-            <div class="action-buttons">
-                <button class="btn btn-outline" (click)="openEditModal()" title="Modifier l'offre">
-                    <i class="fa-solid fa-pen"></i> Modifier
-                </button>
-                <button class="btn btn-danger" (click)="confirmDelete()" title="Supprimer l'offre">
-                    <i class="fa-solid fa-trash"></i> Supprimer
-                </button>
-            </div>
-        </div>
-    </div>
 
-    <!-- Content Grid -->
-    <div class="content-grid">
-        <!-- Main Info -->
+            <button type="button" class="btn-ghost" (click)="openEdit()">
+                <i class="fa-solid fa-pen"></i> Modifier
+            </button>
+        </div>
+
+        <p class="meta-row">
+            <span *ngFor="let part of meta(); let last = last">{{ part }}<span *ngIf="!last"> · </span></span>
+            <span class="muted" *ngIf="meta().length === 0">Aucun détail renseigné</span>
+        </p>
+
+        <p class="sent-line">
+            {{ sentLabel() }}
+            <a *ngIf="app.link" [href]="app.link" target="_blank" rel="noopener" class="annonce-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Consulter l'annonce
+            </a>
+        </p>
+    </header>
+
+    <div class="detail-body">
+
         <div class="main-column">
-            <div class="card section" *ngIf="o.description || o.missions || o.profile">
-                <h3>Description du poste</h3>
-                <div class="info-block" *ngIf="o.missions">
-                    <h4>Missions</h4>
-                    <p>{{ o.missions }}</p>
-                </div>
-                <div class="info-block" *ngIf="o.profile">
-                    <h4>Profil recherché</h4>
-                    <p>{{ o.profile }}</p>
-                </div>
-                <div class="info-block" *ngIf="o.description && !o.missions">
-                    <h4>Description</h4>
-                    <p>{{ o.description }}</p>
-                </div>
-            </div>
 
-            <div class="card section">
-                <div class="description">
-                    <h3>À propos de l'entreprise</h3>
-                    <button class="btn btn-outline" (click)="viewCompany(o)" title="Voir la page de l'entreprise">Voir
-                        l'entreprise</button>
+            <!-- Chronologie ---------------------------------------------- -->
+            <section class="block">
+                <div class="block-head">
+                    <h2>Chronologie</h2>
+                    <span class="spacer"></span>
+                    <button type="button" class="btn-ghost small" (click)="openInterviewForm()">
+                        <i class="fa-solid fa-calendar-plus"></i> Ajouter un entretien
+                    </button>
                 </div>
-                <p *ngIf="o.companyDescription">{{ o.companyDescription }}</p>
 
-                <div class="company-metrics" *ngIf="o.companyInfo">
-                    <div class="metric" *ngIf="o.companyInfo.employees">
-                        <i class="fa-solid fa-users"></i>
-                        <div>
-                            <span class="label">Employés</span>
-                            <span class="value">{{ o.companyInfo.employees }}</span>
-                        </div>
+                <div class="interview-form" *ngIf="showInterviewForm()">
+                    <div class="field">
+                        <label for="itw-at">Date et heure</label>
+                        <input id="itw-at" type="datetime-local" [ngModel]="interviewDraft().at"
+                            (ngModelChange)="updateInterviewDraft({ at: $event })">
                     </div>
-                    <div class="metric" *ngIf="o.companyInfo.founded">
-                        <i class="fa-solid fa-flag"></i>
-                        <div>
-                            <span class="label">Création</span>
-                            <span class="value">{{ o.companyInfo.founded }}</span>
-                        </div>
+                    <div class="field">
+                        <label for="itw-kind">Type</label>
+                        <select id="itw-kind" [ngModel]="interviewDraft().kind"
+                            (ngModelChange)="updateInterviewDraft({ kind: $event })">
+                            <option *ngFor="let kind of interviewKinds" [value]="kind.value">{{ kind.label }}</option>
+                        </select>
                     </div>
+                    <div class="interview-actions">
+                        <button type="button" class="btn-ghost" (click)="closeInterviewForm()">Annuler</button>
+                        <button type="button" class="btn-solid" (click)="addInterview()">Enregistrer</button>
+                    </div>
+                    <p class="hint">Une tâche de préparation sera créée à cette date.</p>
                 </div>
-            </div>
+
+                <ol class="timeline">
+                    <li *ngFor="let entry of timeline()">
+                        <span class="timeline-dot" [ngClass]="entry.dotClass"></span>
+                        <div class="timeline-text">
+                            <p class="timeline-label">
+                                {{ entry.label }}
+                                <span class="timeline-tag" *ngIf="entry.detail">{{ entry.detail }}</span>
+                            </p>
+                            <p class="timeline-date">{{ entry.dateLabel }}</p>
+                        </div>
+                    </li>
+                </ol>
+
+                <p class="hint">
+                    Chaque ligne est un fait daté : c'est cette chronologie qui alimente vos statistiques.
+                </p>
+            </section>
+
+            <!-- Contenu de l'annonce ------------------------------------- -->
+            <section class="block" *ngIf="posting().length > 0">
+                <h2>Contenu de l'annonce</h2>
+                <div class="posting-section" *ngFor="let section of posting()">
+                    <h3>{{ section.label }}</h3>
+                    <p>{{ section.content }}</p>
+                </div>
+            </section>
+
+            <section class="block" *ngIf="posting().length === 0">
+                <h2>Contenu de l'annonce</h2>
+                <p class="muted">
+                    Rien d'enregistré. Utile pour préparer un entretien sans rouvrir l'annonce d'origine.
+                </p>
+                <button type="button" class="btn-ghost small" (click)="openEdit()">Ajouter le descriptif</button>
+            </section>
         </div>
 
-        <!-- Sidebar Info -->
-        <div class="sidebar-column">
-            <div class="card section">
-                <h3>Détails clés</h3>
-                <ul class="key-details">
-                    <li *ngIf="o.contractType">
-                        <span class="icon">📄</span>
-                        <div>
-                            <span class="label">Contrat</span>
-                            <span class="value">{{ o.contractType }}</span>
-                        </div>
-                    </li>
-                    <li *ngIf="o.contractDuration">
-                        <span class="icon">⏱️</span>
-                        <div>
-                            <span class="label">Durée</span>
-                            <span class="value">{{ o.contractDuration }}</span>
-                        </div>
-                    </li>
-                    <li *ngIf="o.weeklyHours">
-                        <span class="icon">⌚</span>
-                        <div>
-                            <span class="label">Hebdo</span>
-                            <span class="value">{{ o.weeklyHours }}</span>
-                        </div>
-                    </li>
-                    <li *ngIf="o.salary">
-                        <span class="icon">💰</span>
-                        <div>
-                            <span class="label">Salaire</span>
-                            <span class="value">{{ o.salary }}</span>
-                        </div>
-                    </li>
-                    <li *ngIf="o.link">
-                        <span class="icon">🔗</span>
-                        <div>
-                            <span class="label">Lien</span>
-                            <a [href]="o.link" target="_blank" class="link" title="Consulter l'annonce">Voir
-                                l'annonce</a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
+        <aside class="side-column">
 
-            <!-- Interviews Section (separate card) -->
-            <div class="card section" *ngIf="o.status === 'Interview' || (o.interviews && o.interviews.length > 0)">
-                <div class="section-header">
-                    <h3>Entretiens</h3>
-                    <button class="btn-icon-edit" (click)="openInterviewsModal()" title="Modifier les entretiens">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
+            <!-- Entreprise ----------------------------------------------- -->
+            <section class="block">
+                <h2>Entreprise</h2>
+
+                <button type="button" class="company-card" *ngIf="company() as co" (click)="openCompany()">
+                    <span class="logo">{{ co.name.slice(0, 2).toUpperCase() }}</span>
+                    <span class="company-text">
+                        <span class="company-name">{{ co.name }}</span>
+                        <span class="company-sub">{{ co.sector || 'Secteur non renseigné' }}</span>
+                    </span>
+                </button>
+
+                <p class="muted" *ngIf="!company()">
+                    Employeur non communiqué.
+                    <span *ngIf="app.agencyName">Annonce diffusée par {{ app.agencyName }}.</span>
+                    Vous pourrez le nommer plus tard sans rien perdre.
+                </p>
+            </section>
+
+            <!-- Contacts ------------------------------------------------- -->
+            <section class="block" *ngIf="company()">
+                <div class="block-head">
+                    <h2>Contacts</h2>
+                    <span class="spacer"></span>
+                    <a class="hint-link" routerLink="/repertoire">Répertoire</a>
                 </div>
-                <div class="interview-sections" *ngIf="o.interviews && o.interviews.length > 0">
-                    <!-- Upcoming Interviews -->
-                    <div class="interview-section" *ngIf="getUpcomingInterviews(o.interviews).length > 0">
-                        <h5 class="interview-subtitle">À venir</h5>
-                        <div class="interview-items">
-                            <div *ngFor="let interview of getUpcomingInterviews(o.interviews)" class="interview-item">
-                                <span class="interview-type">{{ interview.type }}</span>
-                                <span class="interview-date">le {{ interview.date | date:'dd/MM/yyyy' }}</span>
-                                <span class="interview-details" *ngIf="interview.details">- {{ interview.details
-                                    }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Past Interviews -->
-                    <div class="interview-section" *ngIf="getPastInterviews(o.interviews).length > 0">
-                        <h5 class="interview-subtitle">Passés</h5>
-                        <div class="interview-items">
-                            <div *ngFor="let interview of getPastInterviews(o.interviews)" class="interview-item past">
-                                <span class="interview-type">{{ interview.type }}</span>
-                                <span class="interview-date">le {{ interview.date | date:'dd/MM/yyyy' }}</span>
-                                <span class="interview-details" *ngIf="interview.details">- {{ interview.details
-                                    }}</span>
-                            </div>
-                        </div>
-                    </div>
+
+                <div class="contact-row" *ngFor="let contact of contacts()">
+                    <span class="contact-name">{{ contact.fullName }}</span>
+                    <span class="contact-role">{{ contact.role || '—' }}</span>
+                    <a *ngIf="contact.email" [href]="'mailto:' + contact.email" class="icon-btn"
+                        [attr.aria-label]="'Écrire à ' + contact.fullName">
+                        <i class="fa-solid fa-envelope"></i>
+                    </a>
                 </div>
-                <!-- Empty state when no interviews -->
-                <div *ngIf="!o.interviews || o.interviews.length === 0" style="text-align: center; padding: 1rem;">
-                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">Aucun entretien programmé</p>
-                    <button class="btn btn-outline" (click)="openInterviewsModal()" title="Ajouter un entretien">
-                        <i class="fa-solid fa-plus"></i> Ajouter un entretien
-                    </button>
+
+                <p class="muted" *ngIf="contacts().length === 0">Aucun contact rattaché à cette entreprise.</p>
+            </section>
+
+            <!-- Tâches --------------------------------------------------- -->
+            <section class="block">
+                <div class="block-head">
+                    <h2>Tâches liées</h2>
+                    <span class="spacer"></span>
+                    <a class="hint-link" routerLink="/taches">Toutes les tâches</a>
                 </div>
-            </div>
 
-            <div class="card section" *ngIf="o.statusHistory && o.statusHistory.length > 0">
-                <div class="section-header">
-                    <h3>Historique du statut</h3>
-                    <button class="btn-icon-edit" (click)="openStatusHistoryModal()" title="Modifier l'historique">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
-                </div>
-                <ul class="status-history">
-                    <li *ngFor="let history of getSortedStatusHistory(o.statusHistory || [])">
-                        <span class="status-chip" [ngClass]="statusClass(history.status)">{{
-                            getStatusLabel(history.status) }}</span>
-                        <span class="history-date">{{ history.date | date:'dd/MM/yyyy' }}</span>
-                    </li>
-                </ul>
-            </div>
+                <label class="task-row" *ngFor="let task of tasks()">
+                    <input type="checkbox" [checked]="task.completed" (change)="toggleTask(task)">
+                    <span class="task-text" [class.done]="task.completed">
+                        <span class="task-title">{{ task.title }}</span>
+                        <span class="task-date">{{ task.dueDate | date:'d MMMM' }}</span>
+                    </span>
+                </label>
 
-            <div class="card section" *ngIf="o.benefits">
-                <h3>Avantages</h3>
-                <p>{{ o.benefits }}</p>
-            </div>
+                <p class="muted" *ngIf="tasks().length === 0">
+                    Aucune tâche. Enregistrer un entretien en crée une automatiquement.
+                </p>
+            </section>
 
-            <div class="card section" *ngIf="o.recruitmentProcess">
-                <h3>Processus de recrutement</h3>
-                <p>{{ o.recruitmentProcess }}</p>
-            </div>
-
-            <div class="card section" *ngIf="o.others">
-                <h3>Autres informations</h3>
-                <p>{{ o.others }}</p>
-            </div>
-        </div>
+            <!-- Supprimer ------------------------------------------------ -->
+            <section class="block danger-block">
+                <h2>Supprimer</h2>
+                <p class="hint">L'entreprise et ses contacts sont conservés.</p>
+                <button type="button" class="btn-ghost danger" (click)="askDelete()">
+                    <i class="fa-solid fa-trash-can"></i> Supprimer la candidature
+                </button>
+            </section>
+        </aside>
     </div>
 </section>
 
-<!-- Edit Modal -->
-<div class="modal-overlay" *ngIf="showEditModal()">
-    <div class="modal-content stepper-modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h3>Modifier l'offre</h3>
-            <button class="close-btn" (click)="closeEditModal()" title="Fermer">×</button>
-        </div>
+<ng-template #notFound>
+    <div class="empty">
+        <div class="empty-icon"><i class="fa-solid fa-file-circle-question"></i></div>
+        <h3>Candidature introuvable</h3>
+        <p>Elle a peut-être été supprimée, ou archivée lors d'une clôture de campagne.</p>
+        <button type="button" class="btn-solid" (click)="back()">Retour au suivi</button>
+    </div>
+</ng-template>
+
+<!-- Fond cliquable qui referme le menu de statut -->
+<div class="menu-backdrop" *ngIf="statusMenuOpen()" (click)="toggleStatusMenu()"></div>
+
+<!-- Modification --------------------------------------------------------- -->
+<div class="modal-overlay" *ngIf="showEditModal() && application() as app">
+    <div class="modal-panel">
+        <header class="modal-head">
+            <h2 class="display-title">Modifier la candidature</h2>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="closeEdit()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
         <div class="modal-body">
-            <app-offer-form [offer]="offer() || null" (save)="onUpdateOffer($event)" (cancel)="closeEditModal()">
-            </app-offer-form>
+            <app-offer-form [application]="app" (save)="onSave($event)" (cancel)="closeEdit()"></app-offer-form>
         </div>
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<!-- Suppression ---------------------------------------------------------- -->
 <div class="modal-overlay" *ngIf="showDeleteConfirm()">
-    <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h3>Supprimer l'offre ?</h3>
-            <button class="close-btn" (click)="cancelDelete()" title="Fermer">×</button>
-        </div>
-        <div class="modal-body-confirm">
-            <p>Êtes-vous sûr de vouloir supprimer cette offre ? Cette action est irréversible.</p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-outline" (click)="cancelDelete()" title="Annuler la suppression">Annuler</button>
-            <button class="btn btn-danger" (click)="deleteOffer()" title="Confirmer la suppression">Supprimer</button>
-        </div>
-    </div>
-</div>
-
-<!-- Interviews Edit Modal -->
-<div class="modal-overlay" *ngIf="showInterviewsModal()">
-    <div class="modal-content edit-list-modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h3>Gérer les entretiens</h3>
-            <button class="close-btn" (click)="closeInterviewsModal()" title="Fermer">×</button>
-        </div>
+    <div class="modal-panel narrow">
+        <header class="modal-head">
+            <h2 class="display-title">Supprimer cette candidature ?</h2>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="cancelDelete()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
         <div class="modal-body">
-            <div class="edit-list-container">
-                <!-- Existing Interviews -->
-                <div class="existing-items" *ngIf="editingInterviews.length > 0">
-                    <h4>Entretiens enregistrés</h4>
-                    <div class="item-list">
-                        <div *ngFor="let interview of editingInterviews; let i = index" class="edit-item">
-                            <div class="item-content">
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label>Type</label>
-                                        <select [(ngModel)]="interview.type" class="form-control">
-                                            <option *ngFor="let type of interviewTypes" [value]="type">{{ type }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Date *</label>
-                                        <mat-form-field>
-                                            <input matInput [matDatepicker]="pickerInterview"
-                                                [(ngModel)]="interview.date" />
-                                            <mat-datepicker-toggle matIconSuffix
-                                                [for]="pickerInterview"></mat-datepicker-toggle>
-                                            <mat-datepicker #pickerInterview></mat-datepicker>
-                                        </mat-form-field>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Détails (optionnel)</label>
-                                    <input type="text" [(ngModel)]="interview.details" class="form-control"
-                                        placeholder="Ex: Avec le CTO">
-                                </div>
-                            </div>
-                            <button class="btn-remove" (click)="confirmDeleteInterview(i)" title="Supprimer">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add New Interview -->
-                <div class="add-new-section">
-                    <h4>Ajouter un entretien</h4>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Type</label>
-                            <select [(ngModel)]="newInterview.type" class="form-control">
-                                <option *ngFor="let type of interviewTypes" [value]="type">{{ type }}</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Date *</label>
-                            <mat-form-field>
-                                <input matInput [matDatepicker]="pickerNewInterview" [(ngModel)]="newInterview.date" />
-                                <mat-datepicker-toggle matIconSuffix [for]="pickerNewInterview"></mat-datepicker-toggle>
-                                <mat-datepicker #pickerNewInterview></mat-datepicker>
-                            </mat-form-field>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Détails (optionnel)</label>
-                        <input type="text" [(ngModel)]="newInterview.details" class="form-control"
-                            placeholder="Ex: Avec le CTO">
-                    </div>
-                    <button class="btn btn-outline" (click)="addInterview()" title="Ajouter cet entretien">
-                        <i class="fa-solid fa-plus"></i> Ajouter
-                    </button>
-                </div>
-            </div>
+            <p>
+                La candidature et sa chronologie disparaissent. L'entreprise, ses contacts et ses notes sont
+                conservés. Cette action est irréversible.
+            </p>
         </div>
-        <div class="modal-footer">
-            <button class="btn btn-outline" (click)="closeInterviewsModal()"
-                title="Annuler les modifications">Annuler</button>
-            <button class="btn btn-primary" (click)="saveInterviews()"
-                title="Enregistrer les entretiens">Enregistrer</button>
-        </div>
-    </div>
-</div>
-
-<!-- Status History Edit Modal -->
-<div class="modal-overlay" *ngIf="showStatusHistoryModal()">
-    <div class="modal-content edit-list-modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h3>Gérer l'historique des statuts</h3>
-            <button class="close-btn" (click)="closeStatusHistoryModal()" title="Fermer">×</button>
-        </div>
-        <div class="modal-body">
-            <div class="edit-list-container">
-                <!-- Existing Status History -->
-                <div class="existing-items" *ngIf="editingStatusHistory.length > 0">
-                    <h4>Historique enregistré</h4>
-                    <div class="item-list">
-                        <div *ngFor="let entry of editingStatusHistory; let i = index" class="edit-item">
-                            <div class="item-content">
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label>Statut</label>
-                                        <select [(ngModel)]="entry.status" class="form-control">
-                                            <option *ngFor="let status of possibleStatuses" [value]="status">
-                                                {{ getStatusLabel(status) }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Date *</label>
-                                        <mat-form-field>
-                                            <input matInput [matDatepicker]="pickerStatusHistory"
-                                                [(ngModel)]="entry.date" [max]="maxDate" />
-                                            <mat-datepicker-toggle matIconSuffix
-                                                [for]="pickerStatusHistory"></mat-datepicker-toggle>
-                                            <mat-datepicker #pickerStatusHistory></mat-datepicker>
-                                        </mat-form-field>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Détails (optionnel)</label>
-                                    <input type="text" [(ngModel)]="entry.details" class="form-control"
-                                        placeholder="Ex: Relance par email">
-                                </div>
-                            </div>
-                            <button class="btn-remove" (click)="confirmDeleteStatus(i)" title="Supprimer">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add New Status -->
-                <div class="add-new-section">
-                    <h4>Ajouter un statut</h4>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Statut</label>
-                            <select [(ngModel)]="newStatusEntry.status" class="form-control">
-                                <option *ngFor="let status of possibleStatuses" [value]="status">
-                                    {{ getStatusLabel(status) }}
-                                </option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Date *</label>
-                            <mat-form-field>
-                                <input matInput [matDatepicker]="pickerNewStatus" [(ngModel)]="newStatusEntry.date"
-                                    [max]="maxDate" />
-                                <mat-datepicker-toggle matIconSuffix [for]="pickerNewStatus"></mat-datepicker-toggle>
-                                <mat-datepicker #pickerNewStatus></mat-datepicker>
-                            </mat-form-field>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Détails (optionnel)</label>
-                        <input type="text" [(ngModel)]="newStatusEntry.details" class="form-control"
-                            placeholder="Ex: Relance par email">
-                    </div>
-                    <button class="btn btn-outline" (click)="addStatusHistory()" title="Ajouter ce statut">
-                        <i class="fa-solid fa-plus"></i> Ajouter
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-outline" (click)="closeStatusHistoryModal()"
-                title="Annuler les modifications">Annuler</button>
-            <button class="btn btn-primary" (click)="saveStatusHistory()"
-                title="Enregistrer l'historique">Enregistrer</button>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Interview Confirmation Modal -->
-<div class="modal-overlay" *ngIf="showDeleteInterviewConfirm()">
-    <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h3>Supprimer l'entretien ?</h3>
-            <button class="close-btn" (click)="cancelDeleteInterview()" title="Fermer">×</button>
-        </div>
-        <div class="modal-body-confirm">
-            <p>Êtes-vous sûr de vouloir supprimer cet entretien ? Cette action est irréversible.</p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-outline" (click)="cancelDeleteInterview()"
-                title="Annuler la suppression">Annuler</button>
-            <button class="btn btn-danger" (click)="removeInterview()"
-                title="Confirmer la suppression">Supprimer</button>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Status History Confirmation Modal -->
-<div class="modal-overlay" *ngIf="showDeleteStatusConfirm()">
-    <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h3>Supprimer le statut ?</h3>
-            <button class="close-btn" (click)="cancelDeleteStatus()" title="Fermer">×</button>
-        </div>
-        <div class="modal-body-confirm">
-            <p>Êtes-vous sûr de vouloir supprimer cette entrée de l'historique ? Cette action est irréversible.</p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-outline" (click)="cancelDeleteStatus()"
-                title="Annuler la suppression">Annuler</button>
-            <button class="btn btn-danger" (click)="removeStatusHistory()"
-                title="Confirmer la suppression">Supprimer</button>
-        </div>
+        <footer class="modal-foot">
+            <button type="button" class="btn-ghost" (click)="cancelDelete()">Annuler</button>
+            <button type="button" class="btn-danger" (click)="confirmDelete()">Supprimer</button>
+        </footer>
     </div>
 </div>

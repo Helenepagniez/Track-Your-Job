@@ -1,362 +1,277 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { OffersService, JobOffer, StatusHistoryEntry, Interview } from '../../core/services/offers.service';
+import {
+    APPLICATION_STATUSES,
+    Application,
+    ApplicationStatus,
+    INTERVIEW_LABELS,
+    InterviewKind,
+    NO_COMPANY_LABEL,
+    STATUS_LABELS,
+    currentStatus,
+    sentAt
+} from '../../core/models/job-search.models';
+import { statusClass, statusDotClass } from '../../core/models/status-style';
+import { ApplicationDraft, JobSearchStore } from '../../core/services/job-search-store.service';
 import { TasksService } from '../../core/services/tasks.service';
+import { Task } from '../../tasks/task.model';
 import { OfferFormComponent } from '../offer-form/offer-form.component';
-import { statusClass } from '../../core/models/status-style';
+
+interface TimelineEntry {
+    at: string;
+    dateLabel: string;
+    label: string;
+    detail: string;
+    dotClass: string;
+    kind: 'created' | 'status' | 'interview' | 'note';
+}
+
+interface PostingSection {
+    label: string;
+    content: string;
+}
 
 @Component({
     selector: 'app-offer-detail',
     standalone: true,
-    imports: [CommonModule, RouterModule, OfferFormComponent, FormsModule, MatFormFieldModule, MatInputModule, MatDatepickerModule, MatNativeDateModule],
+    imports: [CommonModule, RouterModule, FormsModule, OfferFormComponent],
     templateUrl: './offer-detail.component.html',
     styleUrl: './offer-detail.component.css'
 })
-export class OfferDetailComponent implements OnInit {
+export class OfferDetailComponent {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
-    private offersService = inject(OffersService);
+    private store = inject(JobSearchStore);
     private tasksService = inject(TasksService);
 
+    private applicationId = signal<number | null>(null);
+
+    readonly allStatuses = APPLICATION_STATUSES;
+    readonly statusLabels = STATUS_LABELS;
+    readonly interviewKinds: { value: InterviewKind, label: string }[] = [
+        { value: 'prequal', label: 'Préqualification' },
+        { value: 'phone', label: 'Téléphone' },
+        { value: 'video', label: 'Visio' },
+        { value: 'onsite', label: 'Sur place' }
+    ];
+
     statusClass = statusClass;
+    statusDotClass = statusDotClass;
 
-    offerId = signal<number | null>(null);
-
-    offer = computed(() => {
-        const id = this.offerId();
-        if (!id) return undefined;
-        return this.offersService.offers().find(o => o.id === id);
-    });
-
+    statusMenuOpen = signal(false);
     showEditModal = signal(false);
     showDeleteConfirm = signal(false);
-    showInterviewsModal = signal(false);
-    showStatusHistoryModal = signal(false);
+    showInterviewForm = signal(false);
+    interviewDraft = signal({ at: '', kind: 'video' as InterviewKind });
 
-    // Delete confirmation states
-    showDeleteInterviewConfirm = signal(false);
-    interviewToDelete = signal<number | null>(null);
-    showDeleteStatusConfirm = signal(false);
-    statusToDelete = signal<number | null>(null);
-
-    // Temp storage for editing
-    editingInterviews: Interview[] = [];
-    editingStatusHistory: StatusHistoryEntry[] = [];
-
-    // For adding new items in modals
-    newInterview: Interview = { date: new Date(), type: 'Entretien Visio' };
-    newStatusEntry: StatusHistoryEntry = { status: 'Applied', date: new Date() };
-
-    // Max date for status history (today)
-    maxDate = new Date();
-
-
-    possibleStatuses = ['To Apply', 'Applied', 'To Relaunch', 'No Response', 'Interview', 'Offer', 'Rejected'];
-    interviewTypes: Interview['type'][] = ['Préqual', 'Entretien Physique', 'Entretien Téléphonique', 'Entretien Visio'];
-
-    ngOnInit() {
+    constructor() {
         this.route.paramMap.subscribe(params => {
-            const id = Number(params.get('id'));
-            if (id) {
-                this.offerId.set(id);
-            }
+            const raw = Number(params.get('id'));
+            this.applicationId.set(isNaN(raw) ? null : raw);
         });
     }
 
-    getStatusLabel(status: string): string {
-        const labels: Record<string, string> = {
-            'To Apply': 'À postuler',
-            'Applied': 'En attente',
-            'To Relaunch': 'À relancer',
-            'No Response': 'Sans réponse',
-            'Interview': 'Entretien',
-            'Offer': 'Offre reçue',
-            'Rejected': 'Refusé'
-        };
-        return labels[status] || status;
+    application = computed<Application | undefined>(() => {
+        const id = this.applicationId();
+        return id === null ? undefined : this.store.application(id);
+    });
+
+    company = computed(() => this.store.company(this.application()?.companyId));
+
+    companyLabel = computed<string>(() => {
+        const application = this.application();
+        if (!application) return '';
+        const company = this.company();
+        if (company) return company.name;
+        return application.agencyName
+            ? `${application.agencyName} · client non cité`
+            : NO_COMPANY_LABEL;
+    });
+
+    status = computed<ApplicationStatus>(() => {
+        const application = this.application();
+        return application ? currentStatus(application) : 'to_apply';
+    });
+
+    meta = computed<string[]>(() => {
+        const application = this.application();
+        if (!application) return [];
+        const parts: string[] = [];
+        if (application.contractType) {
+            parts.push(application.contractDuration
+                ? `${application.contractType} · ${application.contractDuration}`
+                : application.contractType);
+        }
+        if (application.weeklyHours) parts.push(application.weeklyHours);
+        if (application.location) parts.push(application.location);
+        if (application.salary) parts.push(application.salary);
+        if (application.source) parts.push(`via ${application.source}`);
+        return parts;
+    });
+
+    /** Toute l'histoire de la candidature, du plus récent au plus ancien. */
+    timeline = computed<TimelineEntry[]>(() => {
+        const application = this.application();
+        if (!application) return [];
+
+        return application.events
+            .map(event => {
+                if (event.type === 'status' && event.status) {
+                    return {
+                        at: event.at,
+                        dateLabel: longDate(event.at),
+                        label: STATUS_LABELS[event.status],
+                        detail: event.details ?? '',
+                        dotClass: statusDotClass(event.status),
+                        kind: 'status' as const
+                    };
+                }
+                if (event.type === 'interview') {
+                    const kind = event.interviewKind ?? 'video';
+                    return {
+                        at: event.at,
+                        dateLabel: longDate(event.at),
+                        label: INTERVIEW_LABELS[kind],
+                        detail: new Date(event.at) > new Date() ? 'à venir' : 'passé',
+                        dotClass: statusDotClass('interview'),
+                        kind: 'interview' as const
+                    };
+                }
+                return {
+                    at: event.at,
+                    dateLabel: longDate(event.at),
+                    label: event.type === 'created' ? 'Candidature créée' : 'Note',
+                    detail: event.details ?? '',
+                    dotClass: 'dot-to_apply',
+                    kind: event.type === 'created' ? 'created' as const : 'note' as const
+                };
+            })
+            .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+    });
+
+    posting = computed<PostingSection[]>(() => {
+        const posting = this.application()?.posting;
+        if (!posting) return [];
+        return [
+            { label: 'Missions', content: posting.missions ?? '' },
+            { label: 'Profil recherché', content: posting.profile ?? '' },
+            { label: 'Avantages', content: posting.benefits ?? '' },
+            { label: 'Étapes de recrutement', content: posting.recruitmentProcess ?? '' },
+            { label: 'Présentation du poste', content: posting.description ?? '' },
+            { label: 'Autres informations', content: posting.others ?? '' }
+        ].filter(section => section.content.trim().length > 0);
+    });
+
+    contacts = computed(() => {
+        const company = this.company();
+        return company ? this.store.contactsOfCompany(company.id) : [];
+    });
+
+    tasks = computed<Task[]>(() => {
+        const id = this.applicationId();
+        if (id === null) return [];
+        return this.tasksService.tasks()
+            .filter(task => (task.applicationIds ?? []).includes(id))
+            .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+    });
+
+    sentLabel = computed<string>(() => {
+        const application = this.application();
+        if (!application) return '';
+        const at = sentAt(application);
+        return at ? `Envoyée le ${longDate(at)}` : 'Pas encore envoyée';
+    });
+
+    // --------------------------------------------------------------- actions
+
+    back(): void {
+        this.router.navigate(['/offres']);
     }
 
-    // Helper to convert Date to YYYY-MM-DD string for input[type="date"]
-    dateToInputString(date: Date | string): string {
-        const d = typeof date === 'string' ? new Date(date) : date;
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+    toggleStatusMenu(): void {
+        this.statusMenuOpen.update(open => !open);
     }
 
-    // Helper to convert YYYY-MM-DD string to Date
-    inputStringToDate(dateStr: string): Date {
-        return new Date(dateStr);
+    pickStatus(status: ApplicationStatus): void {
+        this.statusMenuOpen.set(false);
+        const application = this.application();
+        if (!application || this.status() === status) return;
+        this.store.setStatus(application.id, status);
+        if (status === 'interview') {
+            this.openInterviewForm();
+        }
     }
 
-    isPastDate(date: Date | string): boolean {
-        const d = new Date(date);
-        const now = new Date();
-        // Reset hours to compare dates only if needed, but for interviews time might matter.
-        // Let's keep it simple: strict inequality
-        return d < now;
+    openInterviewForm(): void {
+        this.interviewDraft.set({ at: '', kind: 'video' });
+        this.showInterviewForm.set(true);
     }
 
-    // --- Edit Main Modal ---
+    closeInterviewForm(): void {
+        this.showInterviewForm.set(false);
+    }
 
-    openEditModal() {
+    updateInterviewDraft(patch: Partial<{ at: string; kind: InterviewKind }>): void {
+        this.interviewDraft.update(current => ({ ...current, ...patch }));
+    }
+
+    addInterview(): void {
+        const application = this.application();
+        const draft = this.interviewDraft();
+        if (!application || !draft.at) return;
+        this.store.recordInterview(application.id, draft.kind, new Date(draft.at));
+        this.closeInterviewForm();
+    }
+
+    openEdit(): void {
         this.showEditModal.set(true);
     }
 
-    closeEditModal() {
+    closeEdit(): void {
         this.showEditModal.set(false);
     }
 
-    onUpdateOffer(offerData: Partial<JobOffer>) {
-        if (this.offer()) {
-            const { statusHistory, ...offerWithoutHistory } = this.offer()!;
-            const updatedOffer: JobOffer = {
-                ...offerWithoutHistory,
-                ...offerData
-                // Don't include statusHistory - let the service manage it
-            };
-            this.offersService.updateOffer(updatedOffer);
-            this.closeEditModal();
-        }
+    onSave(draft: ApplicationDraft): void {
+        const application = this.application();
+        if (!application) return;
+        this.store.applyDraft(application.id, draft);
+        this.closeEdit();
     }
 
-    // --- Delete Offer ---
-
-    confirmDelete() {
+    askDelete(): void {
         this.showDeleteConfirm.set(true);
     }
 
-    cancelDelete() {
+    cancelDelete(): void {
         this.showDeleteConfirm.set(false);
     }
 
-    deleteOffer() {
-        if (this.offer()) {
-            this.offersService.deleteOffer(this.offer()!.id);
-            this.router.navigate(['/offres']);
+    confirmDelete(): void {
+        const application = this.application();
+        if (application) {
+            this.store.deleteApplication(application.id);
+        }
+        this.router.navigate(['/offres']);
+    }
+
+    toggleTask(task: Task): void {
+        this.tasksService.toggleTask(task.id);
+    }
+
+    openCompany(): void {
+        const company = this.company();
+        if (company) {
+            this.router.navigate(['/entreprises', company.id]);
         }
     }
+}
 
-    // --- Interviews Modal ---
+// --------------------------------------------------------------------------
 
-    openInterviewsModal() {
-        const o = this.offer();
-        if (o) {
-            // Clone interviews and convert dates to strings for input[type="date"]
-            this.editingInterviews = o.interviews ? o.interviews.map(i => ({
-                ...i,
-                date: this.dateToInputString(i.date) as any
-            })) : [];
-            // If legacy interviewDate exists but no interviews array, migrate it
-            if (this.editingInterviews.length === 0 && o.interviewDate && o.interviewType) {
-                this.editingInterviews.push({
-                    date: this.dateToInputString(o.interviewDate) as any,
-                    type: o.interviewType
-                });
-            }
-            this.newInterview = { date: this.dateToInputString(new Date()) as any, type: 'Entretien Visio' };
-            this.showInterviewsModal.set(true);
-        }
-    }
-
-    closeInterviewsModal() {
-        this.showInterviewsModal.set(false);
-    }
-
-    addInterview() {
-        this.editingInterviews.push({ ...this.newInterview });
-        this.newInterview = { date: this.dateToInputString(new Date()) as any, type: 'Entretien Visio' }; // Reset
-    }
-
-    confirmDeleteInterview(index: number) {
-        this.interviewToDelete.set(index);
-        this.showDeleteInterviewConfirm.set(true);
-    }
-
-    cancelDeleteInterview() {
-        this.showDeleteInterviewConfirm.set(false);
-        this.interviewToDelete.set(null);
-    }
-
-    removeInterview() {
-        if (this.interviewToDelete() !== null) {
-            this.editingInterviews.splice(this.interviewToDelete()!, 1);
-            this.showDeleteInterviewConfirm.set(false);
-            this.interviewToDelete.set(null);
-        }
-    }
-
-    saveInterviews() {
-        if (this.offer()) {
-            // Get the original interviews to detect new ones
-            const originalInterviews = this.offer()!.interviews || [];
-
-            // Convert string dates back to Date objects
-            const interviewsWithDates = this.editingInterviews.map(i => ({
-                ...i,
-                date: this.inputStringToDate(i.date as any)
-            }));
-
-            // Detect new interviews by comparing with original
-            const newInterviews = interviewsWithDates.filter(newInterview => {
-                return !originalInterviews.some(originalInterview =>
-                    new Date(originalInterview.date).getTime() === new Date(newInterview.date).getTime() &&
-                    originalInterview.type === newInterview.type
-                );
-            });
-
-            // Create a task for each new interview
-            newInterviews.forEach(interview => {
-                // Format interview type for task title
-                let taskTitle: string = interview.type;
-                if (interview.type === 'Préqual') {
-                    taskTitle = 'Préqualification';
-                }
-                // For other types, keep as is (already formatted nicely)
-
-                const offerInfo = `${this.offer()!.title} - ${this.offer()!.company} - ${this.getStatusLabel(this.offer()!.status)}`;
-
-                this.tasksService.addTask({
-                    id: Date.now() + Math.random(), // Ensure unique ID
-                    title: taskTitle,
-                    dueDate: new Date(interview.date),
-                    completed: false,
-                    status: 'a_faire',
-                    priority: 'haute',
-                    relatedOffers: [offerInfo]
-                });
-            });
-
-            // Sort by date descending
-            interviewsWithDates.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-            const updatedOffer: JobOffer = {
-                ...this.offer()!,
-                interviews: interviewsWithDates
-            };
-
-            // Sync legacy fields for compatibility
-            // Find upcoming interview
-            const now = new Date();
-            const upcoming = interviewsWithDates.filter(i => new Date(i.date) >= now).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
-
-            if (upcoming) {
-                updatedOffer.interviewDate = upcoming.date;
-                updatedOffer.interviewType = upcoming.type;
-            } else if (interviewsWithDates.length > 0) {
-                // No upcoming, take the latest past
-                const latest = interviewsWithDates[0]; // already sorted desc
-                updatedOffer.interviewDate = latest.date;
-                updatedOffer.interviewType = latest.type;
-            } else {
-                updatedOffer.interviewDate = undefined;
-                updatedOffer.interviewType = undefined;
-            }
-
-            this.offersService.updateOffer(updatedOffer);
-            this.closeInterviewsModal();
-        }
-    }
-
-    // --- Status History Modal ---
-
-    openStatusHistoryModal() {
-        const o = this.offer();
-        if (o) {
-            // Clone, sort by date descending, and convert dates to strings
-            this.editingStatusHistory = o.statusHistory ?
-                [...o.statusHistory]
-                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                    .map(entry => ({
-                        ...entry,
-                        date: this.dateToInputString(entry.date) as any
-                    })) : [];
-            this.newStatusEntry = { status: 'Applied', date: this.dateToInputString(new Date()) as any };
-            this.showStatusHistoryModal.set(true);
-        }
-    }
-
-    closeStatusHistoryModal() {
-        this.showStatusHistoryModal.set(false);
-    }
-
-    addStatusHistory() {
-        this.editingStatusHistory.push({ ...this.newStatusEntry });
-        this.newStatusEntry = { status: 'Applied', date: this.dateToInputString(new Date()) as any };
-    }
-
-    confirmDeleteStatus(index: number) {
-        this.statusToDelete.set(index);
-        this.showDeleteStatusConfirm.set(true);
-    }
-
-    cancelDeleteStatus() {
-        this.showDeleteStatusConfirm.set(false);
-        this.statusToDelete.set(null);
-    }
-
-    removeStatusHistory() {
-        if (this.statusToDelete() !== null) {
-            this.editingStatusHistory.splice(this.statusToDelete()!, 1);
-            this.showDeleteStatusConfirm.set(false);
-            this.statusToDelete.set(null);
-        }
-    }
-
-    saveStatusHistory() {
-        if (this.offer()) {
-            // Convert string dates back to Date objects
-            const historyWithDates = this.editingStatusHistory.map(entry => ({
-                ...entry,
-                date: this.inputStringToDate(entry.date as any)
-            }));
-
-            // Sort by date descending (most recent first)
-            historyWithDates.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-            // Get the most recent status (first after sorting)
-            const mostRecentStatus = historyWithDates.length > 0 ? historyWithDates[0].status : this.offer()!.status;
-
-            const updatedOffer: JobOffer = {
-                ...this.offer()!,
-                statusHistory: historyWithDates,
-                status: mostRecentStatus as any // Sync current status with most recent history entry
-            };
-            this.offersService.updateOffer(updatedOffer);
-            this.closeStatusHistoryModal();
-        }
-    }
-
-    getUpcomingInterviews(interviews: Interview[]): Interview[] {
-        const now = new Date();
-        return interviews
-            .filter(i => new Date(i.date) >= now)
-            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // Soonest first
-    }
-
-    getPastInterviews(interviews: Interview[]): Interview[] {
-        const now = new Date();
-        return interviews
-            .filter(i => new Date(i.date) < now)
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // Most recent first
-    }
-
-    getSortedStatusHistory(history: StatusHistoryEntry[]): StatusHistoryEntry[] {
-        return [...history].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }
-
-    viewCompany(offer: JobOffer) {
-        if (offer.companyInfo?.id) {
-            this.router.navigate(['/entreprises', offer.companyInfo.id]);
-        } else {
-            this.router.navigate(['/entreprises', offer.company]);
-        }
-    }
+function longDate(iso: string): string {
+    return new Date(iso).toLocaleDateString('fr-FR', {
+        day: 'numeric', month: 'long', year: 'numeric'
+    });
 }

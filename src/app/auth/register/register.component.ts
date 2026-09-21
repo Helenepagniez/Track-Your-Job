@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -12,24 +12,41 @@ import { AuthService } from '../../core/services/auth.service';
     styleUrl: './register.component.css'
 })
 export class RegisterComponent {
-    fullName = '';
-    email = '';
-    password = '';
-    confirmPassword = '';
+    private router = inject(Router);
+    private authService = inject(AuthService);
 
-    constructor(
-        private router: Router,
-        private authService: AuthService
-    ) { }
+    fullName = signal('');
+    email = signal('');
+    password = signal('');
+    confirmPassword = signal('');
+    error = signal('');
 
-    onSubmit() {
-        if (this.password !== this.confirmPassword) {
-            alert('Les mots de passe ne correspondent pas');
+    get canSubmit(): boolean {
+        return !!this.fullName().trim() && !!this.email().trim() && this.password().length > 0;
+    }
+
+    submit(): void {
+        this.error.set('');
+
+        if (this.password().length < 6) {
+            this.error.set('Le mot de passe doit faire au moins 6 caractères.');
+            return;
+        }
+        if (this.password() !== this.confirmPassword()) {
+            this.error.set('Les deux mots de passe ne correspondent pas.');
             return;
         }
 
-        if (this.authService.register(this.fullName, this.email, this.password)) {
+        const result = this.authService.register(
+            this.fullName().trim(),
+            this.email().trim(),
+            this.password()
+        );
+
+        if (result.ok) {
             this.router.navigate(['/resume']);
+        } else {
+            this.error.set(result.error ?? 'Inscription impossible.');
         }
     }
 }

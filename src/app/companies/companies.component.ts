@@ -8,6 +8,7 @@ import {
     ApplicationStatus,
     Company,
     Contact,
+    NO_COMPANY_LABEL,
     STATUS_LABELS,
     currentStatus
 } from '../core/models/job-search.models';

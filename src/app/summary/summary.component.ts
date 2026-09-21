@@ -241,14 +241,16 @@ export class SummaryComponent {
         const stats = this.stats();
         if (!stats || stats.applications === 0) return [];
         const total = stats.applications;
-        const width = (value: number) => Math.max(Math.round((value / total) * 100), 8);
+        const width = (value: number) => Math.max(Math.round((value / total) * 100), 3);
+        const plural = (count: number, word: string) =>
+            `${count} ${word}${count > 1 ? 's' : ''}`;
 
         return [
-            { label: `${total} repérées`, width: 100, className: 'st-to_apply' },
-            { label: `${stats.sent} envoyées`, width: width(stats.sent), className: 'st-sent' },
-            { label: `${stats.answered} réponses`, width: width(stats.answered), className: 'st-interview' },
-            { label: `${stats.interviews} entretiens`, width: width(stats.interviews), className: 'st-offer' },
-            { label: `${stats.offers} offre${stats.offers > 1 ? 's' : ''}`, width: width(stats.offers), className: 'st-offer' }
+            { label: plural(total, 'repérée'), width: 100, className: 'st-to_apply' },
+            { label: plural(stats.sent, 'envoyée'), width: width(stats.sent), className: 'st-sent' },
+            { label: plural(stats.answered, 'réponse'), width: width(stats.answered), className: 'st-interview' },
+            { label: plural(stats.interviews, 'entretien'), width: width(stats.interviews), className: 'st-offer' },
+            { label: plural(stats.offers, 'offre'), width: width(stats.offers), className: 'st-offer' }
         ];
     });
 

@@ -237,21 +237,41 @@
 }
 
 /* Entonnoir -------------------------------------------------------------- */
+/* Le libellé est à l'extérieur : une étape à une candidature garde une
+   barre minuscule sans que son texte soit rogné. */
 .funnel {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
+}
+
+.funnel-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.funnel-label {
+  width: 116px;
+  flex-shrink: 0;
+  font: 500 12.5px var(--font-body);
+  color: var(--ink-2);
+}
+
+.funnel-track {
+  flex-grow: 1;
+  min-width: 0;
+  height: 26px;
+  background: var(--surface-3);
+  border-radius: 7px;
+  overflow: hidden;
+  display: block;
 }
 
 .funnel-fill {
-  height: 34px;
-  border-radius: 8px;
-  padding: 0 12px;
-  display: flex;
-  align-items: center;
-  font: 500 12.5px var(--font-body);
-  white-space: nowrap;
-  overflow: hidden;
+  display: block;
+  height: 100%;
+  border-radius: 7px;
 }
 
 /* Rendez-vous ------------------------------------------------------------ */

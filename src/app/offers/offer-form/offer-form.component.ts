@@ -3,17 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
     APPLICATION_STATUSES,
+    Application,
     ApplicationStatus,
-    INTERVIEW_TO_LEGACY,
     InterviewKind,
-    LEGACY_TO_INTERVIEW,
-    LEGACY_TO_STATUS,
     STATUS_LABELS,
-    STATUS_TO_LEGACY
+    currentStatus,
+    interviewEvents
 } from '../../core/models/job-search.models';
 import { statusClass } from '../../core/models/status-style';
-import { JobSearchStore } from '../../core/services/job-search-store.service';
-import { JobOffer, NO_COMPANY_LABEL } from '../../core/services/offers.service';
+import { ApplicationDraft, JobSearchStore } from '../../core/services/job-search-store.service';
 
 /** Types de contrat pour lesquels une durée a un sens. */
 const FIXED_TERM = ['CDD', 'Stage', 'Alternance', 'Freelance', 'Intérim'];
@@ -33,8 +31,7 @@ const COMMON_SOURCES = [
  * Saisie d'une candidature, sur un seul écran.
  *
  * Remplace l'assistant en trois étapes : plus rien n'est obligatoire à part
- * l'intitulé du poste, et le contenu de l'annonce est replié par défaut — on
- * ne le remplit que si on en a besoin.
+ * l'intitulé du poste, et le contenu de l'annonce est replié par défaut.
  */
 @Component({
     selector: 'app-offer-form',
@@ -47,8 +44,8 @@ export class OfferFormComponent implements OnInit {
     private fb = inject(FormBuilder);
     private store = inject(JobSearchStore);
 
-    @Input() offer: JobOffer | null = null;
-    @Output() save = new EventEmitter<Partial<JobOffer>>();
+    @Input() application: Application | null = null;
+    @Output() save = new EventEmitter<ApplicationDraft>();
     @Output() cancel = new EventEmitter<void>();
 
     isEditing = signal(false);
@@ -67,7 +64,7 @@ export class OfferFormComponent implements OnInit {
     statusClass = statusClass;
 
     companyNames = computed(() =>
-        [...this.store.companies()].map(company => company.name).sort((a, b) => a.localeCompare(b, 'fr'))
+        this.store.companies().map(company => company.name).sort((a, b) => a.localeCompare(b, 'fr'))
     );
 
     form = this.fb.nonNullable.group({
@@ -94,33 +91,36 @@ export class OfferFormComponent implements OnInit {
     });
 
     ngOnInit(): void {
-        const offer = this.offer;
-        if (!offer) return;
+        const application = this.application;
+        if (!application) return;
 
         this.isEditing.set(true);
-        const anonymous = offer.company === NO_COMPANY_LABEL;
+        const company = this.store.company(application.companyId);
+        const anonymous = application.companyId === null;
+        const nextInterview = interviewEvents(application)
+            .find(event => new Date(event.at) >= new Date());
 
         this.form.patchValue({
-            link: offer.link ?? '',
-            title: offer.title,
-            company: anonymous ? '' : offer.company,
+            link: application.link ?? '',
+            title: application.title,
+            company: company?.name ?? '',
             anonymous,
-            agencyName: offer.agencyName ?? '',
-            location: offer.location ?? '',
-            contractType: offer.contractType ?? '',
-            contractDuration: offer.contractDuration ?? '',
-            weeklyHours: offer.weeklyHours ?? '',
-            salary: offer.salary ?? '',
-            source: offer.source ?? '',
-            status: LEGACY_TO_STATUS[offer.status] ?? 'to_apply',
-            interviewDate: toInputValue(offer.interviewDate),
-            interviewKind: offer.interviewType ? LEGACY_TO_INTERVIEW[offer.interviewType] : 'video',
-            description: offer.description ?? '',
-            missions: offer.missions ?? '',
-            profile: offer.profile ?? '',
-            benefits: offer.benefits ?? '',
-            recruitmentProcess: offer.recruitmentProcess ?? '',
-            others: offer.others ?? ''
+            agencyName: application.agencyName ?? '',
+            location: application.location ?? '',
+            contractType: application.contractType ?? '',
+            contractDuration: application.contractDuration ?? '',
+            weeklyHours: application.weeklyHours ?? '',
+            salary: application.salary ?? '',
+            source: application.source ?? '',
+            status: currentStatus(application),
+            interviewDate: nextInterview ? toInputValue(new Date(nextInterview.at)) : '',
+            interviewKind: nextInterview?.interviewKind ?? 'video',
+            description: application.posting?.description ?? '',
+            missions: application.posting?.missions ?? '',
+            profile: application.posting?.profile ?? '',
+            benefits: application.posting?.benefits ?? '',
+            recruitmentProcess: application.posting?.recruitmentProcess ?? '',
+            others: application.posting?.others ?? ''
         });
     }
 
@@ -162,30 +162,32 @@ export class OfferFormComponent implements OnInit {
         }
 
         const value = this.form.getRawValue();
-        const anonymous = value.anonymous;
         const wantsInterview = value.status === 'interview' && !!value.interviewDate;
+
+        const posting = {
+            description: blank(value.description),
+            missions: blank(value.missions),
+            profile: blank(value.profile),
+            benefits: blank(value.benefits),
+            recruitmentProcess: blank(value.recruitmentProcess),
+            others: blank(value.others)
+        };
 
         this.save.emit({
             title: value.title.trim(),
-            company: anonymous ? NO_COMPANY_LABEL : value.company.trim(),
-            agencyName: anonymous ? blankToUndefined(value.agencyName) : undefined,
-            location: value.location.trim(),
-            contractType: blankToUndefined(value.contractType),
-            contractDuration: this.needsDuration ? blankToUndefined(value.contractDuration) : undefined,
-            weeklyHours: blankToUndefined(value.weeklyHours),
-            salary: blankToUndefined(value.salary),
-            source: blankToUndefined(value.source),
-            link: blankToUndefined(value.link),
-            status: STATUS_TO_LEGACY[value.status],
-            statusValue: value.status,
-            description: blankToUndefined(value.description),
-            missions: blankToUndefined(value.missions),
-            profile: blankToUndefined(value.profile),
-            benefits: blankToUndefined(value.benefits),
-            recruitmentProcess: blankToUndefined(value.recruitmentProcess),
-            others: blankToUndefined(value.others),
-            interviewDate: wantsInterview ? new Date(value.interviewDate) : undefined,
-            interviewType: wantsInterview ? INTERVIEW_TO_LEGACY[value.interviewKind] : undefined
+            companyName: value.anonymous ? '' : value.company.trim(),
+            agencyName: value.anonymous ? blank(value.agencyName) : undefined,
+            location: blank(value.location),
+            contractType: blank(value.contractType),
+            contractDuration: this.needsDuration ? blank(value.contractDuration) : undefined,
+            weeklyHours: blank(value.weeklyHours),
+            salary: blank(value.salary),
+            source: blank(value.source),
+            link: blank(value.link),
+            posting: Object.values(posting).some(entry => !!entry) ? posting : undefined,
+            status: value.status,
+            interviewAt: wantsInterview ? new Date(value.interviewDate).toISOString() : undefined,
+            interviewKind: wantsInterview ? value.interviewKind : undefined
         });
     }
 
@@ -196,17 +198,15 @@ export class OfferFormComponent implements OnInit {
 
 // --------------------------------------------------------------------------
 
-function blankToUndefined(value: string): string | undefined {
+function blank(value: string): string | undefined {
     const trimmed = (value ?? '').trim();
     return trimmed.length > 0 ? trimmed : undefined;
 }
 
 /** Date au format attendu par `<input type="datetime-local">`. */
-function toInputValue(date?: Date): string {
-    if (!date) return '';
-    const value = new Date(date);
-    if (isNaN(value.getTime())) return '';
+function toInputValue(date: Date): string {
+    if (isNaN(date.getTime())) return '';
     const pad = (n: number) => String(n).padStart(2, '0');
-    return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`
-        + `T${pad(value.getHours())}:${pad(value.getMinutes())}`;
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+        + `T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
