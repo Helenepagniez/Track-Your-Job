@@ -1,71 +1,140 @@
-<form (ngSubmit)="onSubmit()" #profileForm="ngForm" class="profile-form">
-    <div class="form-group">
-        <label class="form-label">Prénom</label>
-        <input type="text" class="form-control" [(ngModel)]="formData.firstName" name="firstName" required>
-    </div>
-    <div class="form-group">
-        <label class="form-label">Nom</label>
-        <input type="text" class="form-control" [(ngModel)]="formData.lastName" name="lastName" required>
-    </div>
-    <div class="form-group">
-        <label class="form-label">Email</label>
-        <input type="email" class="form-control" [(ngModel)]="formData.email" name="email" required email>
-    </div>
-    <div class="form-group">
-        <label class="form-label">Titre</label>
-        <input type="text" class="form-control" [(ngModel)]="formData.title" name="title"
-            placeholder="Développeur / Chef de projet">
-    </div>
-    <div class="form-group">
-        <label class="form-label">Localisation</label>
-        <input type="text" class="form-control" [(ngModel)]="formData.location" name="location"
-            placeholder="Paris / Remote">
-    </div>
+<form class="profile-form" [formGroup]="form" (ngSubmit)="submit()">
 
-    <div class="form-group full-width" style="margin-top: 10px;">
-        <button type="button" class="btn btn-outline" (click)="togglePasswordChange()" style="width: 100%; display: flex; align-items: center; justify-content: space-between;">
-            <span>
-                <i class="fa-solid fa-lock" style="margin-right: 8px;"></i>
-                {{ showPasswordChange ? 'Annuler le changement de mot de passe' : 'Changer le mot de passe' }}
-            </span>
-            <i class="fa-solid" [class.fa-chevron-up]="showPasswordChange" [class.fa-chevron-down]="!showPasswordChange"></i>
+    <!-- Identité --------------------------------------------------------- -->
+    <fieldset>
+        <legend>Identité</legend>
+        <div class="form-grid">
+            <div class="field">
+                <label for="pf-name">Nom et prénom <span class="req">obligatoire</span></label>
+                <input id="pf-name" type="text" formControlName="fullName"
+                    [class.invalid]="form.controls.fullName.touched && form.controls.fullName.invalid">
+            </div>
+
+            <div class="field">
+                <label for="pf-email">Email <span class="req">obligatoire</span></label>
+                <input id="pf-email" type="email" formControlName="email"
+                    [class.invalid]="form.controls.email.touched && form.controls.email.invalid">
+                <p class="error" *ngIf="form.controls.email.touched && form.controls.email.invalid">
+                    Cette adresse ne ressemble pas à un email.
+                </p>
+            </div>
+
+            <div class="field">
+                <label for="pf-title">Intitulé de poste</label>
+                <input id="pf-title" type="text" formControlName="title"
+                    placeholder="Chargée de communication digitale">
+            </div>
+
+            <div class="field">
+                <label for="pf-location">Localisation</label>
+                <input id="pf-location" type="text" formControlName="location" placeholder="Rennes">
+            </div>
+
+            <div class="field">
+                <label for="pf-phone">Téléphone</label>
+                <input id="pf-phone" type="tel" formControlName="phone" placeholder="06 12 34 56 78">
+            </div>
+
+            <div class="field">
+                <label for="pf-availability">Disponibilité</label>
+                <input id="pf-availability" type="text" formControlName="availability" list="availabilities"
+                    placeholder="Immédiatement" autocomplete="off">
+                <datalist id="availabilities">
+                    <option *ngFor="let entry of availabilities" [value]="entry"></option>
+                </datalist>
+            </div>
+        </div>
+    </fieldset>
+
+    <!-- Recherche -------------------------------------------------------- -->
+    <fieldset>
+        <legend>Ce que je cherche</legend>
+        <div class="form-grid">
+            <div class="field span-2">
+                <label for="pf-roles">Métiers visés</label>
+                <input id="pf-roles" type="text" formControlName="targetRoles"
+                    placeholder="Communication, marketing digital">
+                <p class="hint">Séparés par des virgules.</p>
+            </div>
+
+            <div class="field">
+                <label for="pf-zone">Zone de recherche</label>
+                <input id="pf-zone" type="text" formControlName="searchZone"
+                    placeholder="Rennes + 50 km, full remote">
+            </div>
+
+            <div class="field">
+                <label for="pf-salary">Prétentions salariales</label>
+                <input id="pf-salary" type="text" formControlName="salaryExpectation"
+                    placeholder="34 000 € brut / an">
+            </div>
+
+            <div class="field span-2">
+                <span class="group-label">Types de contrat</span>
+                <div class="toggles">
+                    <button type="button" *ngFor="let type of contractTypes" class="toggle"
+                        [class.on]="isContractSelected(type)" [attr.aria-pressed]="isContractSelected(type)"
+                        (click)="toggleContract(type)">
+                        {{ type }}
+                    </button>
+                </div>
+            </div>
+
+            <div class="field span-2">
+                <label for="pf-skills">Compétences clés</label>
+                <input id="pf-skills" type="text" formControlName="skills"
+                    placeholder="Rédaction web, SEO, réseaux sociaux, Canva">
+                <p class="hint">
+                    Séparées par des virgules. Trois au minimum : elles servent à mesurer l'adéquation d'une offre.
+                </p>
+            </div>
+        </div>
+    </fieldset>
+
+    <!-- Liens ------------------------------------------------------------ -->
+    <fieldset>
+        <legend>Liens</legend>
+        <div class="form-grid">
+            <div class="field">
+                <label for="pf-linkedin">LinkedIn</label>
+                <input id="pf-linkedin" type="url" formControlName="linkedin"
+                    placeholder="https://www.linkedin.com/in/…">
+            </div>
+            <div class="field">
+                <label for="pf-portfolio">Portfolio ou site</label>
+                <input id="pf-portfolio" type="url" formControlName="portfolio" placeholder="https://…">
+            </div>
+        </div>
+    </fieldset>
+
+    <!-- Mot de passe ----------------------------------------------------- -->
+    <fieldset>
+        <legend>Mot de passe</legend>
+        <button type="button" class="btn-ghost" (click)="togglePasswordChange()">
+            <i class="fa-solid" [class.fa-xmark]="showPasswordChange()" [class.fa-key]="!showPasswordChange()"></i>
+            {{ showPasswordChange() ? 'Ne pas changer le mot de passe' : 'Changer mon mot de passe' }}
         </button>
-    </div>
 
-    <ng-container *ngIf="showPasswordChange">
-        <div class="form-group">
-            <label class="form-label">Nouveau mot de passe</label>
-            <div class="password-input-container">
-                <input [type]="showNewPassword ? 'text' : 'password'" 
-                       class="form-control" 
-                       [(ngModel)]="newPassword" 
-                       name="newPassword" 
-                       placeholder="••••••••">
-                <button type="button" class="password-toggle" (click)="toggleNewPasswordVisibility()" tabindex="-1" title="Afficher/Masquer le mot de passe">
-                    <i class="fa-solid" [class.fa-eye]="!showNewPassword" [class.fa-eye-slash]="showNewPassword"></i>
-                </button>
+        <div class="form-grid" *ngIf="showPasswordChange()">
+            <div class="field">
+                <label for="pf-pwd">Nouveau mot de passe</label>
+                <input id="pf-pwd" type="password" formControlName="newPassword" autocomplete="new-password">
             </div>
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label">Confirmer le mot de passe</label>
-            <div class="password-input-container">
-                <input [type]="showConfirmNewPassword ? 'text' : 'password'" 
-                       class="form-control" 
-                       [(ngModel)]="confirmNewPassword" 
-                       name="confirmNewPassword" 
-                       placeholder="••••••••">
-                <button type="button" class="password-toggle" (click)="toggleConfirmNewPasswordVisibility()" tabindex="-1" title="Afficher/Masquer le mot de passe">
-                    <i class="fa-solid" [class.fa-eye]="!showConfirmNewPassword" [class.fa-eye-slash]="showConfirmNewPassword"></i>
-                </button>
+            <div class="field">
+                <label for="pf-pwd2">Confirmation</label>
+                <input id="pf-pwd2" type="password" formControlName="confirmPassword" autocomplete="new-password">
             </div>
+            <p class="error span-2" *ngIf="passwordError()">{{ passwordError() }}</p>
+            <p class="hint span-2">
+                Le mot de passe est stocké tel quel dans ce navigateur. Ne réutilisez pas un mot de passe
+                important : cela changera quand l'application passera sur Firebase.
+            </p>
         </div>
-    </ng-container>
+    </fieldset>
 
-    <div class="form-actions">
-        <button type="button" class="btn btn-outline" (click)="onCancel()"
-            title="Annuler les modifications">Annuler</button>
-        <button type="submit" class="btn btn-primary" [disabled]="!profileForm.form.valid"
-            title="Enregistrer le profil">Enregistrer</button>
-    </div>
+    <footer class="form-foot">
+        <span class="foot-hint">Seuls le nom et l'email sont obligatoires.</span>
+        <button type="button" class="btn-ghost" (click)="onCancel()">Annuler</button>
+        <button type="submit" class="btn-solid">Enregistrer</button>
+    </footer>
 </form>

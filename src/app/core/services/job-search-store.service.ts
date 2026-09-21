@@ -9,6 +9,7 @@ import {
     Contact,
     InterviewKind,
     JobPosting,
+    Profile,
     companyKey,
     computeCampaignStats,
     currentStatus,
@@ -54,6 +55,7 @@ export class JobSearchStore {
 
     private data = signal<UserData | null>(null);
 
+    profile = computed<Profile | null>(() => this.data()?.profile ?? null);
     campaigns = computed<Campaign[]>(() => this.data()?.campaigns ?? []);
     companies = computed<Company[]>(() => this.data()?.companies ?? []);
     contacts = computed<Contact[]>(() => this.data()?.contacts ?? []);
@@ -142,6 +144,31 @@ export class JobSearchStore {
         const id = data.nextId;
         data.nextId = id + 1;
         return id;
+    }
+
+    // ------------------------------------------------------------- profil
+
+    /**
+     * Écrit le profil. Les champs partagés avec l'identité (nom, email, poste,
+     * lieu, compétences) sont relus par `AuthService` juste après, pour que
+     * l'en-tête et les écrans affichent la même chose.
+     */
+    updateProfile(patch: Partial<Profile>): void {
+        this.commit(data => {
+            data.profile = { ...data.profile, ...patch, id: data.profile.id };
+        });
+        this.auth.refreshCurrentUser();
+    }
+
+    /** Objectif hebdomadaire : porté par la campagne, pas par le profil. */
+    setWeeklyGoal(goal: number | undefined): void {
+        const campaign = this.activeCampaign();
+        if (!campaign) return;
+        this.commit(data => {
+            data.campaigns = data.campaigns.map(entry =>
+                entry.id === campaign.id ? { ...entry, weeklyGoal: goal } : entry
+            );
+        });
     }
 
     // -------------------------------------------------------- entreprises

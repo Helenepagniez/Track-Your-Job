@@ -419,6 +419,49 @@ export function computeCampaignStats(
 }
 
 // ---------------------------------------------------------------------------
+// Complétion du profil
+// ---------------------------------------------------------------------------
+
+export interface ProfileChecklistItem {
+    key: string;
+    label: string;
+    done: boolean;
+}
+
+/**
+ * Ce qui rend un profil utile : chaque ligne manquante dégrade quelque chose
+ * de concret (pertinence des suggestions, lettres générées, calcul du rythme).
+ */
+export function profileChecklist(profile: Profile | null): ProfileChecklistItem[] {
+    const filled = (value?: string) => !!value && value.trim().length > 0;
+    const listed = (value?: string[], min = 1) => !!value && value.length >= min;
+
+    return [
+        { key: 'title', label: 'Intitulé de poste', done: filled(profile?.title) },
+        { key: 'location', label: 'Localisation', done: filled(profile?.location) },
+        { key: 'phone', label: 'Téléphone', done: filled(profile?.phone) },
+        { key: 'searchZone', label: 'Zone de recherche', done: filled(profile?.searchZone) },
+        { key: 'targetRoles', label: 'Métiers visés', done: listed(profile?.targetRoles) },
+        { key: 'contractTypes', label: 'Types de contrat', done: listed(profile?.contractTypes) },
+        { key: 'skills', label: 'Compétences clés (3 minimum)', done: listed(profile?.skills, 3) },
+        { key: 'salary', label: 'Prétentions salariales', done: filled(profile?.salaryExpectation) },
+        { key: 'availability', label: 'Disponibilité', done: filled(profile?.availability) },
+        {
+            key: 'links',
+            label: 'LinkedIn ou portfolio',
+            done: filled(profile?.linkedin) || filled(profile?.portfolio)
+        },
+        { key: 'documents', label: 'Un CV référencé', done: (profile?.documents?.length ?? 0) > 0 }
+    ];
+}
+
+/** Part des lignes remplies, en pourcentage entier. */
+export function profileCompletion(items: ProfileChecklistItem[]): number {
+    if (items.length === 0) return 0;
+    return Math.round((items.filter(item => item.done).length / items.length) * 100);
+}
+
+// ---------------------------------------------------------------------------
 // Passerelle avec l'ancien vocabulaire (adaptateur OffersService, migration).
 // ---------------------------------------------------------------------------
 

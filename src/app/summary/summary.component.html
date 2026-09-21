@@ -1,95 +1,142 @@
-<section>
-    <h1>Vue d'ensemble</h1>
+<section class="dashboard">
 
-    <div class="stats">
-        <div class="card stat-card" *ngFor="let stat of stats()">
-            <div class="stat-icon">
-                {{ stat.icon }}
-            </div>
-            <div class="stat-info">
-                <h3>{{ stat.value }}</h3>
-                <p>{{ stat.title }}</p>
-            </div>
+    <header class="page-head">
+        <div>
+            <h1 class="display-title">Bonjour {{ firstName() }}</h1>
+            <p class="subtitle">{{ actionSentence() }}</p>
         </div>
+        <div class="head-actions">
+            <a class="btn-ghost" routerLink="/statistiques">
+                <i class="fa-solid fa-chart-column"></i> Statistiques
+            </a>
+            <a class="btn-solid" routerLink="/offres">
+                <i class="fa-solid fa-plus"></i> Ajouter une candidature
+            </a>
+        </div>
+    </header>
+
+    <!-- Aucune campagne -------------------------------------------------- -->
+    <div class="empty" *ngIf="!campaign()">
+        <div class="empty-icon"><i class="fa-solid fa-pause"></i></div>
+        <h3>Recherche en veille</h3>
+        <p>Aucune campagne ouverte. Vos {{ counts().companies }} entreprises et
+            {{ counts().contacts }} contacts vous attendent.</p>
+        <a class="btn-solid" routerLink="/profil">Reprendre une recherche</a>
     </div>
 
-    <div class="content-grid">
-        <div class="card activity-card">
-            <div class="card-header">
-                <h3>Activité Récente</h3>
-                <button class="btn btn-outline btn-sm" routerLink="/taches" title="Voir toutes les tâches">Voir
-                    tout</button>
-            </div>
-            <div class="activity-list">
-                <div class="activity-item" *ngFor="let activity of recentActivities()">
-                    <div class="activity-icon">
-                        <span *ngIf="activity.type === 'Candidature'">📤</span>
-                        <span *ngIf="activity.type === 'Entretien'">📅</span>
-                        <span *ngIf="activity.type === 'Tâche'">✅</span>
-                    </div>
-                    <div class="activity-details">
-                        <h4>{{ activity.company || activity.title }}</h4>
-                        <p>{{ activity.type }} • {{ activity.date }}</p>
-                    </div>
-                    <div class="activity-status badge">{{ activity.status }}</div>
-                </div>
-                <div *ngIf="recentActivities().length === 0" class="empty-state">
-                    <div class="empty-icon"><i class="fa-solid fa-tasks"></i></div>
-                    <h3>Aucune activité récente</h3>
-                    <p>Ajoutez une offre d'emploi ou une tâche.</p>
-                </div>
-            </div>
+    <ng-container *ngIf="campaign()">
+
+        <!-- Première candidature ---------------------------------------- -->
+        <div class="empty" *ngIf="!hasApplications()">
+            <div class="empty-icon"><i class="fa-solid fa-briefcase"></i></div>
+            <h3>C'est parti</h3>
+            <p>Collez le lien d'une annonce : l'essentiel sera déjà rempli, et le suivi commencera tout seul.</p>
+            <a class="btn-solid" routerLink="/offres">Ajouter ma première candidature</a>
         </div>
 
-        <div class="card chart-card">
-            <div class="card-header">
-                <h3>Évolution des statuts</h3>
-            </div>
-            <div class="chart-container">
-                <svg [attr.viewBox]="'0 0 ' + chartLayout().width + ' ' + chartLayout().fullHeight" class="chart-svg">
-                    <!-- Grid Lines (Optional) -->
-                    <line x1="0" y1="50" [attr.x2]="chartLayout().width" y2="50" stroke="#f0f0f0" stroke-width="1" />
-                    <line x1="0" y1="100" [attr.x2]="chartLayout().width" y2="100" stroke="#f0f0f0" stroke-width="1" />
-                    <line x1="0" y1="150" [attr.x2]="chartLayout().width" y2="150" stroke="#f0f0f0" stroke-width="1" />
+        <ng-container *ngIf="hasApplications()">
 
-                    <!-- Bars -->
-                    <g *ngFor="let item of chartData(); let i = index">
-                        <rect [attr.x]="i * chartLayout().step + (chartLayout().step - chartLayout().barWidth) / 2"
-                            [attr.y]="chartLayout().height - (item.value / maxChartValue) * chartLayout().height"
-                            [attr.width]="chartLayout().barWidth"
-                            [attr.height]="(item.value / maxChartValue) * chartLayout().height" rx="4"
-                            class="chart-bar" />
-                        <text [attr.x]="i * chartLayout().step + chartLayout().step / 2"
-                            [attr.y]="chartLayout().fullHeight - 15" text-anchor="middle" class="chart-label">{{
-                            item.label }}</text>
-                        <!-- Value on top of bar -->
-                        <text [attr.x]="i * chartLayout().step + chartLayout().step / 2"
-                            [attr.y]="chartLayout().height - (item.value / maxChartValue) * chartLayout().height - 5"
-                            text-anchor="middle" class="chart-value">{{ item.value }}</text>
-                    </g>
-
-                    <!-- Line (Evolution) -->
-                    <polyline [attr.points]="polylinePoints" fill="none" class="chart-line" stroke-width="3"
-                        stroke-linecap="round" stroke-linejoin="round" />
-
-                    <!-- Line Points -->
-                    <g *ngFor="let item of chartData(); let i = index">
-                        <circle [attr.cx]="i * chartLayout().step + chartLayout().step / 2"
-                            [attr.cy]="chartLayout().height - (item.adjustment / maxChartValue) * chartLayout().height"
-                            r="4" class="chart-point" />
-                    </g>
-                </svg>
-                <div class="chart-legend">
-                    <div class="legend-item">
-                        <span class="legend-color bar-color"></span>
-                        <span>Ce mois-ci</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color line-color"></span>
-                        <span>Mois dernier</span>
+            <!-- Chiffres ------------------------------------------------ -->
+            <div class="kpi-row">
+                <div class="kpi" *ngFor="let kpi of kpis()" [class.accent]="kpi.accent">
+                    <p class="kpi-label">{{ kpi.label }}</p>
+                    <p class="kpi-value">{{ kpi.value }}</p>
+                    <p class="kpi-note">{{ kpi.note }}</p>
+                    <div class="kpi-track" *ngIf="kpi.progress > 0">
+                        <div class="kpi-fill" [style.width.%]="kpi.progress"></div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+
+            <div class="columns">
+
+                <div class="main-column">
+
+                    <!-- À faire ----------------------------------------- -->
+                    <section class="block">
+                        <div class="block-head">
+                            <h2>À faire maintenant</h2>
+                            <span class="spacer"></span>
+                            <span class="hint">déduit de vos candidatures</span>
+                        </div>
+
+                        <div class="action" *ngFor="let action of actions()" [ngClass]="'tone-' + action.tone">
+                            <span class="action-icon"><i class="fa-solid" [ngClass]="action.icon"></i></span>
+                            <div class="action-text">
+                                <p class="action-title">{{ action.title }}</p>
+                                <p class="action-detail">{{ action.detail }}</p>
+                            </div>
+                            <a class="btn-ghost small" [routerLink]="action.route">{{ action.actionLabel }}</a>
+                        </div>
+
+                        <div class="all-clear" *ngIf="actions().length === 0">
+                            <i class="fa-solid fa-check"></i>
+                            <p>Rien ne traîne : pas de relance en attente, pas de tâche en retard.</p>
+                        </div>
+                    </section>
+
+                    <!-- Entonnoir -------------------------------------- -->
+                    <section class="block" *ngIf="funnel().length > 0">
+                        <div class="block-head">
+                            <h2>Entonnoir de la campagne</h2>
+                            <span class="spacer"></span>
+                            <a class="hint-link" routerLink="/statistiques">Tout voir</a>
+                        </div>
+                        <div class="funnel">
+                            <div class="funnel-fill" *ngFor="let step of funnel()" [ngClass]="step.className"
+                                [style.width.%]="step.width">
+                                {{ step.label }}
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <aside class="side-column">
+
+                    <!-- Rendez-vous ------------------------------------ -->
+                    <section class="block">
+                        <h2>Prochains rendez-vous</h2>
+
+                        <a class="meeting" *ngFor="let meeting of upcomingInterviews()"
+                            [routerLink]="['/offres', meeting.applicationId]">
+                            <span class="date-box">
+                                <span class="month">{{ meeting.month }}</span>
+                                <span class="day">{{ meeting.day }}</span>
+                            </span>
+                            <span class="meeting-text">
+                                <span class="meeting-title">{{ meeting.title }}</span>
+                                <span class="meeting-detail">{{ meeting.detail }}</span>
+                            </span>
+                        </a>
+
+                        <p class="muted" *ngIf="upcomingInterviews().length === 0">
+                            Aucun entretien programmé. Les dates saisies sur une candidature apparaissent ici.
+                        </p>
+                    </section>
+
+                    <!-- Réseau ---------------------------------------- -->
+                    <section class="block">
+                        <h2>Votre réseau dort</h2>
+
+                        <ng-container *ngIf="network().length > 0">
+                            <p class="hint">
+                                Vous connaissez quelqu'un chez {{ network().length }}
+                                entreprise{{ network().length > 1 ? 's' : '' }} où vous n'avez pas candidaté.
+                            </p>
+                            <a class="network-row" *ngFor="let row of network().slice(0, 4)"
+                                [routerLink]="['/entreprises', row.companyId]">
+                                <span class="network-name">{{ row.name }}</span>
+                                <span class="network-contact">{{ row.contactName }}</span>
+                            </a>
+                            <a class="hint-link" routerLink="/repertoire">Ouvrir le répertoire</a>
+                        </ng-container>
+
+                        <p class="muted" *ngIf="network().length === 0">
+                            Toutes les entreprises de votre répertoire ont reçu une candidature.
+                        </p>
+                    </section>
+                </aside>
+            </div>
+        </ng-container>
+    </ng-container>
 </section>

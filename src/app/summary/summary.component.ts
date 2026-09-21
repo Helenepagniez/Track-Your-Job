@@ -1,11 +1,66 @@
-import { Component, computed, inject, signal, DestroyRef } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { OffersService } from '../core/services/offers.service';
-import { TasksService } from '../core/services/tasks.service';
+import {
+    Application,
+    STATUS_LABELS,
+    computeCampaignStats,
+    currentStatus,
+    enteredStatusAt,
+    interviewEvents,
+    profileChecklist,
+    profileCompletion,
+    sentAt
+} from '../core/models/job-search.models';
+import { statusClass } from '../core/models/status-style';
 import { JobSearchStore } from '../core/services/job-search-store.service';
-import { ApplicationStatus, countEnteredStatus } from '../core/models/job-search.models';
+import { TasksService } from '../core/services/tasks.service';
 
+interface ActionRow {
+    icon: string;
+    tone: 'urgent' | 'soon' | 'calm';
+    title: string;
+    detail: string;
+    actionLabel: string;
+    route: string[];
+}
+
+interface Kpi {
+    label: string;
+    value: string;
+    note: string;
+    accent: boolean;
+    progress: number;
+}
+
+interface FunnelStep {
+    label: string;
+    width: number;
+    className: string;
+}
+
+interface Meeting {
+    day: string;
+    month: string;
+    title: string;
+    detail: string;
+    applicationId: number;
+}
+
+interface NetworkRow {
+    companyId: number;
+    name: string;
+    contactName: string;
+}
+
+/** Une offre repérée depuis plus longtemps que ça dort. */
+const STALE_AFTER_DAYS = 5;
+
+/**
+ * Tableau de bord orienté action : ce qui attend une décision aujourd'hui, puis
+ * les quatre chiffres qui situent la campagne. Les mesures détaillées sont sur
+ * la page Statistiques.
+ */
 @Component({
     selector: 'app-summary',
     standalone: true,
@@ -14,231 +69,253 @@ import { ApplicationStatus, countEnteredStatus } from '../core/models/job-search
     styleUrl: './summary.component.css'
 })
 export class SummaryComponent {
-    private offersService = inject(OffersService);
-    private tasksService = inject(TasksService);
     private store = inject(JobSearchStore);
+    private tasksService = inject(TasksService);
 
-    // Computed statistics based on real data
-    stats = computed(() => {
-        const offers = this.offersService.offers();
-        const tasks = this.tasksService.tasks();
+    statusClass = statusClass;
+    readonly statusLabels = STATUS_LABELS;
 
-        // Count by status
-        const appliedCount = offers.filter(o => o.status === 'Applied').length;
-        const interviewCount = offers.filter(o => o.status === 'Interview').length;
-        const rejectedCount = offers.filter(o => o.status === 'Rejected').length;
-        const toApplyCount = offers.filter(o => o.status === 'To Apply').length;
-        const toRelaunchCount = offers.filter(o => o.status === 'To Relaunch').length;
-        const noResponseCount = offers.filter(o => o.status === 'No Response').length;
+    firstName = computed(() => {
+        const name = this.store.profile()?.fullName ?? '';
+        return name.trim().split(/\s+/)[0] ?? '';
+    });
 
-        // Total applications sent (Applied + Interview + Rejected + To Relaunch + No Response)
-        const sentCount = appliedCount + interviewCount + rejectedCount + toRelaunchCount + noResponseCount;
+    campaign = computed(() => this.store.activeCampaign());
+    private applications = computed<Application[]>(() => this.store.currentApplications());
+    hasApplications = computed(() => this.applications().length > 0);
 
-        // Response rate (applications with response / total sent)
-        const responsesCount = interviewCount + rejectedCount;
-        const responseRate = sentCount > 0 ? Math.round((responsesCount / sentCount) * 100) : 0;
+    private stats = computed(() => {
+        const campaign = this.campaign();
+        if (!campaign) return null;
+        return computeCampaignStats(this.applications(), campaign.startedAt, new Date().toISOString());
+    });
 
-        // Unique companies
-        const uniqueCompanies = new Set(offers.map(o => o.company)).size;
+    // --------------------------------------------------------- à faire
 
-        // Remaining tasks (not completed)
-        const remainingTasks = tasks.filter(t => !t.completed && t.status !== 'termine').length;
+    actions = computed<ActionRow[]>(() => {
+        const rows: ActionRow[] = [];
+        const applications = this.applications();
+
+        // 1. Les relances : ce qui se périme si on ne fait rien.
+        const toRelaunch = applications
+            .filter(application => currentStatus(application) === 'to_relaunch')
+            .sort((a, b) => daysSince(sentAt(b) ?? b.createdAt) - daysSince(sentAt(a) ?? a.createdAt));
+
+        for (const application of toRelaunch.slice(0, 3)) {
+            const company = this.store.company(application.companyId);
+            const silentFor = daysSince(sentAt(application) ?? application.createdAt);
+            rows.push({
+                icon: 'fa-bell',
+                tone: 'urgent',
+                title: `Relancer ${company?.name ?? 'cette entreprise'} — ${application.title}`,
+                detail: `Sans réponse depuis ${silentFor} jours`,
+                actionLabel: 'Ouvrir',
+                route: ['/offres', String(application.id)]
+            });
+        }
+
+        // 2. Les entretiens de la semaine.
+        for (const meeting of this.upcomingInterviews().slice(0, 2)) {
+            rows.push({
+                icon: 'fa-video',
+                tone: 'soon',
+                title: `Préparer : ${meeting.title}`,
+                detail: meeting.detail,
+                actionLabel: 'Ouvrir',
+                route: ['/offres', String(meeting.applicationId)]
+            });
+        }
+
+        // 3. Les offres repérées qui dorment.
+        const stale = applications.filter(application =>
+            currentStatus(application) === 'to_apply'
+            && daysSince(application.createdAt) >= STALE_AFTER_DAYS
+        );
+        if (stale.length > 0) {
+            const oldest = Math.max(...stale.map(application => daysSince(application.createdAt)));
+            rows.push({
+                icon: 'fa-list-check',
+                tone: 'calm',
+                title: `${stale.length} offre${stale.length > 1 ? 's' : ''} en attente de candidature`,
+                detail: `La plus ancienne dort depuis ${oldest} jours`,
+                actionLabel: 'Voir le suivi',
+                route: ['/offres']
+            });
+        }
+
+        // 4. Les tâches en retard.
+        const overdue = this.tasksService.tasks().filter(task =>
+            !task.completed && new Date(task.dueDate).getTime() < Date.now()
+        );
+        if (overdue.length > 0) {
+            rows.push({
+                icon: 'fa-clock',
+                tone: 'urgent',
+                title: `${overdue.length} tâche${overdue.length > 1 ? 's' : ''} en retard`,
+                detail: overdue.map(task => task.title).slice(0, 2).join(' · '),
+                actionLabel: 'Voir les tâches',
+                route: ['/taches']
+            });
+        }
+
+        // 5. Le profil, s'il bride les suggestions.
+        const completion = profileCompletion(profileChecklist(this.store.profile()));
+        if (completion < 60) {
+            rows.push({
+                icon: 'fa-user-pen',
+                tone: 'calm',
+                title: 'Compléter votre profil',
+                detail: `${completion} % renseigné — en dessous de 60 %, les suggestions restent approximatives`,
+                actionLabel: 'Compléter',
+                route: ['/profil']
+            });
+        }
+
+        return rows;
+    });
+
+    actionSentence = computed<string>(() => {
+        const count = this.actions().length;
+        if (count === 0) return "Rien d'urgent aujourd'hui. C'est le bon moment pour repérer de nouvelles offres.";
+        return `${count} action${count > 1 ? 's' : ''} vous attend${count > 1 ? 'ent' : ''} aujourd'hui.`;
+    });
+
+    // ------------------------------------------------------------ chiffres
+
+    kpis = computed<Kpi[]>(() => {
+        const stats = this.stats();
+        if (!stats) return [];
+
+        const weekStart = startOfWeek();
+        const sentThisWeek = this.applications().filter(application => {
+            const at = sentAt(application);
+            return !!at && new Date(at) >= weekStart;
+        }).length;
+
+        const goal = this.campaign()?.weeklyGoal;
+        const responseRate = stats.sent > 0 ? Math.round((stats.answered / stats.sent) * 100) : 0;
+        const upcoming = this.upcomingInterviews().length;
+        const dueRelaunch = this.applications().filter(a => currentStatus(a) === 'to_relaunch');
+        const lateRelaunch = dueRelaunch.filter(application => {
+            const at = enteredStatusAt(application, 'to_relaunch');
+            return !at || daysSince(at) >= 3;
+        }).length;
 
         return [
-            { title: 'Candidatures envoyées', value: sentCount, icon: '📝' },
-            { title: 'En attente', value: appliedCount, icon: '⏳' },
-            { title: 'Entretiens', value: interviewCount, icon: '🤝' },
-            { title: 'Refus', value: rejectedCount, icon: '❌' },
-            { title: 'Taux de réponses', value: `${responseRate}%`, icon: '📊' },
-            { title: 'À postuler', value: toApplyCount, icon: '🎯' },
-            { title: 'Entreprises', value: uniqueCompanies, icon: '🏢' },
-            { title: 'Tâches restantes', value: remainingTasks, icon: '📋' }
+            {
+                label: 'Candidatures envoyées',
+                value: String(stats.sent),
+                note: goal
+                    ? `${sentThisWeek} cette semaine sur ${goal}`
+                    : `${sentThisWeek} cette semaine`,
+                accent: false,
+                progress: goal ? Math.min(100, Math.round((sentThisWeek / goal) * 100)) : 0
+            },
+            {
+                label: 'Taux de réponse',
+                value: `${responseRate} %`,
+                note: `${stats.answered} réponse${stats.answered > 1 ? 's' : ''} obtenue${stats.answered > 1 ? 's' : ''}`,
+                accent: false,
+                progress: responseRate
+            },
+            {
+                label: 'Entretiens décrochés',
+                value: String(stats.interviews),
+                note: upcoming > 0 ? `${upcoming} à venir` : 'aucun de prévu',
+                accent: false,
+                progress: stats.sent > 0 ? Math.round((stats.interviews / stats.sent) * 100) : 0
+            },
+            {
+                label: 'Relances à faire',
+                value: String(dueRelaunch.length),
+                note: lateRelaunch > 0
+                    ? `dont ${lateRelaunch} en retard`
+                    : dueRelaunch.length > 0 ? 'à traiter cette semaine' : 'rien en attente',
+                accent: dueRelaunch.length > 0,
+                progress: 0
+            }
         ];
     });
 
-    // Recent activities from tasks and offers
-    recentActivities = computed(() => {
-        const offers = this.offersService.offers();
-        const tasks = this.tasksService.tasks();
-        const activities: any[] = [];
+    funnel = computed<FunnelStep[]>(() => {
+        const stats = this.stats();
+        if (!stats || stats.applications === 0) return [];
+        const total = stats.applications;
+        const width = (value: number) => Math.max(Math.round((value / total) * 100), 8);
 
-        // Get recent applications (last 3 offers with status Applied or Interview)
-        const recentOffers = [...offers]
-            .filter(o => o.status === 'Applied' || o.status === 'Interview')
-            .sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime())
-            .slice(0, 2);
-
-        recentOffers.forEach(offer => {
-            const timeDiff = Date.now() - new Date(offer.dateAdded).getTime();
-            const hoursAgo = Math.floor(timeDiff / (1000 * 60 * 60));
-            const daysAgo = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-
-            let dateStr = '';
-            if (hoursAgo < 24) {
-                dateStr = hoursAgo === 0 ? "Il y a moins d'une heure" : `Il y a ${hoursAgo} heure${hoursAgo > 1 ? 's' : ''}`;
-            } else {
-                dateStr = `Il y a ${daysAgo} jour${daysAgo > 1 ? 's' : ''}`;
-            }
-
-            activities.push({
-                type: 'Candidature',
-                company: offer.company,
-                date: dateStr,
-                status: this.offersService.getStatusLabel(offer.status)
-            });
-        });
-
-        // Get upcoming interviews
-        const upcomingInterviews = offers
-            .filter(o => o.interviews && o.interviews.length > 0)
-            .flatMap(o => o.interviews!.map(i => ({ ...i, offer: o })))
-            .filter(i => new Date(i.date) > new Date())
-            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-            .slice(0, 1);
-
-        upcomingInterviews.forEach(interview => {
-            const interviewDate = new Date(interview.date);
-            const today = new Date();
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-
-            let dateStr = '';
-            if (interviewDate.toDateString() === today.toDateString()) {
-                dateStr = `Aujourd'hui à ${interviewDate.getHours()}h${interviewDate.getMinutes().toString().padStart(2, '0')}`;
-            } else if (interviewDate.toDateString() === tomorrow.toDateString()) {
-                dateStr = `Demain à ${interviewDate.getHours()}h${interviewDate.getMinutes().toString().padStart(2, '0')}`;
-            } else {
-                const daysUntil = Math.ceil((interviewDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                dateStr = `Dans ${daysUntil} jour${daysUntil > 1 ? 's' : ''}`;
-            }
-
-            activities.push({
-                type: 'Entretien',
-                company: interview.offer.company,
-                date: dateStr,
-                status: 'Prévu'
-            });
-        });
-
-        // Get recent incomplete tasks
-        const recentTasks = [...tasks]
-            .filter(t => !t.completed)
-            .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-            .slice(0, 1);
-
-        recentTasks.forEach(task => {
-            const taskDate = new Date(task.dueDate);
-            const today = new Date();
-
-            let dateStr = '';
-            if (taskDate.toDateString() === today.toDateString()) {
-                dateStr = "Aujourd'hui";
-            } else if (taskDate < today) {
-                dateStr = 'En retard';
-            } else {
-                const daysUntil = Math.ceil((taskDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                dateStr = `Dans ${daysUntil} jour${daysUntil > 1 ? 's' : ''}`;
-            }
-
-            activities.push({
-                type: 'Tâche',
-                title: task.title,
-                date: dateStr,
-                status: task.status === 'a_faire' ? 'À faire' : task.status === 'en_cours' ? 'En cours' : 'Terminé'
-            });
-        });
-
-        return activities.slice(0, 3);
+        return [
+            { label: `${total} repérées`, width: 100, className: 'st-to_apply' },
+            { label: `${stats.sent} envoyées`, width: width(stats.sent), className: 'st-sent' },
+            { label: `${stats.answered} réponses`, width: width(stats.answered), className: 'st-interview' },
+            { label: `${stats.interviews} entretiens`, width: width(stats.interviews), className: 'st-offer' },
+            { label: `${stats.offers} offre${stats.offers > 1 ? 's' : ''}`, width: width(stats.offers), className: 'st-offer' }
+        ];
     });
 
-    /**
-     * Évolution des statuts, comptée sur des événements datés.
-     *
-     * Chaque barre compte les candidatures *entrées* dans ce statut pendant le
-     * mois, pas celles qui s'y trouvent aujourd'hui. Sans cette distinction, le
-     * chiffre d'un mois ne bougeait plus jamais : il affichait le total de tous
-     * les refus depuis le début, quel que soit le mois consulté.
-     */
-    chartData = computed(() => {
-        const applications = this.store.applications();
+    // ------------------------------------------------------- rendez-vous
+
+    upcomingInterviews = computed<Meeting[]>(() => {
         const now = new Date();
+        const meetings: Meeting[] = [];
 
-        const currentStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        const currentEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-        const previousStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const previousEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+        for (const application of this.applications()) {
+            const company = this.store.company(application.companyId);
+            for (const event of interviewEvents(application)) {
+                if (new Date(event.at) < now) continue;
+                const date = new Date(event.at);
+                meetings.push({
+                    day: String(date.getDate()),
+                    month: date.toLocaleDateString('fr-FR', { month: 'short' }).replace('.', ''),
+                    title: `${application.title} — ${company?.name ?? 'entreprise non citée'}`,
+                    detail: date.toLocaleDateString('fr-FR', {
+                        weekday: 'long', hour: '2-digit', minute: '2-digit'
+                    }),
+                    applicationId: application.id
+                });
+            }
+        }
 
-        const rows: { label: string, status: ApplicationStatus }[] = [
-            { label: 'En attente', status: 'sent' },
-            { label: 'À relancer', status: 'to_relaunch' },
-            { label: 'Entretien', status: 'interview' },
-            { label: 'Refus', status: 'rejected' }
-        ];
-
-        return rows.map(row => ({
-            label: row.label,
-            value: countEnteredStatus(applications, row.status, currentStart, currentEnd),
-            adjustment: countEnteredStatus(applications, row.status, previousStart, previousEnd)
-        }));
+        return meetings.sort((a, b) => Number(a.day) - Number(b.day));
     });
 
-    // Responsive chart configuration
-    chartViewBoxWidth = signal(400);
+    // ------------------------------------------------------------- réseau
 
-    constructor() {
-        const destroyRef = inject(DestroyRef);
-        this.updateChartWidth();
-        if (typeof window !== 'undefined') {
-            const listener = () => this.updateChartWidth();
-            window.addEventListener('resize', listener);
-            destroyRef.onDestroy(() => window.removeEventListener('resize', listener));
+    /** Entreprises où vous connaissez quelqu'un sans avoir candidaté. */
+    network = computed<NetworkRow[]>(() => {
+        const applied = new Set(
+            this.applications()
+                .map(application => application.companyId)
+                .filter((id): id is number => id !== null)
+        );
+
+        const rows: NetworkRow[] = [];
+        for (const company of this.store.companies()) {
+            if (applied.has(company.id)) continue;
+            const contacts = this.store.contactsOfCompany(company.id);
+            if (contacts.length === 0) continue;
+            rows.push({
+                companyId: company.id,
+                name: company.name,
+                contactName: contacts[0].fullName
+            });
         }
-    }
-
-    private updateChartWidth() {
-        if (typeof window === 'undefined') return;
-
-        const width = window.innerWidth;
-        if (width > 1190) {
-            // Desktop: Card is ~490px wide
-            this.chartViewBoxWidth.set(500);
-        } else if (width > 600) {
-            // Tablet/Small Desktop: Card is full width (up to 1000px)
-            this.chartViewBoxWidth.set(800);
-        } else {
-            // Mobile: Card is screen width
-            this.chartViewBoxWidth.set(400);
-        }
-    }
-
-    // Chart layout calculations
-    chartLayout = computed(() => {
-        const width = this.chartViewBoxWidth();
-        const dataLength = this.chartData().length;
-        const step = dataLength > 0 ? width / dataLength : 0;
-
-        return {
-            width,
-            height: 200, // height for bars area
-            fullHeight: 240, // total svg height
-            step,
-            barWidth: 40
-        };
+        return rows;
     });
 
-    get maxChartValue(): number {
-        const vals = this.chartData().map(d => Math.max(d.value, d.adjustment));
-        return vals.length ? Math.max(...vals) + 2 : 10;
-    }
+    counts = computed(() => ({
+        companies: this.store.companies().length,
+        contacts: this.store.contacts().length
+    }));
+}
 
-    get polylinePoints(): string {
-        const layout = this.chartLayout();
-        const data = this.chartData();
+// --------------------------------------------------------------------------
 
-        return data.map((d, i) => {
-            const x = i * layout.step + layout.step / 2;
-            const y = layout.height - (d.adjustment / this.maxChartValue) * layout.height;
-            return `${x},${y}`;
-        }).join(' ');
-    }
+function daysSince(iso: string): number {
+    return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000));
+}
+
+function startOfWeek(): Date {
+    const now = new Date();
+    const day = (now.getDay() + 6) % 7;
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate() - day);
 }

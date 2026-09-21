@@ -1,99 +1,235 @@
-<section>
-    <div class="page-header">
-        <h1>Mon Profil</h1>
-        <div class="header-actions">
-            <div class="action-buttons">
-                <button class="btn btn-outline" (click)="toggleEdit()" title="Modifier le profil">
-                    <i class="fa-solid fa-pen"></i> Modifier
-                </button>
-                <button class="btn btn-danger" (click)="toggleDelete()" title="Supprimer le profil">
-                    <i class="fa-solid fa-trash-can"></i> Supprimer
-                </button>
-            </div>
-        </div>
-    </div>
+<section class="profile-page" *ngIf="profile() as me">
 
-    <div class="profile-content">
-        <div class="card profile-card">
-            <div class="profile-avatar-section">
-                <div class="avatar-large">{{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}</div>
-                <div>
-                    <h3>{{ user.firstName }} {{ user.lastName }}</h3>
-                    <p class="user-title" *ngIf="user.title">{{ user.title }}</p>
-                    <p class="user-location" *ngIf="user.location">📍 {{ user.location }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cycle de vie de la recherche -->
-    <div class="profile-content">
-        <div class="card profile-card">
-            <h3>Ma recherche</h3>
-            <app-campaign-panel></app-campaign-panel>
-        </div>
-    </div>
-
-    <!-- Empty State -->
-    <div *ngIf="user.title === '' || user.location === ''" class="empty-state">
-        <div class="empty-icon"><i class="fa-solid fa-user"></i></div>
-        <h3>Aucune information renseignée</h3>
-        <p>Pensez à compléter votre profil.</p>
-    </div>
-
-    <!-- Sauvegarde des données -->
-    <div class="profile-content">
-        <div class="card profile-card">
-            <h3>Mes données</h3>
-            <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
-                Tout est stocké dans ce navigateur, et nulle part ailleurs : vider les données du site les efface.
-                Exportez un fichier de sauvegarde régulièrement, ou pour passer sur un autre appareil.
+    <header class="page-head">
+        <div>
+            <h1 class="display-title">Profil et recherche</h1>
+            <p class="subtitle">
+                Plus votre profil est complet, plus les suggestions et les lettres générées seront justes.
             </p>
-            <div class="action-buttons">
-                <button class="btn btn-primary" (click)="exportData()" title="Télécharger une sauvegarde">
-                    <i class="fa-solid fa-download"></i> Exporter une sauvegarde
-                </button>
-                <div style="position: relative; display: inline-block;">
-                    <button class="btn btn-outline" (click)="fileInput.click()"
-                        title="Restaurer depuis une sauvegarde">
-                        <i class="fa-solid fa-upload"></i> Restaurer une sauvegarde
-                    </button>
-                    <input #fileInput type="file" (change)="onFileSelected($event)" accept=".json"
-                        style="display: none;">
+        </div>
+        <button type="button" class="btn-solid" (click)="openEdit()">
+            <i class="fa-solid fa-pen"></i> Modifier mon profil
+        </button>
+    </header>
+
+    <!-- Identité et complétion ------------------------------------------- -->
+    <section class="block">
+        <div class="identity">
+            <span class="avatar" aria-hidden="true">{{ initials() }}</span>
+            <div class="identity-text">
+                <h2>{{ me.fullName }}</h2>
+                <p class="headline">{{ headline() }}</p>
+                <p class="contact-line">
+                    <span>{{ me.email }}</span>
+                    <span *ngIf="me.phone"> · {{ me.phone }}</span>
+                    <a *ngIf="me.linkedin" [href]="me.linkedin" target="_blank" rel="noopener"> · LinkedIn</a>
+                    <a *ngIf="me.portfolio" [href]="me.portfolio" target="_blank" rel="noopener"> · Portfolio</a>
+                </p>
+            </div>
+            <div class="completion-figure">
+                <p class="completion-value">{{ completion() }} %</p>
+                <p class="completion-label">profil complété</p>
+            </div>
+        </div>
+
+        <div class="progress" role="img" [attr.aria-label]="'Profil complété à ' + completion() + ' pour cent'">
+            <div class="progress-fill" [style.width.%]="completion()"></div>
+        </div>
+
+        <div class="chips">
+            <span class="chip done" *ngFor="let item of done()">
+                <i class="fa-solid fa-check"></i> {{ item.label }}
+            </span>
+            <button type="button" class="chip todo" *ngFor="let item of missing()" (click)="openEdit()">
+                <i class="fa-solid fa-plus"></i> {{ item.label }}
+            </button>
+        </div>
+
+        <p class="hint" *ngIf="missing().length === 0">
+            Profil complet. Rien ne manque pour que les suggestions soient pertinentes.
+        </p>
+    </section>
+
+    <!-- Critères de recherche -------------------------------------------- -->
+    <section class="block">
+        <div class="block-head">
+            <h2>Ce que je cherche</h2>
+            <span class="spacer"></span>
+            <button type="button" class="btn-ghost small" (click)="openEdit()">Modifier</button>
+        </div>
+
+        <div class="criteria">
+            <div class="criterion" *ngFor="let item of criteria()">
+                <p class="criterion-label">{{ item.label }}</p>
+                <p class="criterion-value" [class.unset]="!item.filled">
+                    {{ item.filled ? item.value : 'À renseigner' }}
+                </p>
+            </div>
+        </div>
+
+        <div class="goal" *ngIf="hasCampaign()">
+            <div class="goal-text">
+                <p class="goal-title">Objectif hebdomadaire</p>
+                <p class="goal-note">
+                    Sert à calculer votre rythme sur la page Statistiques.
+                    <span *ngIf="weeklyGoal()">
+                        Cette semaine : {{ sentThisWeek() }} envoyée{{ sentThisWeek() === 1 ? '' : 's' }}
+                        sur {{ weeklyGoal() }}.
+                    </span>
+                </p>
+            </div>
+            <input type="number" min="0" max="99" aria-label="Candidatures par semaine"
+                [ngModel]="weeklyGoal()" (ngModelChange)="setWeeklyGoal($event)" placeholder="—">
+            <span class="goal-unit">/ semaine</span>
+        </div>
+    </section>
+
+    <!-- Documents --------------------------------------------------------- -->
+    <section class="block">
+        <div class="block-head">
+            <h2>Documents</h2>
+            <span class="spacer"></span>
+            <button type="button" class="btn-ghost small" (click)="openDocumentForm()">
+                <i class="fa-solid fa-plus"></i> Référencer un document
+            </button>
+        </div>
+
+        <p class="hint">
+            L'application note <strong>la référence</strong> de vos documents, pas les fichiers eux-mêmes : elle
+            vous rappelle quel CV vous utilisez, sans jamais héberger vos pièces jointes.
+        </p>
+
+        <div class="documents" *ngIf="documents().length > 0">
+            <div class="document" *ngFor="let document of documents()">
+                <span class="doc-kind">{{ kindLabel(document.kind) }}</span>
+                <div class="doc-text">
+                    <p class="doc-label">{{ document.label }}</p>
+                    <p class="doc-file">{{ document.fileName || 'Nom de fichier non précisé' }}</p>
                 </div>
+                <button type="button" class="icon-btn" [attr.aria-label]="'Retirer ' + document.label"
+                    (click)="removeDocument(document)">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
             </div>
         </div>
-    </div>
 
-    <!-- Edit Modal -->
-    <div class="modal-overlay" *ngIf="isEditing">
-        <div class="modal-content stepper-modal">
-            <div class="modal-header">
-                <h3>Modifier votre profil</h3>
-                <button class="close-btn" (click)="closeEditModal()" title="Fermer">×</button>
-            </div>
-            <div class="modal-body">
-                <app-profile-form [user]="user" (save)="onUpdateUser($event)" (cancel)="closeEditModal()">
-                </app-profile-form>
-            </div>
-        </div>
-    </div>
+        <p class="muted" *ngIf="documents().length === 0">Aucun document référencé.</p>
+    </section>
 
-    <!-- Delete Confirmation Modal -->
-    <div class="modal-overlay" *ngIf="isDeleting">
-        <div class="modal-content confirm-modal">
-            <div class="modal-header">
-                <h3>Supprimer votre profil ?</h3>
-                <button class="close-btn" (click)="cancelDelete()" title="Fermer">×</button>
-            </div>
-            <div class="modal-body">
-                <p>Êtes-vous sûr de vouloir supprimer votre profil ? Cette action est irréversible.</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" (click)="cancelDelete()" title="Annuler la suppression">Annuler</button>
-                <button class="btn btn-danger" (click)="confirmDelete()"
-                    title="Confirmer la suppression">Supprimer</button>
-            </div>
+    <!-- Cycle de vie de la recherche ------------------------------------- -->
+    <section class="block">
+        <h2>Ma recherche</h2>
+        <app-campaign-panel></app-campaign-panel>
+    </section>
+
+    <!-- Mes données ------------------------------------------------------- -->
+    <section class="block">
+        <h2>Mes données</h2>
+        <p class="hint">
+            Tout est stocké dans ce navigateur, et nulle part ailleurs : vider les données du site les efface.
+            Exportez une sauvegarde régulièrement, ou pour passer sur un autre appareil.
+        </p>
+        <div class="data-actions">
+            <button type="button" class="btn-solid" (click)="exportData()">
+                <i class="fa-solid fa-download"></i> Exporter une sauvegarde
+            </button>
+            <button type="button" class="btn-ghost" (click)="fileInput.click()">
+                <i class="fa-solid fa-upload"></i> Restaurer une sauvegarde
+            </button>
+            <input #fileInput type="file" accept=".json" class="sr-only" (change)="onFileSelected($event)">
         </div>
-    </div>
+        <p class="error" *ngIf="importError()">{{ importError() }}</p>
+    </section>
+
+    <!-- Compte ----------------------------------------------------------- -->
+    <section class="block danger-block">
+        <div class="block-head">
+            <h2>Supprimer mon compte</h2>
+            <span class="spacer"></span>
+            <button type="button" class="btn-ghost danger" (click)="askDelete()">Supprimer</button>
+        </div>
+        <p class="hint">
+            Candidatures, entreprises, contacts et campagnes seront effacés définitivement. Pensez à exporter une
+            sauvegarde avant.
+        </p>
+    </section>
 </section>
+
+<!-- Modification du profil ----------------------------------------------- -->
+<div class="modal-overlay" *ngIf="isEditing() && profile() as me">
+    <div class="modal-panel">
+        <header class="modal-head">
+            <h2 class="display-title">Modifier mon profil</h2>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="closeEdit()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+        <div class="modal-body">
+            <app-profile-form [profile]="me" (save)="onSaveProfile($event)" (cancel)="closeEdit()">
+            </app-profile-form>
+        </div>
+    </div>
+</div>
+
+<!-- Référencer un document ----------------------------------------------- -->
+<div class="modal-overlay" *ngIf="showDocumentForm()">
+    <div class="modal-panel narrow">
+        <header class="modal-head">
+            <h2 class="display-title">Référencer un document</h2>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="closeDocumentForm()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+        <div class="modal-body">
+            <div class="form-grid">
+                <div class="field span-2">
+                    <label for="doc-label">Intitulé <span class="req">obligatoire</span></label>
+                    <input id="doc-label" type="text" [ngModel]="documentDraft().label"
+                        (ngModelChange)="updateDraft({ label: $event })" placeholder="CV communication">
+                </div>
+                <div class="field">
+                    <label for="doc-kind">Type</label>
+                    <select id="doc-kind" [ngModel]="documentDraft().kind"
+                        (ngModelChange)="updateDraft({ kind: $event })">
+                        <option *ngFor="let kind of documentKinds" [value]="kind.value">{{ kind.label }}</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="doc-file">Nom du fichier</label>
+                    <input id="doc-file" type="text" [ngModel]="documentDraft().fileName"
+                        (ngModelChange)="updateDraft({ fileName: $event })" placeholder="CV_Pagniez_com.pdf">
+                </div>
+                <p class="hint span-2">
+                    Le fichier reste sur votre ordinateur. On en garde seulement le nom, pour savoir lequel vous
+                    avez envoyé.
+                </p>
+            </div>
+        </div>
+        <footer class="modal-foot">
+            <button type="button" class="btn-ghost" (click)="closeDocumentForm()">Annuler</button>
+            <button type="button" class="btn-solid" (click)="addDocument()">Référencer</button>
+        </footer>
+    </div>
+</div>
+
+<!-- Suppression du compte ------------------------------------------------ -->
+<div class="modal-overlay" *ngIf="isDeleting()">
+    <div class="modal-panel narrow">
+        <header class="modal-head">
+            <h2 class="display-title">Supprimer votre compte ?</h2>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="cancelDelete()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+        <div class="modal-body">
+            <p>
+                Tout sera effacé : candidatures, entreprises, contacts, campagnes et historique. Cette action est
+                irréversible et aucune sauvegarde n'est conservée de notre côté.
+            </p>
+        </div>
+        <footer class="modal-foot">
+            <button type="button" class="btn-ghost" (click)="cancelDelete()">Annuler</button>
+            <button type="button" class="btn-danger" (click)="confirmDelete()">Supprimer définitivement</button>
+        </footer>
+    </div>
+</div>

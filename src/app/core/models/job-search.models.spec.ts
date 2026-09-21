@@ -7,6 +7,9 @@ import {
     countSentIn,
     currentStatus,
     median,
+    Profile,
+    profileChecklist,
+    profileCompletion,
     responseDelayDays,
     statusAt
 } from './job-search.models';
@@ -150,6 +153,65 @@ describe('computeCampaignStats', () => {
         expect(empty.sent).toBe(0);
         expect(empty.bySource).toEqual([]);
         expect(empty.medianResponseDays).toBeNull();
+    });
+});
+
+describe('complétion du profil', () => {
+
+    const base: Profile = {
+        id: 'u1',
+        fullName: 'Démo Track',
+        email: 'demo@example.test',
+        password: 'x',
+        authMethod: 'email',
+        createdAt: '2026-05-01T08:00:00.000Z'
+    };
+
+    it('part de zéro sur un profil vide, et ne compte pas le nom', () => {
+        expect(profileCompletion(profileChecklist(base))).toBe(0);
+        expect(profileCompletion(profileChecklist(null))).toBe(0);
+    });
+
+    it('exige trois compétences, pas une', () => {
+        const withOne = profileChecklist({ ...base, skills: ['SEO'] });
+        const withThree = profileChecklist({ ...base, skills: ['SEO', 'Rédaction', 'Canva'] });
+
+        expect(withOne.find(item => item.key === 'skills')!.done).toBeFalse();
+        expect(withThree.find(item => item.key === 'skills')!.done).toBeTrue();
+    });
+
+    it('accepte LinkedIn ou le portfolio, l\'un ou l\'autre', () => {
+        const linkedin = profileChecklist({ ...base, linkedin: 'https://linkedin.com/in/x' });
+        const portfolio = profileChecklist({ ...base, portfolio: 'https://demo.fr' });
+
+        expect(linkedin.find(item => item.key === 'links')!.done).toBeTrue();
+        expect(portfolio.find(item => item.key === 'links')!.done).toBeTrue();
+    });
+
+    it('ignore les champs remplis d\'espaces', () => {
+        const items = profileChecklist({ ...base, title: '   ', location: 'Rennes' });
+
+        expect(items.find(item => item.key === 'title')!.done).toBeFalse();
+        expect(items.find(item => item.key === 'location')!.done).toBeTrue();
+    });
+
+    it('atteint 100 % quand tout est renseigné', () => {
+        const complete: Profile = {
+            ...base,
+            title: 'Chargée de communication',
+            location: 'Rennes',
+            phone: '0612345678',
+            searchZone: 'Rennes + 50 km',
+            targetRoles: ['Communication'],
+            contractTypes: ['CDI'],
+            skills: ['SEO', 'Rédaction', 'Canva'],
+            salaryExpectation: '34 000 €',
+            availability: 'Immédiatement',
+            linkedin: 'https://linkedin.com/in/x',
+            documents: [{ id: 1, label: 'CV', fileName: 'cv.pdf', kind: 'cv', addedAt: base.createdAt }]
+        };
+
+        expect(profileCompletion(profileChecklist(complete))).toBe(100);
     });
 });
 

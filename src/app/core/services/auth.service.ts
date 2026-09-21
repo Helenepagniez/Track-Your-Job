@@ -24,6 +24,17 @@ export class AuthService {
         }
     }
 
+    /**
+     * Relit l'identité depuis le stockage. Appelé après une écriture du profil
+     * faite ailleurs, pour que l'en-tête et les écrans restent d'accord.
+     */
+    refreshCurrentUser() {
+        const user = this.localStorageService.getCurrentUser();
+        if (user) {
+            this.currentUser.set(user);
+        }
+    }
+
     register(fullName: string, email: string, password: string): boolean {
         // Check if email already exists
         if (this.localStorageService.emailExists(email)) {
