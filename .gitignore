@@ -40,3 +40,12 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Migration des données : contient de vraies données personnelles.
+/migration
+
+# Clés de compte de service Firebase : accès complet au projet.
+*serviceAccount*.json
+*service-account*.json
+firebase-adminsdk*.json
+.firebase/

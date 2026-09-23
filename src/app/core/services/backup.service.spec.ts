@@ -81,6 +81,23 @@ describe('BackupService', () => {
         )).toBeTrue();
     });
 
+    it('reprend le compte connecté quand le fichier en contient plusieurs', () => {
+        // Cas réel : l'ancienne version gardait tous les comptes créés sur le
+        // navigateur, y compris ceux d'essai.
+        const dump = JSON.parse(productionDump());
+        dump.users['user_2'] = {
+            user: { id: 'user_2', fullName: 'Autre Personne', email: 'autre@example.com' },
+            offers: [],
+            tasks: []
+        };
+        dump.currentUserId = 'user_1';
+
+        const restored = backup.parseBackup(JSON.stringify(dump));
+
+        expect(restored!.profile.email).toBe('compte@example.com');
+        expect(restored!.applications.length).toBe(1);
+    });
+
     it('relit aussi un export produit par la nouvelle version', () => {
         const source = backup.parseBackup(productionDump())!;
         const file = JSON.stringify({

@@ -189,13 +189,21 @@ function migrateV1User(legacyUserData: LegacyUserData): UserData {
     }
 
     // 3. Les candidatures, qui ne font plus que référencer l'entreprise.
+    //    Elles prennent un identifiant du compteur, comme tout le reste :
+    //    l'ancien stockage tirait les siens de Date.now() ou d'une suite qui
+    //    lui était propre, et les deux auraient fini par entrer en conflit
+    //    avec les identifiants créés ensuite.
+    const idByOffer = new Map<number, number>();
+
     const applications: Application[] = offers.map(offer => {
         const name = (offer.company || '').trim();
         const company = name ? companiesByKey.get(companyKey(name)) : undefined;
         const createdAt = toIso(offer.dateAdded);
+        const id = nextId();
+        idByOffer.set(offer.id, id);
 
         return {
-            id: offer.id,
+            id,
             campaignId: campaign.id,
             companyId: company ? company.id : null,
             title: offer.title,
@@ -213,15 +221,22 @@ function migrateV1User(legacyUserData: LegacyUserData): UserData {
         };
     });
 
-    return {
+    const migrated: UserData = {
         profile,
         nextId: Math.max(sequence, 1),
         campaigns: [campaign],
         companies,
         contacts,
         applications,
-        tasks: (legacyUserData.tasks || []).map(task => linkTask(task, campaign.id, offers))
+        tasks: (legacyUserData.tasks || []).map(task =>
+            linkTask(task, campaign.id, offers, idByOffer)
+        )
     };
+
+    // Filet : si un identifiant venait d'ailleurs que du compteur, le compteur
+    // se replace au-dessus plutôt que de recréer un doublon.
+    migrated.nextId = Math.max(migrated.nextId, nextFreeId(migrated));
+    return migrated;
 }
 
 /**
@@ -229,12 +244,18 @@ function migrateV1User(legacyUserData: LegacyUserData): UserData {
  * libellé « Poste - Entreprise - Statut » : on retrouve l'offre par ce préfixe,
  * et on conserve le libellé quand la correspondance échoue.
  */
-function linkTask(task: Task, campaignId: number, offers: LegacyOffer[]): Task {
+function linkTask(
+    task: Task,
+    campaignId: number,
+    offers: LegacyOffer[],
+    idByOffer: Map<number, number>
+): Task {
     const matched = new Set<number>();
 
     for (const label of task.relatedOffers || []) {
         const offer = offers.find(entry => label.startsWith(`${entry.title} - ${entry.company}`));
-        if (offer) matched.add(offer.id);
+        const id = offer ? idByOffer.get(offer.id) : undefined;
+        if (id !== undefined) matched.add(id);
     }
 
     return {

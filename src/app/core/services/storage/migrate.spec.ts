@@ -144,8 +144,8 @@ describe('migrateAppData (v1 → v2)', () => {
 
     it('rend le statut lisible et daté à partir des événements', () => {
         const user = migrateAppData(legacyData()).users['user_1'];
-        const rejected = user.applications.find(app => app.id === 1004)!;
-        const spontaneous = user.applications.find(app => app.id === 1001)!;
+        const rejected = byTitle(user, "Chargé d'acquisition BtoB & CRM");
+        const spontaneous = byTitle(user, 'Candidature spontanée');
 
         expect(currentStatus(rejected)).toBe('rejected');
         expect(enteredStatusAt(rejected, 'rejected')).toBe('2026-06-18T09:00:00.000Z');
@@ -154,7 +154,7 @@ describe('migrateAppData (v1 → v2)', () => {
 
     it('migre les entretiens', () => {
         const user = migrateAppData(legacyData()).users['user_1'];
-        const interviewing = user.applications.find(app => app.id === 1005)!;
+        const interviewing = byTitle(user, 'Assistante communication');
         const events = interviewEvents(interviewing);
 
         expect(events.length).toBe(1);
@@ -165,8 +165,8 @@ describe('migrateAppData (v1 → v2)', () => {
     it('déduit la source depuis le lien de l\'annonce', () => {
         const user = migrateAppData(legacyData()).users['user_1'];
 
-        expect(user.applications.find(app => app.id === 1004)!.source).toBe('Indeed');
-        expect(user.applications.find(app => app.id === 1001)!.source).toBeUndefined();
+        expect(byTitle(user, "Chargé d'acquisition BtoB & CRM").source).toBe('Indeed');
+        expect(byTitle(user, 'Candidature spontanée').source).toBeUndefined();
     });
 
     it('laisse un refus dans son mois d\'origine', () => {
@@ -198,8 +198,26 @@ describe('migrateAppData (v1 → v2)', () => {
         const legacy = legacyData();
         const user = migrateAppData(legacy).users['user_1'];
 
-        expect(user.applications.map(app => app.id).sort())
-            .toEqual(legacy.users['user_1'].offers!.map(offer => offer.id).sort());
+        expect(user.applications.map(app => app.title).sort())
+            .toEqual(legacy.users['user_1'].offers!.map(offer => offer.title).sort());
+    });
+
+    it('renumérote les candidatures sous le compteur d\'identifiants', () => {
+        // L'ancien stockage tirait ses identifiants de Date.now() : les garder
+        // aurait laissé le compteur en dessous, et une nouvelle candidature
+        // aurait pu reprendre un identifiant déjà pris.
+        const user = migrateAppData(legacyData()).users['user_1'];
+
+        const ids = [
+            ...user.campaigns.map(entry => entry.id),
+            ...user.companies.map(entry => entry.id),
+            ...user.contacts.map(entry => entry.id),
+            ...user.applications.map(entry => entry.id),
+            ...user.applications.flatMap(entry => entry.events.map(event => event.id))
+        ];
+
+        expect(new Set(ids).size).toBe(ids.length);
+        expect(user.nextId).toBeGreaterThan(Math.max(...ids));
     });
 
     it('accepte un contenu vide ou illisible', () => {
@@ -223,3 +241,9 @@ describe('sourceFromLink', () => {
         expect(sourceFromLink(undefined)).toBeUndefined();
     });
 });
+
+function byTitle(user: { applications: { title: string }[] }, title: string) {
+    const found = user.applications.find(application => application.title === title);
+    if (!found) throw new Error('Aucune candidature intitulée « ' + title + ' »');
+    return found as any;
+}

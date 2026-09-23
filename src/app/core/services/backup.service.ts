@@ -71,8 +71,13 @@ export class BackupService {
 
         try {
             const migrated = migrateAppData(raw);
-            const accounts = Object.values(migrated.users);
-            return accounts[0] ?? null;
+            // Un export de l'ancienne version pouvait contenir plusieurs
+            // comptes : on reprend celui qui était connecté, pas le premier
+            // venu dans l'ordre du fichier.
+            const preferred = migrated.currentUserId
+                ? migrated.users[migrated.currentUserId]
+                : undefined;
+            return preferred ?? Object.values(migrated.users)[0] ?? null;
         } catch {
             return null;
         }
