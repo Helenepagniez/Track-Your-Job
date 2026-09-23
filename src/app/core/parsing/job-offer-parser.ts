@@ -73,7 +73,7 @@ export function parseJobOffer(input: string): ParsedOffer {
     // Un lien seul : il n'y a rien d'autre à lire.
     if (link && raw === link) return fromLink;
 
-    const structured = parseJsonLd(raw);
+    const structured = merge(parseJsonLd(raw), parseMicrodata(raw));
     // Les règles ne travaillent que sur le contenu de l'annonce : une page de
     // site d'emploi contient aussi des menus, des fenêtres d'aide et d'autres
     // annonces, où les règles piocheraient n'importe quoi.
@@ -151,7 +151,7 @@ function fromJobPosting(node: Record<string, unknown>): ParsedOffer {
     const company = typeof organisation === 'string'
         ? organisation
         : text((organisation as Record<string, unknown>)?.['name']);
-    if (company) offer.companyName = clean(company);
+    if (company) offer.companyName = tidyCaps(clean(company));
 
     const place = locationOf(node['jobLocation']);
     if (place) offer.location = place;
@@ -169,17 +169,86 @@ function fromJobPosting(node: Record<string, unknown>): ParsedOffer {
         offer.source = sourceFromLink(url);
     }
 
+    // `workHours` est plus précis que `employmentType` : « 35H/semaine »
+    // plutôt que « temps plein ».
+    const hours = text(node['workHours']);
+    if (hours) {
+        offer.weeklyHours = hoursFromText(hours) ?? clean(hours);
+    }
+
+    const posting: JobPosting = {};
+
     // La description contient souvent toute l'annonce, sections comprises.
     const description = text(node['description']);
     if (description) {
         const body = toPlainText(description);
         const sections = splitSections(body.split(/\r?\n/).map(line => line.trim()));
-        offer.posting = Object.values(sections).some(Boolean)
+        Object.assign(posting, Object.values(sections).some(Boolean)
             ? sections
-            : { description: body };
+            : { description: body });
     }
 
+    // Expérience, qualification et compétences : le profil recherché, tel que
+    // le site le déclare. Assemblé lisiblement plutôt que jeté en vrac.
+    const profile = profileFrom(node);
+    if (profile) {
+        posting.profile = posting.profile
+            ? posting.profile + '\n\n' + profile
+            : profile;
+    }
+
+    const industry = text(node['industry']);
+    if (industry) {
+        posting.others = posting.others
+            ? posting.others + '\nSecteur d\'activité : ' + clean(industry)
+            : 'Secteur d\'activité : ' + clean(industry);
+    }
+
+    if (Object.values(posting).some(Boolean)) offer.posting = posting;
+
     return offer;
+}
+
+/** Profil recherché, à partir des champs schema.org qui le décrivent. */
+function profileFrom(node: Record<string, unknown>): string | undefined {
+    const lines: string[] = [];
+
+    const experience = text(node['experienceRequirements']);
+    if (experience) lines.push('Expérience : ' + clean(experience));
+
+    const qualification = text(node['qualifications']);
+    if (qualification) lines.push('Qualification : ' + clean(qualification));
+
+    const education = text(node['educationRequirements']);
+    if (education) lines.push('Formation : ' + clean(education));
+
+    const raw = node['skills'];
+    const skills = (Array.isArray(raw) ? raw : [raw])
+        .map(entry => text(entry))
+        .filter((entry): entry is string => !!entry);
+
+    if (skills.length > 0) {
+        lines.push('Compétences :');
+        for (const skill of skills) lines.push('- ' + clean(skill));
+    }
+
+    return lines.length > 0 ? lines.join('\n') : undefined;
+}
+
+/**
+ * Remet en casse normale un nom écrit tout en capitales, en laissant les
+ * sigles courts tranquilles : « CLINIQUE FSEF RENNES » devient
+ * « Clinique FSEF Rennes ».
+ */
+function tidyCaps(name: string): string {
+    if (name !== name.toUpperCase()) return name;
+
+    return name
+        .split(' ')
+        .map(word => word.length <= 4 && /^[A-ZÀ-Ý]+$/.test(word)
+            ? word
+            : word.charAt(0) + word.slice(1).toLowerCase())
+        .join(' ');
 }
 
 function locationOf(value: unknown): string | undefined {
@@ -268,6 +337,130 @@ function periodOf(unit?: string): string {
 /** Espace insécable fine pour les milliers, comme le fait l'usage français. */
 function format(amount: number): string {
     return Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+// ----------------------------------------------------------- microdonnées
+
+/**
+ * Lit les microdonnées schema.org d'une page.
+ *
+ * C'est le même vocabulaire que le JSON-LD, écrit autrement : des attributs
+ * `itemprop` sur les balises, souvent avec la valeur dans un attribut
+ * `content` plutôt que dans le texte visible. France Travail publie ainsi
+ * l'employeur, le salaire, l'expérience demandée et les compétences —
+ * autant de champs qu'aucune règle de lecture ne devinerait aussi bien.
+ */
+function parseMicrodata(raw: string): ParsedOffer {
+    const scope = itemScopeRegion(raw, 'JobPosting');
+    if (!scope) return {};
+
+    const node: Record<string, unknown> = {};
+    const put = (key: string, value: string | undefined) => {
+        if (value) node[key] = value;
+    };
+
+    put('title', prop(scope, 'title'));
+    put('description', propHtml(scope, 'description'));
+    put('employmentType', prop(scope, 'employmentType'));
+    put('workHours', prop(scope, 'workHours'));
+    put('qualifications', prop(scope, 'qualifications'));
+    put('experienceRequirements', prop(scope, 'experienceRequirements'));
+    put('industry', prop(scope, 'industry'));
+
+    const skills = allProps(scope, 'skills');
+    if (skills.length > 0) node['skills'] = skills;
+
+    const organisation = propRegion(scope, 'hiringOrganization');
+    if (organisation) put2(node, 'hiringOrganization', { name: prop(organisation, 'name') });
+
+    const place = propRegion(scope, 'jobLocation');
+    if (place) {
+        const address = propRegion(place, 'address') ?? place;
+        const city = prop(address, 'addressLocality') ?? prop(place, 'name');
+        const code = prop(address, 'postalCode');
+        if (city || code) {
+            node['jobLocation'] = { address: { addressLocality: city, postalCode: code } };
+        }
+    }
+
+    const money = propRegion(scope, 'baseSalary');
+    if (money) {
+        const amount = {
+            minValue: prop(money, 'minValue'),
+            maxValue: prop(money, 'maxValue'),
+            value: prop(money, 'value'),
+            unitText: prop(money, 'unitText')
+        };
+        if (amount.minValue || amount.maxValue || amount.value) {
+            node['baseSalary'] = { currency: prop(money, 'currency') ?? 'EUR', value: amount };
+        }
+    }
+
+    return Object.keys(node).length > 0 ? fromJobPosting(node) : {};
+}
+
+/** Range une valeur composée seulement si elle contient quelque chose. */
+function put2(node: Record<string, unknown>, key: string, value: Record<string, unknown>): void {
+    if (Object.values(value).some(entry => !!entry)) node[key] = value;
+}
+
+/** Contenu de l'élément qui porte `itemtype` du type demandé. */
+function itemScopeRegion(html: string, type: string): string | null {
+    const pattern = new RegExp('<([a-zA-Z][\\w-]*)([^>]*itemtype=["\'][^"\']*' + type + '["\'][^>]*)>', 'i');
+    const found = pattern.exec(html);
+    if (!found) return null;
+
+    const start = found.index + found[0].length;
+    const end = skipElement(html, start, found[1].toLowerCase());
+    return html.slice(start, Math.max(start, end - found[1].length - 3));
+}
+
+/** Contenu de l'élément qui porte un `itemprop` donné. */
+function propRegion(html: string, name: string): string | null {
+    const pattern = new RegExp('<([a-zA-Z][\\w-]*)([^>]*itemprop=["\']' + name + '["\'][^>]*)>', 'i');
+    const found = pattern.exec(html);
+    if (!found) return null;
+
+    const start = found.index + found[0].length;
+    const end = skipElement(html, start, found[1].toLowerCase());
+    return html.slice(start, Math.max(start, end - found[1].length - 3));
+}
+
+/** Valeur d'un `itemprop` : l'attribut `content` s'il existe, sinon le texte. */
+function prop(html: string, name: string): string | undefined {
+    const values = allProps(html, name);
+    return values[0];
+}
+
+/** Toutes les valeurs d'un `itemprop` répété (les compétences, par exemple). */
+function allProps(html: string, name: string): string[] {
+    const pattern = new RegExp('<([a-zA-Z][\\w-]*)([^>]*itemprop=["\']' + name + '["\'][^>]*)>', 'gi');
+    const values: string[] = [];
+
+    for (const found of html.matchAll(pattern)) {
+        const attrs = found[2];
+        const content = /content\s*=\s*["']([^"']*)["']/i.exec(attrs);
+
+        if (content) {
+            const value = clean(content[1]);
+            if (value) values.push(value);
+            continue;
+        }
+
+        const start = (found.index ?? 0) + found[0].length;
+        const end = skipElement(html, start, found[1].toLowerCase());
+        const inner = html.slice(start, Math.max(start, end - found[1].length - 3));
+        const value = clean(toPlainText(inner).replace(/\n+/g, ' '));
+        if (value) values.push(value);
+    }
+    return values;
+}
+
+/** Comme `prop`, mais en gardant le HTML : la description a des paragraphes. */
+function propHtml(html: string, name: string): string | undefined {
+    const region = propRegion(html, name);
+    if (!region) return undefined;
+    return region.trim() || undefined;
 }
 
 // ------------------------------------------------------------------ texte
@@ -577,12 +770,14 @@ const SECTION_KEYS: { field: keyof JobPosting; keys: string[] }[] = [
             'le profil recherche', 'competences', 'competences requises',
             'qualifications', 'vous etes', 'ce que nous recherchons', 'pre-requis',
             'prerequis', 'experience', 'savoir etre professionnels', 'savoirs etre professionnels',
-            'formation', 'formations', 'permis']
+            'formation', 'formations', 'permis', 'qualites', 'qualites requises',
+            'savoir etre', 'savoir faire', 'competences attendues']
     },
     {
         field: 'benefits',
         keys: ['avantages', 'nos avantages', 'ce que nous offrons', 'nous vous proposons',
-            'ce que nous vous offrons', 'remuneration et avantages', 'pourquoi nous rejoindre']
+            'ce que nous vous offrons', 'remuneration et avantages', 'pourquoi nous rejoindre',
+            'remuneration', 'salaire et avantages', 'avantages sociaux', 'conditions et avantages']
     },
     {
         field: 'recruitmentProcess',
@@ -639,11 +834,44 @@ function isMetadataLine(line: string): boolean {
  * Découpe l'annonce en sections. Ce qui précède la première section connue
  * devient la description, et une section inconnue va dans « autres ».
  */
-function splitSections(lines: string[], title?: string): JobPosting {
+/**
+ * Titres de section suivis de deux points. Les annonces les écrivent seuls
+ * sur leur ligne, mais aussi collés à la fin de la ligne précédente.
+ */
+const INLINE_HEADING = new RegExp(
+    '(missions?|profils?(?:\\s+(?:recherch[ée]e?|souhait[ée])?)?|comp[ée]tences'
+    + '(?:\\s+(?:requises|attendues))?|avantages|r[ée]mun[ée]ration|qualit[ée]s'
+    + '|conditions de travail|processus de recrutement|process de recrutement)\\s*:',
+    'gi'
+);
+
+/** Coupe une ligne en morceaux là où un titre de section apparaît. */
+function splitInlineHeadings(line: string): string[] {
+    INLINE_HEADING.lastIndex = 0;
+    const pieces: string[] = [];
+    let cursor = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = INLINE_HEADING.exec(line)) !== null) {
+        const before = line.slice(cursor, match.index).trim();
+        if (before) pieces.push(before);
+        pieces.push(match[0].trim());
+        cursor = match.index + match[0].length;
+    }
+
+    if (pieces.length === 0) return [line];
+
+    const rest = line.slice(cursor).trim();
+    if (rest) pieces.push(rest);
+    return pieces;
+}
+
+function splitSections(rawLines: string[], title?: string): JobPosting {
     const buckets: Record<string, string[]> = {};
     let current: keyof JobPosting | 'intro' = 'intro';
 
     let introClosed = false;
+    const lines = rawLines.flatMap(line => splitInlineHeadings(line));
 
     for (const line of lines) {
         const field = headingField(line);
