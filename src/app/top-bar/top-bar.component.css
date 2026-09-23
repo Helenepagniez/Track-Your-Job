@@ -4,8 +4,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 15px;
-    background: var(--surface-color);
-    border-bottom: 3px solid var(--primary-color);
+    background: var(--surface);
+    border-bottom: 3px solid var(--brand);
     border-left: none;
     border-right: none;
     position: sticky;
@@ -17,7 +17,7 @@
     background: none;
     border: none;
     font-size: 1.5rem;
-    color: var(--primary-color);
+    color: var(--brand);
     cursor: pointer;
 }
 
@@ -33,7 +33,7 @@
 }
 
 .user-info span strong {
-    color: var(--primary-color);
+    color: var(--brand);
     text-transform: capitalize;
 }
 
@@ -41,8 +41,8 @@
     width: 40px;
     height: 40px;
     border-radius: var(--radius-sm);
-    background: var(--primary-color);
-    color: var(--surface-color);
+    background: var(--brand);
+    color: var(--surface);
     display: flex;
     align-items: center;
     justify-content: center;

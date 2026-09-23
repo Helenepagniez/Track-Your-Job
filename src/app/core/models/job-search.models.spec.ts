@@ -10,8 +10,7 @@ import {
     Profile,
     profileChecklist,
     profileCompletion,
-    responseDelayDays,
-    statusAt
+    responseDelayDays
 } from './job-search.models';
 
 let nextEventId = 1;
@@ -56,17 +55,6 @@ describe('lecture du statut', () => {
         ]);
 
         expect(currentStatus(application)).toBe('rejected');
-    });
-
-    it('sait dire où en était une candidature à une date passée', () => {
-        const application = build(1, [
-            ['to_apply', '2026-06-01T09:00:00.000Z'],
-            ['sent', '2026-06-02T09:00:00.000Z'],
-            ['rejected', '2026-06-18T09:00:00.000Z']
-        ]);
-
-        expect(statusAt(application, new Date('2026-06-10T00:00:00.000Z'))).toBe('sent');
-        expect(statusAt(application, new Date('2026-05-01T00:00:00.000Z'))).toBeNull();
     });
 });
 

@@ -47,9 +47,6 @@ export const SENT_STATUSES: ApplicationStatus[] = [
 /** Statuts qui signifient « l'entreprise a répondu ». */
 export const ANSWERED_STATUSES: ApplicationStatus[] = ['interview', 'offer', 'rejected'];
 
-/** Statuts terminaux : plus rien n'est attendu. */
-export const CLOSED_STATUSES: ApplicationStatus[] = ['offer', 'rejected', 'withdrawn', 'no_response'];
-
 export type InterviewKind = 'prequal' | 'phone' | 'video' | 'onsite';
 
 export const INTERVIEW_LABELS: Record<InterviewKind, string> = {
@@ -243,20 +240,6 @@ export function currentStatus(application: Application): ApplicationStatus {
     return events.length > 0 ? events[events.length - 1].status! : 'to_apply';
 }
 
-/** Statut de la candidature à une date donnée (null si elle n'existait pas encore). */
-export function statusAt(application: Application, date: Date): ApplicationStatus | null {
-    const time = date.getTime();
-    if (new Date(application.createdAt).getTime() > time) {
-        return null;
-    }
-    let status: ApplicationStatus = 'to_apply';
-    for (const event of statusEvents(application)) {
-        if (new Date(event.at).getTime() > time) break;
-        status = event.status!;
-    }
-    return status;
-}
-
 /** Date ISO du dernier passage à `status`, si elle est passée par là. */
 export function enteredStatusAt(application: Application, status: ApplicationStatus): string | undefined {
     const matches = statusEvents(application).filter(e => e.status === status);
@@ -292,24 +275,6 @@ export function countEnteredStatus(
     return applications.filter(app =>
         statusEvents(app).some(e => {
             if (e.status !== status) return false;
-            const at = new Date(e.at).getTime();
-            return at >= start && at <= end;
-        })
-    ).length;
-}
-
-/** Comme `countEnteredStatus`, pour un ensemble de statuts (« a répondu »). */
-export function countEnteredAny(
-    applications: Application[],
-    statuses: ApplicationStatus[],
-    from: Date,
-    to: Date
-): number {
-    const start = from.getTime();
-    const end = to.getTime();
-    return applications.filter(app =>
-        statusEvents(app).some(e => {
-            if (!statuses.includes(e.status!)) return false;
             const at = new Date(e.at).getTime();
             return at >= start && at <= end;
         })
@@ -460,11 +425,9 @@ export function profileCompletion(items: ProfileChecklistItem[]): number {
 }
 
 // ---------------------------------------------------------------------------
-// Passerelle avec l'ancien vocabulaire (adaptateur OffersService, migration).
+// Passerelle avec l'ancien vocabulaire : lue par la migration, pour relire un
+// stockage ou une sauvegarde de la version précédente.
 // ---------------------------------------------------------------------------
-
-export type LegacyStatus =
-    'To Apply' | 'Applied' | 'Interview' | 'Offer' | 'Rejected' | 'To Relaunch' | 'No Response';
 
 export const LEGACY_TO_STATUS: Record<string, ApplicationStatus> = {
     'To Apply': 'to_apply',
@@ -476,32 +439,11 @@ export const LEGACY_TO_STATUS: Record<string, ApplicationStatus> = {
     'Rejected': 'rejected'
 };
 
-export const STATUS_TO_LEGACY: Record<ApplicationStatus, LegacyStatus> = {
-    to_apply: 'To Apply',
-    sent: 'Applied',
-    to_relaunch: 'To Relaunch',
-    no_response: 'No Response',
-    interview: 'Interview',
-    offer: 'Offer',
-    rejected: 'Rejected',
-    withdrawn: 'No Response'
-};
-
-export type LegacyInterviewType =
-    'Préqual' | 'Entretien Physique' | 'Entretien Téléphonique' | 'Entretien Visio';
-
 export const LEGACY_TO_INTERVIEW: Record<string, InterviewKind> = {
     'Préqual': 'prequal',
     'Entretien Physique': 'onsite',
     'Entretien Téléphonique': 'phone',
     'Entretien Visio': 'video'
-};
-
-export const INTERVIEW_TO_LEGACY: Record<InterviewKind, LegacyInterviewType> = {
-    prequal: 'Préqual',
-    onsite: 'Entretien Physique',
-    phone: 'Entretien Téléphonique',
-    video: 'Entretien Visio'
 };
 
 /** Clé de regroupement d'une entreprise par son nom (casse et espaces ignorés). */
