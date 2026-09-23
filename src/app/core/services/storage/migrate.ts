@@ -12,6 +12,7 @@ import {
     companyKey
 } from '../../models/job-search.models';
 import { Task } from '../../../tasks/task.model';
+import { sourceFromLink } from '../../parsing/job-offer-parser';
 import {
     AppData,
     LegacyAppData,
@@ -344,33 +345,6 @@ function migrateEvents(offer: LegacyOffer, createdAt: string, nextId: () => numb
     }
 
     return events;
-}
-
-const KNOWN_SOURCES: { match: string; label: string }[] = [
-    { match: 'hellowork', label: 'HelloWork' },
-    { match: 'indeed', label: 'Indeed' },
-    { match: 'francetravail', label: 'France Travail' },
-    { match: 'pole-emploi', label: 'France Travail' },
-    { match: 'linkedin', label: 'LinkedIn' },
-    { match: 'welcometothejungle', label: 'Welcome to the Jungle' },
-    { match: 'apec', label: 'Apec' },
-    { match: 'ouestfrance-emploi', label: 'Ouest France Emploi' },
-    { match: 'monster', label: 'Monster' },
-    { match: 'glassdoor', label: 'Glassdoor' }
-];
-
-/** Devine la source d'une candidature à partir du lien de l'annonce. */
-export function sourceFromLink(link?: string): string | undefined {
-    if (!link) return undefined;
-    let host: string;
-    try {
-        host = new URL(link).hostname.toLowerCase();
-    } catch {
-        return undefined;
-    }
-    const known = KNOWN_SOURCES.find(source => host.includes(source.match));
-    if (known) return known.label;
-    return host.replace(/^www\./, '');
 }
 
 function toIso(value: string | Date): string {

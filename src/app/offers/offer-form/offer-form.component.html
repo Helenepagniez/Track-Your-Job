@@ -3,8 +3,68 @@
     <!-- L'annonce -------------------------------------------------------- -->
     <div class="field">
         <label for="of-link">Lien de l'annonce</label>
-        <input id="of-link" type="url" formControlName="link" placeholder="https://…" autocomplete="off">
-        <p class="hint">Gardez le lien : il permettra bientôt de remplir le reste automatiquement.</p>
+        <div class="link-row">
+            <input id="of-link" type="url" formControlName="link" placeholder="https://…" autocomplete="off"
+                (blur)="onLinkBlur()">
+            <button type="button" class="btn-solid read-link" (click)="readFromLink()"
+                [disabled]="reading() || !form.controls.link.value.trim()">
+                <i class="fa-solid" [class.fa-download]="!reading()" [class.fa-spinner]="reading()"
+                    [class.fa-spin]="reading()"></i>
+                {{ reading() ? 'Lecture…' : 'Lire l\'annonce' }}
+            </button>
+        </div>
+        <p class="hint">
+            La source se remplit toute seule. « Lire l'annonce » demande au serveur d'aller chercher la page et
+            d'en tirer les champs.
+        </p>
+        <p class="error" *ngIf="readError()">{{ readError() }}</p>
+    </div>
+
+    <!-- Remplissage depuis l'annonce -->
+    <div class="paste-box" *ngIf="!showPaste()">
+        <button type="button" class="paste-open" (click)="openPaste()">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            Coller l'annonce pour remplir les champs
+        </button>
+
+        <p class="paste-result" *ngIf="pasteFilled().length > 0">
+            <i class="fa-solid fa-circle-check"></i>
+            Rempli : {{ pasteFilled().join(', ') }}.
+            <span class="paste-skipped" *ngIf="pasteSkipped().length > 0">
+                Laissé tel quel, déjà saisi : {{ pasteSkipped().join(', ') }}.
+            </span>
+        </p>
+    </div>
+
+    <div class="paste-panel" *ngIf="showPaste()">
+        <div class="paste-head">
+            <span class="paste-title">Annonce à lire</span>
+            <button type="button" class="icon-btn" aria-label="Fermer" (click)="closePaste()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <label class="sr-only" for="of-paste">Texte de l'annonce</label>
+        <textarea id="of-paste" rows="8" [ngModel]="pasted()" (ngModelChange)="pasted.set($event)"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="Sélectionnez l'annonce sur le site, copiez-la, collez-la ici."></textarea>
+
+        <p class="hint">
+            Le navigateur n'a pas le droit d'aller lire la page à votre place : c'est le texte collé qui est
+            analysé. Les champs déjà remplis ne sont pas touchés.
+        </p>
+
+        <p class="error" *ngIf="pasteEmpty()">
+            Rien de reconnaissable ici. Vérifiez que vous avez copié le texte de l'annonce, pas seulement son
+            titre.
+        </p>
+
+        <div class="paste-actions">
+            <button type="button" class="btn-ghost" (click)="closePaste()">Annuler</button>
+            <button type="button" class="btn-solid" (click)="applyPaste()" [disabled]="!pasted().trim()">
+                Remplir les champs vides
+            </button>
+        </div>
     </div>
 
     <!-- Le poste --------------------------------------------------------- -->

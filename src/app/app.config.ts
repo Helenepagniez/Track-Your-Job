@@ -5,9 +5,10 @@ import localeFr from '@angular/common/locales/fr';
 import { provideFirebaseApp } from '@angular/fire/app';
 import { provideAuth } from '@angular/fire/auth';
 import { provideFirestore } from '@angular/fire/firestore';
+import { provideFunctions } from '@angular/fire/functions';
 import { getAuth } from 'firebase/auth';
 import { routes } from './app.routes';
-import { firebaseApp, firebaseFirestore } from './core/firebase.config';
+import { firebaseApp, firebaseFirestore, firebaseFunctions } from './core/firebase.config';
 
 registerLocaleData(localeFr);
 
@@ -22,5 +23,6 @@ export const appConfig: ApplicationConfig = {
     provideFirebaseApp(() => firebaseApp()),
     provideAuth(() => getAuth(firebaseApp())),
     provideFirestore(() => firebaseFirestore()),
+    provideFunctions(() => firebaseFunctions()),
   ]
 };

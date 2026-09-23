@@ -5,7 +5,7 @@ import {
     interviewEvents
 } from '../../models/job-search.models';
 import { LegacyAppData } from './app-data';
-import { migrateAppData, sourceFromLink } from './migrate';
+import { migrateAppData } from './migrate';
 
 function legacyData(): LegacyAppData {
     return {
@@ -224,21 +224,6 @@ describe('migrateAppData (v1 → v2)', () => {
         expect(migrateAppData(null).users).toEqual({});
         expect(migrateAppData({}).users).toEqual({});
         expect(migrateAppData({ users: {} }).currentUserId).toBeNull();
-    });
-});
-
-describe('sourceFromLink', () => {
-
-    it('reconnaît les jobboards courants', () => {
-        expect(sourceFromLink('https://www.hellowork.com/fr-fr/emplois/x.html')).toBe('HelloWork');
-        expect(sourceFromLink('https://candidat.francetravail.fr/offres/1')).toBe('France Travail');
-        expect(sourceFromLink('https://www.linkedin.com/jobs/view/1')).toBe('LinkedIn');
-    });
-
-    it('retombe sur le domaine, et sur rien du tout si le lien est invalide', () => {
-        expect(sourceFromLink('https://www.agencewhy.fr/nous-rejoindre')).toBe('agencewhy.fr');
-        expect(sourceFromLink('pas un lien')).toBeUndefined();
-        expect(sourceFromLink(undefined)).toBeUndefined();
     });
 });
 

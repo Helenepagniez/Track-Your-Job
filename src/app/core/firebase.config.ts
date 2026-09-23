@@ -2,6 +2,9 @@
 // réexportées par @angular/fire attendent un contexte d'injection Angular.
 import { FirebaseApp, getApps, initializeApp } from 'firebase/app';
 import { Firestore, initializeFirestore, persistentLocalCache } from 'firebase/firestore';
+// La fonction de lecture d'annonce est déployée en Europe : le client doit
+// viser la même région, sinon l'appel part vers us-central1.
+import { Functions, getFunctions } from 'firebase/functions';
 
 /**
  * Configuration Firebase du projet.
@@ -55,3 +58,10 @@ export function firebaseFirestore(): Firestore {
 }
 
 let firestore: Firestore | null = null;
+
+export const FUNCTIONS_REGION = 'europe-west1';
+
+/** Fonctions Firebase, dans la région où elles sont déployées. */
+export function firebaseFunctions(): Functions {
+    return getFunctions(firebaseApp(), FUNCTIONS_REGION);
+}
