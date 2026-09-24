@@ -1,5 +1,6 @@
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import { defineSecret } from 'firebase-functions/params';
+import { logger } from 'firebase-functions/v2';
 import {
     JobSearchCriteria,
     JobSearchResult,
@@ -44,15 +45,68 @@ export interface SearchOffersResult {
 /** Jeton d'accès, gardé en mémoire tant qu'il est valable. */
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
+/**
+ * Lit un secret, et refuse de travailler avec une valeur visiblement abîmée.
+ *
+ * `firebase functions:secrets:set` masque la saisie : comme rien ne s'affiche,
+ * on recolle, et les collages s'additionnent. La valeur enregistrée est alors
+ * la bonne, répétée — et France Travail répond « invalid_client », ce qui
+ * n'aide personne.
+ *
+ * On se contente de le détecter et de le dire. J'ai d'abord voulu réparer en
+ * ne gardant qu'un exemplaire ; c'est une mauvaise idée, car une valeur dont
+ * le contenu se répète de lui-même serait amputée sans que personne ne le
+ * sache. Détecter, oui ; corriger les identifiants de quelqu'un, non.
+ */
+function readSecret(raw: string, name: string): string {
+    const value = raw.trim();
+    const repeats = repetitionCount(value);
+
+    if (repeats > 1) {
+        logger.warn(name + ' semble collé ' + repeats + ' fois de suite.');
+        throw new HttpsError(
+            'failed-precondition',
+            name + ' contient ' + repeats + ' fois la même valeur : la saisie masquée de '
+            + '« firebase functions:secrets:set » a enregistré plusieurs collages. '
+            + 'Réenregistrez-le depuis un fichier (--data-file), puis redéployez.'
+        );
+    }
+    return value;
+}
+
+/** Combien de fois la valeur est-elle la répétition exacte d'un même bloc ? */
+function repetitionCount(value: string): number {
+    // Du plus grand bloc vers le plus petit : on rapporte la répétition la
+    // plus prudente, et jamais pour un bloc trop court pour être un secret.
+    for (let size = Math.floor(value.length / 2); size >= 16; size--) {
+        if (value.length % size !== 0) continue;
+        if (value.slice(0, size).repeat(value.length / size) === value) {
+            return value.length / size;
+        }
+    }
+    return 1;
+}
+
 export const searchJobOffers = onCall<JobSearchCriteria, Promise<SearchOffersResult>>(
-    { secrets: [FT_CLIENT_ID, FT_CLIENT_SECRET] },
+    {
+        // Région déclarée ici, et pas seulement dans `setGlobalOptions` :
+        // l'import de ce fichier est évalué avant le corps de `index.ts`, donc
+        // les options globales ne sont pas encore posées à cet instant. Sans
+        // cette ligne, la fonction partirait en us-central1 alors que le
+        // client appelle europe-west1.
+        region: 'europe-west1',
+        maxInstances: 5,
+        memory: '256MiB',
+        timeoutSeconds: 30,
+        secrets: [FT_CLIENT_ID, FT_CLIENT_SECRET]
+    },
     async request => {
         if (!request.auth) {
             throw new HttpsError('unauthenticated', 'Connectez-vous pour chercher des offres.');
         }
 
-        const id = FT_CLIENT_ID.value();
-        const secret = FT_CLIENT_SECRET.value();
+        const id = readSecret(FT_CLIENT_ID.value(), 'FT_CLIENT_ID');
+        const secret = readSecret(FT_CLIENT_SECRET.value(), 'FT_CLIENT_SECRET');
         if (!id || !secret) {
             throw new HttpsError(
                 'failed-precondition',
@@ -104,6 +158,11 @@ export const searchJobOffers = onCall<JobSearchCriteria, Promise<SearchOffersRes
 /**
  * Jeton d'accès par « client credentials ». Il vaut une vingtaine de minutes :
  * on le garde en mémoire pour ne pas le redemander à chaque recherche.
+ *
+ * Deux formes de `scope` existent selon les applications déclarées sur
+ * francetravail.io : la forme courte, et une forme historique préfixée de
+ * `application_<identifiant client>`. On essaie la première, puis la seconde
+ * si le serveur répond « invalid_scope ».
  */
 async function accessToken(id: string, secret: string): Promise<string> {
     const now = Date.now();
@@ -111,11 +170,51 @@ async function accessToken(id: string, secret: string): Promise<string> {
         return cachedToken.value;
     }
 
+    const scopes = [SCOPE, 'application_' + id + ' ' + SCOPE];
+    let lastFailure = '';
+
+    for (const scope of scopes) {
+        const attempt = await requestToken(id, secret, scope);
+
+        if (attempt.token) {
+            cachedToken = {
+                value: attempt.token,
+                expiresAt: now + (attempt.expiresIn ?? 1200) * 1000
+            };
+            return cachedToken.value;
+        }
+
+        lastFailure = attempt.failure ?? '';
+        // Une autre erreur que le périmètre ne sera pas réglée par un second essai.
+        if (!/invalid_scope/i.test(lastFailure)) break;
+    }
+
+    // Les longueurs, et elles seules : elles disent si la fonction lit bien la
+    // version du secret que l'on croit, sans rien révéler de son contenu.
+    const shapes = 'identifiant reçu : ' + id.length + ' caractères, clé : '
+        + secret.length + ' caractères';
+
+    throw new HttpsError(
+        'permission-denied',
+        'France Travail a refusé les identifiants. Réponse du serveur : '
+        + (lastFailure || 'sans détail') + '. ' + hint(lastFailure)
+        + ' (' + shapes + '.)'
+    );
+}
+
+interface TokenAttempt {
+    token?: string;
+    expiresIn?: number;
+    /** Ce que France Travail répond quand il refuse, mot pour mot. */
+    failure?: string;
+}
+
+async function requestToken(id: string, secret: string, scope: string): Promise<TokenAttempt> {
     const body = new URLSearchParams({
         grant_type: 'client_credentials',
         client_id: id,
         client_secret: secret,
-        scope: SCOPE
+        scope
     });
 
     const response = await call(TOKEN_URL, {
@@ -124,24 +223,44 @@ async function accessToken(id: string, secret: string): Promise<string> {
         body: body.toString()
     });
 
-    if (!response.ok) {
-        throw new HttpsError(
-            'permission-denied',
-            'France Travail a refusé les identifiants (' + response.status + '). '
-            + 'Vérifiez FT_CLIENT_ID et FT_CLIENT_SECRET.'
-        );
+    if (response.ok) {
+        const payload = await response.json() as { access_token?: string; expires_in?: number };
+        return payload.access_token
+            ? { token: payload.access_token, expiresIn: payload.expires_in }
+            : { failure: 'réponse sans jeton' };
     }
 
-    const payload = await response.json() as { access_token?: string; expires_in?: number };
-    if (!payload.access_token) {
-        throw new HttpsError('unavailable', 'France Travail n\'a pas renvoyé de jeton.');
+    // Le corps porte le motif exact : invalid_client, invalid_scope…
+    const raw = await response.text().catch(() => '');
+    let described = raw.slice(0, 300);
+    try {
+        const parsed = JSON.parse(raw) as { error?: string; error_description?: string };
+        described = [parsed.error, parsed.error_description].filter(Boolean).join(' — ') || described;
+    } catch {
+        // Le corps n'était pas du JSON : on garde le texte brut, tronqué.
     }
 
-    cachedToken = {
-        value: payload.access_token,
-        expiresAt: now + (payload.expires_in ?? 1200) * 1000
-    };
-    return cachedToken.value;
+    return { failure: response.status + ' ' + described };
+}
+
+/** Traduit le motif de refus en geste à faire. */
+function hint(failure: string): string {
+    if (/invalid_client/i.test(failure)) {
+        // Vérifié en septembre 2026 : ce serveur contrôle l'authentification
+        // AVANT le périmètre, et renvoie « invalid_client » aussi bien pour un
+        // couple erroné que pour une application dont l'accès à l'API n'est
+        // pas encore actif. Les deux pistes méritent donc d'être citées.
+        return 'Deux causes possibles : le couple identifiant/clé ne correspond pas, '
+            + 'ou l\'application francetravail.io n\'a pas encore d\'accès actif à '
+            + '« Offres d\'emploi v2 » (souscription à confirmer, ou en attente de '
+            + 'validation). Vérifiez l\'état de la souscription sur le portail.';
+    }
+    if (/invalid_scope/i.test(failure)) {
+        return 'L\'application n\'a pas (encore) accès à « Offres d\'emploi v2 » : '
+            + 'vérifiez l\'abonnement à cette API sur francetravail.io.';
+    }
+    return 'Vérifiez sur francetravail.io que l\'application est bien abonnée à '
+        + '« Offres d\'emploi v2 », puis reprenez les deux identifiants.';
 }
 
 /** Appel réseau avec un délai maximal : une fonction ne doit pas s'éterniser. */
@@ -152,12 +271,24 @@ async function call(url: string, options: RequestInit): Promise<Response> {
     try {
         return await fetch(url, { ...options, signal: controller.signal });
     } catch (failure) {
-        const aborted = (failure as Error)?.name === 'AbortError';
+        const error = failure as Error & { cause?: { code?: string; message?: string } };
+        const aborted = error?.name === 'AbortError';
+
+        // Le motif technique est rapporté : « injoignable » tout court ne
+        // permet pas de distinguer une panne de nom, un refus de connexion et
+        // un blocage du réseau d'où part l'appel.
+        const cause = [error?.name, error?.message, error?.cause?.code, error?.cause?.message]
+            .filter(Boolean)
+            .join(' / ')
+            .slice(0, 200);
+
+        logger.error('Appel à ' + new URL(url).host + ' impossible : ' + cause);
+
         throw new HttpsError(
             aborted ? 'deadline-exceeded' : 'unavailable',
             aborted
-                ? 'France Travail n\'a pas répondu à temps.'
-                : 'France Travail est injoignable.'
+                ? 'France Travail n\'a pas répondu à temps (' + new URL(url).host + ').'
+                : 'France Travail est injoignable depuis le serveur. Motif : ' + cause
         );
     } finally {
         clearTimeout(timer);

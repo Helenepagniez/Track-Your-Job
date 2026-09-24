@@ -193,9 +193,9 @@ export function mapOffers(payload: unknown): JobSearchResult[] {
  */
 export function locationLabel(libelle: string): string {
     const match = /^\s*(\d{2,3})\s*-\s*(.+)$/.exec(libelle);
-    if (!match) return tidyCaps(clean(libelle));
+    if (!match) return tidyCity(clean(libelle));
 
-    const city = tidyCaps(clean(match[2]));
+    const city = tidyCity(clean(match[2]));
     return city + ' (' + match[1] + ')';
 }
 
@@ -225,6 +225,31 @@ function nested(raw: Record<string, unknown>, key: string, field: string): strin
 
 function clean(value: string): string {
     return value.replace(/\s+/g, ' ').trim();
+}
+
+/** Petits mots qui restent en minuscules au milieu d'un nom de commune. */
+const CITY_CONNECTORS = ['de', 'du', 'des', 'la', 'le', 'les', 'sur', 'sous', 'en', 'et', 'aux', 'au', 'lès', 'les'];
+
+/**
+ * Nom de commune en casse normale.
+ *
+ * On ne garde pas les mots courts en capitales ici, contrairement aux noms
+ * d'entreprise : une commune n'a pas de sigle, et « BAIN DE BRETAGNE »
+ * donnerait sinon « BAIN DE Bretagne ». Les petits mots de liaison passent en
+ * minuscules : « Bain de Bretagne ».
+ */
+function tidyCity(value: string): string {
+    if (value !== value.toUpperCase()) return value;
+
+    return value
+        .toLowerCase()
+        .split(' ')
+        .map((word, index) => index > 0 && CITY_CONNECTORS.includes(word)
+            ? word
+            : word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+        // « Saint-Malo », « L'Hermitage ».
+        .replace(/([-'’])([a-zà-ÿ])/g, (_, separator, letter) => separator + letter.toUpperCase());
 }
 
 /**

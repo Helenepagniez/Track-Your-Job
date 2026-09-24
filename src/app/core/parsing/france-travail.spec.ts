@@ -63,6 +63,15 @@ describe('offre France Travail', () => {
         expect(locationLabel('75 - PARIS 09')).toBe('Paris 09 (75)');
     });
 
+    it('écrit les communes en plusieurs mots comme on les écrit', () => {
+        // Relevé sur de vraies offres : « BAIN DE BRETAGNE », « ST GREGOIRE ».
+        // Les mots courts d'une commune ne sont pas des sigles.
+        expect(locationLabel('35 - BAIN DE BRETAGNE')).toBe('Bain de Bretagne (35)');
+        expect(locationLabel('35 - ST GREGOIRE')).toBe('St Gregoire (35)');
+        expect(locationLabel('44 - L\'HERMITAGE')).toBe('L\'Hermitage (44)');
+        expect(locationLabel('56 - SAINT-AVE')).toBe('Saint-Ave (56)');
+    });
+
     it('garde le libellé tel quel quand il ne suit pas le format', () => {
         expect(locationLabel('Rennes et alentours')).toBe('Rennes et alentours');
     });
