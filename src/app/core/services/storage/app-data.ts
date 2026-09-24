@@ -4,6 +4,7 @@ import {
     Campaign,
     Company,
     Contact,
+    FavoriteOffer,
     Profile
 } from '../../models/job-search.models';
 
@@ -21,6 +22,8 @@ export interface UserData {
     contacts: Contact[];
     applications: Application[];
     tasks: Task[];
+    /** Offres mises de côté depuis la recherche. */
+    favorites: FavoriteOffer[];
 }
 
 export interface AppData {
@@ -46,7 +49,8 @@ export function emptyUserData(profile: Profile): UserData {
         companies: [],
         contacts: [],
         applications: [],
-        tasks: []
+        tasks: [],
+        favorites: []
     };
 }
 

@@ -124,3 +124,52 @@ describe('sections du texte de l\'annonce', () => {
         expect(posting.profile).toContain('BAC Professionnel');
     });
 });
+
+describe('pièges du HTML moderne', () => {
+
+    it('ne laisse pas passer du code quand un attribut contient un chevron', () => {
+        // `data-action="click->menu#toggle"` est courant : un retrait de
+        // balises naïf s'arrête au chevron de l'attribut et laisse filer le
+        // reste, noms de classes CSS compris.
+        const page = `<html><body><main>
+            <h2>Les missions du poste</h2>
+            <div data-action="click->toggle-on-body#remove" class="h-full w-full bg-black">
+                <p>Gestion du planning des consultations.</p>
+            </div>
+            </main></body></html>`;
+
+        const posting = parseJobOffer(page).posting!;
+        const whole = JSON.stringify(posting);
+
+        expect(posting.missions).toContain('Gestion du planning');
+        expect(whole).not.toContain('bg-black');
+        expect(whole).not.toContain('toggle-on-body');
+    });
+
+    it('traite un titre inconnu comme une frontière, et le garde', () => {
+        const page = `<html><body><main>
+            <h2>Les avantages</h2>
+            <p>Mutuelle et titres restaurant.</p>
+            <h2>Bienvenue chez Studio Lumen</h2>
+            <p>Studio fondé en 2015, quinze personnes.</p>
+            </main></body></html>`;
+
+        const posting = parseJobOffer(page).posting!;
+
+        expect(posting.benefits).toContain('Mutuelle');
+        expect(posting.benefits).not.toContain('fondé en 2015');
+        expect(posting.others).toContain('Bienvenue chez Studio Lumen');
+        expect(posting.others).toContain('fondé en 2015');
+    });
+
+    it('ne laisse pas la marque de titre dans les champs', () => {
+        const page = '<html><body><main><h1>Chargée de communication (H/F)</h1>'
+            + '<p>Studio Lumen recrute à Brest, en CDI, pour une prise de poste rapide.</p>'
+            + '</main></body></html>';
+
+        const offer = parseJobOffer(page);
+
+        expect(offer.title).toBe('Chargée de communication (H/F)');
+        expect(JSON.stringify(offer)).not.toContain('§§');
+    });
+});

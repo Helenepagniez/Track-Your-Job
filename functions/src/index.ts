@@ -3,6 +3,9 @@ import { setGlobalOptions } from 'firebase-functions/v2';
 import { isFetchableUrl } from '../../src/app/core/parsing/fetchable-url';
 import { ParsedOffer, parseJobOffer, sourceFromLink } from '../../src/app/core/parsing/job-offer-parser';
 
+// Recherche d'offres par l'API France Travail, dans son propre fichier.
+export { searchJobOffers } from './search-offers';
+
 /**
  * Lecture d'une annonce d'emploi à partir de son lien.
  *

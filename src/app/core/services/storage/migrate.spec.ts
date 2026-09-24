@@ -220,6 +220,12 @@ describe('migrateAppData (v1 → v2)', () => {
         expect(user.nextId).toBeGreaterThan(Math.max(...ids));
     });
 
+    it('donne une liste de favoris vide à un compte qui n\'en avait pas', () => {
+        // Les documents écrits avant l'écran de recherche n'ont pas ce champ.
+        const user = migrateAppData(legacyData()).users['user_1'];
+        expect(user.favorites).toEqual([]);
+    });
+
     it('accepte un contenu vide ou illisible', () => {
         expect(migrateAppData(null).users).toEqual({});
         expect(migrateAppData({}).users).toEqual({});

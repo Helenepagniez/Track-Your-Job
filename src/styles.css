@@ -923,3 +923,34 @@ button.status-chip {
     min-width: 100%;
   }
 }
+
+/* Bascules d'un choix multiple (types de contrat, etc.) -------------------- */
+.toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.toggle {
+  height: 34px;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  font: 500 13px var(--font-body);
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.toggle:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.toggle.on {
+  border-color: var(--accent-line-strong);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-weight: 600;
+}

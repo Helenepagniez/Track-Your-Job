@@ -74,6 +74,7 @@ export function normalizeUserData(userData: UserData): UserData {
             events: app.events || []
         })),
         tasks: userData.tasks || [],
+        favorites: userData.favorites || [],
         nextId: userData.nextId || nextFreeId(userData)
     };
 }
@@ -231,7 +232,9 @@ function migrateV1User(legacyUserData: LegacyUserData): UserData {
         applications,
         tasks: (legacyUserData.tasks || []).map(task =>
             linkTask(task, campaign.id, offers, idByOffer)
-        )
+        ),
+        // L'ancienne version n'avait pas de recherche d'offres.
+        favorites: []
     };
 
     // Filet : si un identifiant venait d'ailleurs que du compteur, le compteur

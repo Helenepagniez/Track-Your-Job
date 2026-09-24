@@ -1,0 +1,224 @@
+<section class="screen">
+
+    <header class="page-head">
+        <div>
+            <h1 class="display-title">Chercher une offre</h1>
+            <p class="lead">
+                Les offres viennent de France Travail. Mettez de côté celles qui vous intéressent,
+                elles deviendront des candidatures quand vous le décidez.
+            </p>
+        </div>
+    </header>
+
+    <!-- Filtres ----------------------------------------------------------- -->
+    <section class="filters-panel">
+        <div class="filter-line">
+            <div class="field grow">
+                <label for="sr-keywords">Métier, mot-clé</label>
+                <input id="sr-keywords" type="search" [ngModel]="keywords()"
+                    (ngModelChange)="keywords.set($event)" (keyup.enter)="search()"
+                    placeholder="secrétaire médicale, communication…">
+            </div>
+
+            <div class="field">
+                <label for="sr-department">Où</label>
+                <select id="sr-department" [ngModel]="department()" (ngModelChange)="department.set($event)">
+                    <option *ngFor="let entry of departments" [value]="entry.code">{{ entry.label }}</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="sr-period">Publiée</label>
+                <select id="sr-period" [ngModel]="period()" (ngModelChange)="period.set(+$event)">
+                    <option *ngFor="let entry of periods" [value]="entry.days">{{ entry.label }}</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="filter-line">
+            <div class="field grow">
+                <span class="group-label">Type de contrat</span>
+                <div class="toggles">
+                    <button type="button" *ngFor="let type of contractTypes" class="toggle"
+                        [class.on]="isContractSelected(type)" [attr.aria-pressed]="isContractSelected(type)"
+                        (click)="toggleContract(type)">
+                        {{ type }}
+                    </button>
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button type="button" class="btn-ghost" (click)="resetFilters()">Tout effacer</button>
+                <button type="button" class="btn-solid" (click)="search()" [disabled]="searching()">
+                    <i class="fa-solid" [class.fa-magnifying-glass]="!searching()"
+                        [class.fa-spinner]="searching()" [class.fa-spin]="searching()"></i>
+                    {{ searching() ? 'Recherche…' : 'Chercher' }}
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Onglets ----------------------------------------------------------- -->
+    <nav class="tabs" aria-label="Résultats et favoris">
+        <button type="button" class="tab" [class.on]="tab() === 'results'" (click)="tab.set('results')">
+            Résultats
+            <span class="count" *ngIf="results().length > 0">{{ results().length }}</span>
+        </button>
+        <button type="button" class="tab" [class.on]="tab() === 'favorites'" (click)="tab.set('favorites')">
+            Mises de côté
+            <span class="count" *ngIf="favoriteCount() > 0">{{ favoriteCount() }}</span>
+        </button>
+    </nav>
+
+    <!-- Erreurs ----------------------------------------------------------- -->
+    <div class="setup-note" *ngIf="error() && needsSetup()">
+        <h2>La recherche doit être configurée</h2>
+        <p>{{ error() }}</p>
+        <ol>
+            <li>Créer une application sur <strong>francetravail.io</strong>, avec l'accès
+                « Offres d'emploi v2 ».</li>
+            <li>Enregistrer les deux identifiants comme secrets :
+                <code>firebase functions:secrets:set FT_CLIENT_ID</code> puis
+                <code>firebase functions:secrets:set FT_CLIENT_SECRET</code>.</li>
+            <li>Redéployer : <code>firebase deploy --only functions</code>.</li>
+        </ol>
+        <p class="hint">Les favoris et les candidatures fonctionnent sans cela.</p>
+    </div>
+
+    <p class="error" *ngIf="error() && !needsSetup()">{{ error() }}</p>
+
+    <!-- Résultats --------------------------------------------------------- -->
+    <ng-container *ngIf="tab() === 'results'">
+        <p class="result-count" *ngIf="total() !== undefined && results().length > 0">
+            {{ total() }} offre{{ total() === 1 ? '' : 's' }} correspondent.
+            Les {{ results().length }} premières sont affichées.
+        </p>
+
+        <div class="empty" *ngIf="searched() && !searching() && results().length === 0 && !error()">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <p>Aucune offre ne correspond à ces critères. Élargissez le lieu ou la période.</p>
+        </div>
+
+        <div class="empty" *ngIf="!searched() && !error()">
+            <i class="fa-solid fa-compass"></i>
+            <p>Lancez une recherche : mot-clé, département, type de contrat.</p>
+        </div>
+
+        <ul class="offer-list">
+            <li class="offer" *ngFor="let offer of results()">
+                <div class="offer-head">
+                    <div class="offer-title">
+                        <h2>{{ offer.title }}</h2>
+                        <p class="offer-company">
+                            {{ offer.company ?? 'Employeur non communiqué' }}
+                            <span *ngIf="offer.location"> · {{ offer.location }}</span>
+                        </p>
+                    </div>
+
+                    <button type="button" class="fav-btn" [class.on]="isFavorite(offer.id)"
+                        [attr.aria-pressed]="isFavorite(offer.id)" (click)="toggleFavorite(offer)"
+                        [title]="isFavorite(offer.id) ? 'Retirer des mises de côté' : 'Mettre de côté'">
+                        <i class="fa-bookmark" [class.fa-solid]="isFavorite(offer.id)"
+                            [class.fa-regular]="!isFavorite(offer.id)"></i>
+                    </button>
+                </div>
+
+                <ul class="offer-tags">
+                    <li *ngIf="offer.contractType">{{ offer.contractType }}</li>
+                    <li *ngIf="offer.weeklyHours">{{ offer.weeklyHours }}</li>
+                    <li *ngIf="offer.salary" class="salary">{{ offer.salary }}</li>
+                    <li *ngIf="offer.experience">Expérience : {{ offer.experience }}</li>
+                    <li *ngIf="publishedLabel(offer)" class="age">Publiée {{ publishedLabel(offer) }}</li>
+                </ul>
+
+                <p class="offer-excerpt" *ngIf="offer.excerpt && openOffer() !== offer.id">
+                    {{ offer.excerpt }}
+                </p>
+
+                <div class="offer-detail" *ngIf="openOffer() === offer.id">
+                    <p class="offer-description">{{ offer.description }}</p>
+                    <div class="offer-skills" *ngIf="offer.skills?.length">
+                        <span class="group-label">Compétences attendues</span>
+                        <ul>
+                            <li *ngFor="let skill of offer.skills">{{ skill }}</li>
+                        </ul>
+                    </div>
+                    <p class="hint" *ngIf="offer.sector">Secteur : {{ offer.sector }}</p>
+                </div>
+
+                <footer class="offer-actions">
+                    <button type="button" class="btn-ghost" (click)="toggleDetail(offer.id)">
+                        {{ openOffer() === offer.id ? 'Replier' : 'Lire l\'annonce' }}
+                    </button>
+                    <a *ngIf="offer.link" class="btn-ghost" [href]="offer.link" target="_blank"
+                        rel="noopener noreferrer">
+                        Voir sur France Travail <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                    <span class="spacer"></span>
+                    <button type="button" class="btn-solid" (click)="apply(offer)">
+                        En faire une candidature
+                    </button>
+                </footer>
+            </li>
+        </ul>
+
+        <div class="more" *ngIf="hasMore">
+            <button type="button" class="btn-ghost" (click)="more()" [disabled]="searching()">
+                {{ searching() ? 'Chargement…' : 'Afficher les suivantes' }}
+            </button>
+        </div>
+    </ng-container>
+
+    <!-- Favoris ----------------------------------------------------------- -->
+    <ng-container *ngIf="tab() === 'favorites'">
+        <div class="empty" *ngIf="favoriteCount() === 0">
+            <i class="fa-regular fa-bookmark"></i>
+            <p>
+                Rien de mis de côté pour l'instant. Le marque-page, sur un résultat, garde l'offre ici
+                sans créer de candidature.
+            </p>
+        </div>
+
+        <ul class="offer-list">
+            <li class="offer" *ngFor="let favorite of favorites()">
+                <div class="offer-head">
+                    <div class="offer-title">
+                        <h2>{{ favorite.title }}</h2>
+                        <p class="offer-company">
+                            {{ favorite.company ?? 'Employeur non communiqué' }}
+                            <span *ngIf="favorite.location"> · {{ favorite.location }}</span>
+                        </p>
+                    </div>
+                    <button type="button" class="fav-btn on" aria-label="Retirer des mises de côté"
+                        (click)="removeFavorite(favorite)">
+                        <i class="fa-solid fa-bookmark"></i>
+                    </button>
+                </div>
+
+                <ul class="offer-tags">
+                    <li *ngIf="favorite.contractType">{{ favorite.contractType }}</li>
+                    <li *ngIf="favorite.salary" class="salary">{{ favorite.salary }}</li>
+                    <li class="age">{{ favorite.source }}</li>
+                </ul>
+
+                <p class="offer-excerpt" *ngIf="favorite.excerpt">{{ favorite.excerpt }}</p>
+
+                <footer class="offer-actions">
+                    <a *ngIf="favorite.link" class="btn-ghost" [href]="favorite.link" target="_blank"
+                        rel="noopener noreferrer">
+                        Voir l'annonce <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                    <span class="spacer"></span>
+
+                    <span class="already" *ngIf="favorite.applicationId">
+                        <i class="fa-solid fa-circle-check"></i> Candidature créée
+                    </span>
+                    <button type="button" class="btn-solid" *ngIf="!favorite.applicationId"
+                        (click)="applyFromFavorite(favorite)">
+                        En faire une candidature
+                    </button>
+                </footer>
+            </li>
+        </ul>
+    </ng-container>
+</section>

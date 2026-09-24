@@ -84,6 +84,31 @@ export interface JobPosting {
     others?: string;
 }
 
+/**
+ * Offre mise de côté depuis l'écran de recherche.
+ *
+ * Ce n'est pas encore une candidature : rien n'a été envoyé, aucune
+ * entreprise n'est créée. On garde de quoi la retrouver, la comparer, et en
+ * faire une candidature d'un clic le moment venu.
+ */
+export interface FavoriteOffer {
+    /** Identifiant chez la source, pour ne pas enregistrer deux fois. */
+    sourceId: string;
+    /** « France Travail », par exemple. */
+    source: string;
+    title: string;
+    /** Absent quand l'employeur n'est pas communiqué. */
+    company?: string;
+    location?: string;
+    contractType?: string;
+    salary?: string;
+    link?: string;
+    excerpt?: string;
+    savedAt: string;
+    /** Renseigné dès qu'une candidature a été créée depuis ce favori. */
+    applicationId?: number;
+}
+
 export interface Application {
     id: number;
     campaignId: number;

@@ -472,9 +472,12 @@ function propHtml(html: string, name: string): string | undefined {
  */
 function parseText(text: string): ParsedOffer {
     const allLines = text.split(/\r?\n/).map(line => line.trim());
-    // Les règles de champ ignorent l'interface ; le découpage en sections, lui,
-    // a besoin de ces lignes pour savoir où l'annonce s'arrête.
-    const lines = allLines.filter(line => !isChromeLine(line));
+    // Les règles de champ ignorent l'interface et n'ont que faire des marques
+    // de titre ; le découpage en sections, lui, a besoin des deux pour savoir
+    // où l'annonce s'arrête et où chaque partie commence.
+    const lines = allLines
+        .map(line => line.startsWith(HEADING_MARK) ? line.slice(HEADING_MARK.length).trim() : line)
+        .filter(line => !isChromeLine(line));
     const body = lines.join('\n');
     const offer: ParsedOffer = {};
 
@@ -762,7 +765,8 @@ const SECTION_KEYS: { field: keyof JobPosting; keys: string[] }[] = [
         field: 'missions',
         keys: ['missions', 'vos missions', 'les missions', 'missions principales',
             'ce que vous ferez', 'votre role', 'activites', 'taches', 'descriptif du poste',
-            'vos futures missions', 'activites principales', 'vos activites']
+            'vos futures missions', 'activites principales', 'vos activites',
+            'les missions du poste', 'missions du poste', 'le poste et ses missions']
     },
     {
         field: 'profile',
@@ -771,25 +775,28 @@ const SECTION_KEYS: { field: keyof JobPosting; keys: string[] }[] = [
             'qualifications', 'vous etes', 'ce que nous recherchons', 'pre-requis',
             'prerequis', 'experience', 'savoir etre professionnels', 'savoirs etre professionnels',
             'formation', 'formations', 'permis', 'qualites', 'qualites requises',
-            'savoir etre', 'savoir faire', 'competences attendues']
+            'savoir etre', 'savoir faire', 'competences attendues',
+            'le profil recherche', 'profil du candidat', 'votre profil']
     },
     {
         field: 'benefits',
         keys: ['avantages', 'nos avantages', 'ce que nous offrons', 'nous vous proposons',
             'ce que nous vous offrons', 'remuneration et avantages', 'pourquoi nous rejoindre',
-            'remuneration', 'salaire et avantages', 'avantages sociaux', 'conditions et avantages']
+            'remuneration', 'salaire et avantages', 'avantages sociaux',
+            'conditions et avantages', 'les avantages', 'nos petits plus']
     },
     {
         field: 'recruitmentProcess',
         keys: ['processus de recrutement', 'process de recrutement', 'process',
-            'deroulement des entretiens', 'les etapes du recrutement', 'comment postuler']
+            'deroulement des entretiens', 'les etapes du recrutement', 'comment postuler',
+            'les etapes de recrutement', 'etapes de recrutement', 'le processus de recrutement']
     },
     {
         field: 'description',
         keys: ['description', 'description du poste', 'description de l offre',
             'le poste', 'a propos du poste', 'presentation', 'a propos',
             'l entreprise', 'entreprise', 'qui sommes nous', 'contexte',
-            'conditions de travail', 'informations complementaires']
+            'conditions de travail']
     }
 ];
 
@@ -845,7 +852,15 @@ const INLINE_HEADING = new RegExp(
     'gi'
 );
 
-/** Coupe une ligne en morceaux là où un titre de section apparaît. */
+/**
+ * Coupe une ligne en morceaux là où un titre de section apparaît.
+ *
+ * On exige les deux points. J'ai essayé de couper aussi devant une étiquette
+ * collée au mot précédent (« Votre profilFormation en secrétariat », tel que
+ * HelloWork l'écrit) : cela produisait des doubles deux-points et laissait
+ * passer les cas voisins. Le texte dense reste plus lisible qu'un texte
+ * découpé de travers.
+ */
 function splitInlineHeadings(line: string): string[] {
     INLINE_HEADING.lastIndex = 0;
     const pieces: string[] = [];
@@ -873,12 +888,25 @@ function splitSections(rawLines: string[], title?: string): JobPosting {
     let introClosed = false;
     const lines = rawLines.flatMap(line => splitInlineHeadings(line));
 
-    for (const line of lines) {
+    for (const rawLine of lines) {
+        const marked = rawLine.startsWith(HEADING_MARK);
+        const line = marked ? rawLine.slice(HEADING_MARK.length).trim() : rawLine;
+
         const field = headingField(line);
         if (field) {
             current = field;
             continue;
         }
+
+        // Un titre que je ne connais pas reste un titre : il ferme la section
+        // en cours plutôt que de s'y ajouter, et part dans « autres » avec son
+        // libellé, pour ne rien perdre.
+        if (marked && line && !isChromeLine(line)) {
+            current = 'others';
+            (buckets[current] ??= []).push(line + ' :');
+            continue;
+        }
+
         if (isChromeLine(line)) {
             // Tout ce qui suit un bouton, une fenêtre d'aide ou une mention de
             // liste de résultats ne fait plus partie de l'annonce.
@@ -1042,14 +1070,14 @@ function removeElements(html: string, matches: (tag: string, attrs: string) => b
         }
         out += html.slice(index, start);
 
-        const tag = /^<([a-zA-Z][\w-]*)([^>]*)>/.exec(html.slice(start));
+        const tag = readStartTag(html, start);
         if (!tag) {
             out += '<';
             index = start + 1;
             continue;
         }
 
-        const [whole, name, attrs] = tag;
+        const { whole, name, attrs } = tag;
         const lower = name.toLowerCase();
         const selfClosing = attrs.trimEnd().endsWith('/');
 
@@ -1062,6 +1090,37 @@ function removeElements(html: string, matches: (tag: string, attrs: string) => b
         index = start + whole.length;
     }
     return out;
+}
+
+/**
+ * Lit la balise ouvrante qui commence à `start`, en tenant compte des
+ * guillemets : un attribut peut contenir un chevron.
+ */
+function readStartTag(html: string, start: number): { whole: string; name: string; attrs: string } | null {
+    const name = /^<([a-zA-Z][\w-]*)/.exec(html.slice(start, start + 40));
+    if (!name) return null;
+
+    let cursor = start + name[0].length;
+    let quote = '';
+
+    while (cursor < html.length) {
+        const character = html[cursor];
+        if (quote) {
+            if (character === quote) quote = '';
+        } else if (character === '"' || character === '\'') {
+            quote = character;
+        } else if (character === '>') {
+            break;
+        }
+        cursor++;
+    }
+    if (cursor >= html.length) return null;
+
+    return {
+        whole: html.slice(start, cursor + 1),
+        name: name[1],
+        attrs: html.slice(start + name[0].length, cursor)
+    };
 }
 
 /** Position juste après la balise de fermeture correspondante. */
@@ -1095,6 +1154,13 @@ const CHROME_MARKERS = [
     'retour aux resultats', 'postuler a cette offre', 'accueil'
 ];
 
+/**
+ * Marque posée devant les titres de l'annonce lors de la mise à plat du
+ * HTML. Elle ne survit pas dans le texte rendu : elle sert seulement au
+ * découpage en sections.
+ */
+const HEADING_MARK = '§§';
+
 /** Vrai si la ligne relève de l'interface du site, pas de l'annonce. */
 function isChromeLine(line: string): boolean {
     const key = fold(line).replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
@@ -1106,13 +1172,15 @@ function isChromeLine(line: string): boolean {
 function toPlainText(raw: string): string {
     if (!/<[a-z!/][\s\S]*>/i.test(raw)) return raw;
 
-    return raw
+    return stripTags(raw
         .replace(/<script[\s\S]*?<\/script>/gi, '')
         .replace(/<style[\s\S]*?<\/style>/gi, '')
         .replace(/<br\s*\/?>/gi, '\n')
+        // Un titre reste reconnaissable après la mise à plat : c'est lui qui
+        // délimite les sections de l'annonce.
+        .replace(/<h[1-6][^>]*>/gi, '\n' + HEADING_MARK + ' ')
         .replace(/<\/(p|div|li|h[1-6]|tr|section|ul|ol)>/gi, '\n')
-        .replace(/<li[^>]*>/gi, '- ')
-        .replace(/<[^>]+>/g, '')
+        .replace(/<li[^>]*>/gi, '- '))
         .replace(/&nbsp;/gi, ' ')
         .replace(/&amp;/gi, '&')
         .replace(/&lt;/gi, '<')
@@ -1124,6 +1192,45 @@ function toPlainText(raw: string): string {
         .replace(/[ \t]+/g, ' ')
         .replace(/\n{3,}/g, '\n\n')
         .trim();
+}
+
+/**
+ * Retire les balises sans se laisser piéger par les guillemets.
+ *
+ * Un attribut peut contenir un chevron — `data-action="click->menu#toggle"`
+ * est courant sur les sites modernes. Une expression régulière naïve s'arrête
+ * alors au chevron de l'attribut et laisse le reste de la balise passer pour
+ * du texte : on a vu ainsi des noms de classes CSS arriver dans la
+ * description d'une annonce.
+ */
+function stripTags(html: string): string {
+    let out = '';
+    let index = 0;
+
+    while (index < html.length) {
+        const start = html.indexOf('<', index);
+        if (start < 0) {
+            out += html.slice(index);
+            break;
+        }
+        out += html.slice(index, start);
+
+        let cursor = start + 1;
+        let quote = '';
+        while (cursor < html.length) {
+            const character = html[cursor];
+            if (quote) {
+                if (character === quote) quote = '';
+            } else if (character === '"' || character === '\'') {
+                quote = character;
+            } else if (character === '>') {
+                break;
+            }
+            cursor++;
+        }
+        index = cursor + 1;
+    }
+    return out;
 }
 
 /** Sans accents, en minuscules : pour comparer des libellés. */

@@ -7,6 +7,7 @@ import {
     CampaignOutcome,
     Company,
     Contact,
+    FavoriteOffer,
     INTERVIEW_LABELS,
     InterviewKind,
     JobPosting,
@@ -159,7 +160,8 @@ export class JobSearchStore {
                 companies: [...current.companies],
                 contacts: [...current.contacts],
                 applications: [...current.applications],
-                tasks: [...current.tasks]
+                tasks: [...current.tasks],
+                favorites: [...(current.favorites ?? [])]
             };
             mutate(next);
             return next;
@@ -186,6 +188,45 @@ export class JobSearchStore {
         if (patch.fullName) {
             void this.auth.updateDisplayName(patch.fullName);
         }
+    }
+
+    // ------------------------------------------------------------ favoris
+
+    /** Les offres mises de côté, la plus récente d'abord. */
+    favorites = computed<FavoriteOffer[]>(() =>
+        [...(this.data()?.favorites ?? [])]
+            .sort((a, b) => b.savedAt.localeCompare(a.savedAt))
+    );
+
+    isFavorite(sourceId: string): boolean {
+        return this.favorites().some(entry => entry.sourceId === sourceId);
+    }
+
+    /** Met une offre de côté. Deux fois la même ne fait qu'une. */
+    addFavorite(offer: Omit<FavoriteOffer, 'savedAt'>): void {
+        if (this.isFavorite(offer.sourceId)) return;
+
+        this.commit(data => {
+            data.favorites = [
+                ...data.favorites,
+                { ...offer, savedAt: new Date().toISOString() }
+            ];
+        });
+    }
+
+    removeFavorite(sourceId: string): void {
+        this.commit(data => {
+            data.favorites = data.favorites.filter(entry => entry.sourceId !== sourceId);
+        });
+    }
+
+    /** Relie un favori à la candidature qui en est née. */
+    linkFavorite(sourceId: string, applicationId: number): void {
+        this.commit(data => {
+            data.favorites = data.favorites.map(entry =>
+                entry.sourceId === sourceId ? { ...entry, applicationId } : entry
+            );
+        });
     }
 
     /** Objectif hebdomadaire : porté par la campagne, pas par le profil. */
